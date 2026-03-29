@@ -119,9 +119,9 @@ const settingsSchema = new mongoose.Schema({
 });
 
 const orderSchema = new mongoose.Schema({
-  customerName: { type: String, required: true },
-  phone:        { type: String, required: true },
-  address:      { type: String, required: true },
+  customerName: { type: String, default: '' },
+  phone:        { type: String, default: '' },
+  address:      { type: String, default: '' },
   items: [{
     productId: String,
     name:      String,
@@ -129,7 +129,7 @@ const orderSchema = new mongoose.Schema({
     quantity:  Number,
     img:       String,
   }],
-  total:     { type: Number, required: true },
+  total:     { type: Number, default: 0 },
   status:    { type: String, default: 'pending', enum: ['pending','processing','shipped','delivered','cancelled'] },
   note:      { type: String, default: '' },
   createdAt: { type: Date, default: Date.now },
@@ -425,12 +425,89 @@ app.delete('/api/admin/users/:id', adminMiddleware, async (req, res) => {
 
 // ===== ORDER ROUTES =====
 
+// ===== ORDER DEBUG (temporary — frontend কী পাঠাচ্ছে দেখার জন্য) =====
+app.post('/api/orders/debug', (req, res) => {
+  console.log('ORDER DEBUG body:', JSON.stringify(req.body, null, 2));
+  res.json({ success: true, received: req.body });
+});
+
 app.post('/api/orders', async (req, res) => {
   try {
-    const { customerName, phone, address, items, total, note } = req.body;
-    const order = await Order.create({ customerName, phone, address, items, total, note });
-    res.json({ success: true, data: order, message: 'অর্ডার সফলভাবে দেওয়া হয়েছে' });
-  } catch (e) { res.json({ success: false, message: e.message }); }
+    const b = req.body;
+
+    // ফ্রন্টএন্ড যেকোনো field name দিয়ে পাঠাক — সব handle করা হচ্ছে
+    const customerName =
+      b.customerName || b.customer_name || b.name || b.fullName ||
+      b.full_name || b.userName || b.user_name || b.buyerName || '';
+
+    const phone =
+      b.phone || b.mobile || b.phoneNumber || b.phone_number ||
+      b.mobileNumber || b.mobile_number || b.contact || b.number || '';
+
+    const address =
+      b.address || b.shippingAddress || b.shipping_address ||
+      b.deliveryAddress || b.delivery_address || b.location || '';
+
+    const note =
+      b.note || b.notes || b.message || b.orderNote || b.order_note || '';
+
+    // items — array or JSON string
+    let items = b.items || b.cartItems || b.cart || b.products || [];
+    if (typeof items === 'string') {
+      try { items = JSON.parse(items); } catch { items = []; }
+    }
+
+    // total — calculate from items if not provided
+    let total = parseFloat(b.total || b.totalPrice || b.total_price ||
+      b.amount || b.grandTotal || b.grand_total || 0);
+
+    if (!total && items.length) {
+      total = items.reduce((sum, item) => {
+        const price = parseFloat(item.price || item.unitPrice || 0);
+        const qty   = parseInt(item.quantity || item.qty || 1, 10);
+        return sum + price * qty;
+      }, 0);
+    }
+
+    // Validation — বাংলায় error দাও
+    const errors = [];
+    if (!customerName) errors.push('গ্রাহকের নাম দিন');
+    if (!phone)        errors.push('ফোন নম্বর দিন');
+    if (!address)      errors.push('ঠিকানা দিন');
+    if (!total)        errors.push('মোট মূল্য পাওয়া যায়নি');
+
+    if (errors.length) {
+      return res.json({ success: false, message: errors.join(', ') });
+    }
+
+    // items normalize
+    const normalizedItems = items.map(item => ({
+      productId: item.productId || item.product_id || item._id || item.id || '',
+      name:      item.name || item.productName || item.product_name || item.title || '',
+      price:     parseFloat(item.price || item.unitPrice || 0),
+      quantity:  parseInt(item.quantity || item.qty || 1, 10),
+      img:       item.img || item.image || item.thumbnail || item.photo || '',
+    }));
+
+    const order = await Order.create({
+      customerName,
+      phone,
+      address,
+      items: normalizedItems,
+      total,
+      note,
+      status: 'pending',
+    });
+
+    res.json({
+      success: true,
+      data: order,
+      message: 'অর্ডার সফলভাবে দেওয়া হয়েছে! আমরা শীঘ্রই যোগাযোগ করব।',
+      orderId: order._id,
+    });
+  } catch (e) {
+    res.json({ success: false, message: e.message });
+  }
 });
 
 app.get('/api/admin/orders', adminMiddleware, async (req, res) => {

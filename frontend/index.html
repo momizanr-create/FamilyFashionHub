@@ -322,6 +322,15 @@
       from { opacity: 0; transform: scale(0.95); }
       to { opacity: 1; transform: scale(1); }
     }
+
+    /* Success Popup animation */
+    #successPopup:not(.invisible) #successPopupBox {
+      animation: successBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes successBounce {
+      0%   { opacity: 0; transform: scale(0.7) translateY(30px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
     
     .go-top { 
       transition: 0.2s; 
@@ -2905,12 +2914,34 @@
   </div>
 
   <!-- সাকসেস পপ-আপ -->
-  <div id="successPopup" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] flex items-center justify-center invisible opacity-0 transition-all">
-    <div class="bg-white max-w-md w-full rounded-2xl p-8 text-center popup-scale">
-      <div class="text-green-500 text-6xl mb-4">✓</div>
-      <h3 class="text-2xl font-bold mb-2">অর্ডার সফল হয়েছে!</h3>
-      <p class="text-gray-600 mb-6">আপনার অর্ডারটি গ্রহণ করা হয়েছে। পণ্য শীঘ্রই পৌঁছে যাবে।</p>
-      <button id="closeSuccessBtn" class="bg-green-600 text-white px-8 py-3 rounded-lg font-medium">ঠিক আছে</button>
+  <div id="successPopup" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center invisible opacity-0 transition-all p-4">
+    <div class="bg-white max-w-sm w-full rounded-3xl p-8 text-center shadow-2xl" style="animation: none;" id="successPopupBox">
+      <!-- Animated checkmark -->
+      <div style="width:80px;height:80px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:40px;">
+        ✅
+      </div>
+      <h3 style="font-size:22px;font-weight:800;color:#14532d;margin-bottom:8px;">অর্ডার সফল হয়েছে!</h3>
+      <p style="font-size:14px;color:#6b7280;margin-bottom:20px;line-height:1.6;">আপনার অর্ডারটি সফলভাবে গ্রহণ করা হয়েছে।<br>আমরা শীঘ্রই আপনার সাথে যোগাযোগ করব।</p>
+
+      <!-- Order details box -->
+      <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:14px 16px;margin-bottom:20px;text-align:left;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <span style="font-size:12px;color:#6b7280;">অর্ডার নম্বর</span>
+          <span id="successOrderId" style="font-size:13px;font-weight:700;color:#15803d;letter-spacing:0.5px;"></span>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:12px;color:#6b7280;">যোগাযোগ</span>
+          <span id="successPhone" style="font-size:13px;font-weight:600;color:#374151;"></span>
+        </div>
+      </div>
+
+      <p style="font-size:12px;color:#9ca3af;margin-bottom:20px;">📦 ডেলিভারি সাধারণত ৩-৫ কার্যদিবসের মধ্যে হয়</p>
+
+      <button id="closeSuccessBtn"
+        style="width:100%;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;transition:opacity 0.2s;"
+        onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+        ✓ &nbsp; ঠিক আছে, ধন্যবাদ!
+      </button>
     </div>
   </div>
 
@@ -4599,14 +4630,18 @@ else if (product.category === 'artificial-flowers') catName = 'Artificial Flower
           
           const orderData = {
             customerName: nameVal,
-            customerPhone: phoneVal,
-            customerAddress: addressVal,
+            phone: phoneVal,
+            address: addressVal,
             deliveryArea,
             items: cart.map(i => ({ productId: String(i.id), name: i.name, price: i.price, quantity: i.quantity, img: i.img, category: i.category||'' })),
             subtotal, total,
-            notes: document.getElementById('orderNote')?.value || '',
+            note: document.getElementById('orderNote')?.value || '',
           };
-          
+
+          // Submit button disable করো
+          const submitBtn = paymentForm.querySelector('button[type="submit"]');
+          if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'অর্ডার দেওয়া হচ্ছে...'; }
+
           try {
             const API = window.FFH_API || 'https://familyfashionhub-backend.onrender.com/api';
             const res = await fetch(API + '/orders', {
@@ -4616,23 +4651,28 @@ else if (product.category === 'artificial-flowers') catName = 'Artificial Flower
             });
             const data = await res.json();
             if (data.success) {
-              // অর্ডার সফল
+              // Payment modal বন্ধ করো
               paymentModal.classList.add('invisible', 'opacity-0');
-              successPopup.classList.remove('invisible', 'opacity-0');
-              // Order ID দেখান যদি element থাকে
+              // Success popup-এ Order ID ও phone দেখাও
+              const orderId = data.orderId || data.data?._id || '';
               const oidEl = document.getElementById('successOrderId');
-              if (oidEl) oidEl.textContent = data.data.orderId;
-              // কার্ট খালি করুন
+              if (oidEl) oidEl.textContent = orderId ? '#' + orderId.slice(-8).toUpperCase() : '';
+              const phoneEl = document.getElementById('successPhone');
+              if (phoneEl) phoneEl.textContent = phoneVal;
+              // Success popup দেখাও
+              successPopup.classList.remove('invisible', 'opacity-0');
+              // কার্ট খালি করো
               cart = [];
               updateCartUI();
             } else {
-              alert('অর্ডার দেওয়া সম্ভব হয়নি: ' + (data.message || 'সার্ভার ত্রুটি'));
+              alert('অর্ডার দেওয়া সম্ভব হয়নি:\n' + (data.message || 'সার্ভার ত্রুটি'));
             }
           } catch(err) {
-            // API unavailable — show success anyway (offline mode)
-            paymentModal.classList.add('invisible', 'opacity-0');
-            successPopup.classList.remove('invisible', 'opacity-0');
+            console.error('Order error:', err);
+            alert('সার্ভারের সাথে সংযোগ হচ্ছে না। আবার চেষ্টা করুন।');
           }
+
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'অর্ডার দিন'; }
         });
 
         document.getElementById('viewCartBtn').addEventListener('click', () => {
