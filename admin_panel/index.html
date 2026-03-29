@@ -683,16 +683,17 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
       </div>
       <div class="settings-section">
         <div class="settings-section-title"><i class="fas fa-database" style="color:var(--cyan);margin-right:8px;"></i>ডেটা সিড</div>
-        <p style="font-size:13px;color:var(--text3);margin-bottom:6px;">প্রথমবার ব্যবহারের জন্য ফ্রন্টএন্ডের সকল পণ্য ও ক্যাটাগরি ডেটাবেজে যোগ করুন।</p>
-        <div style="background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:8px;padding:12px;margin-bottom:14px;">
-          <p style="font-size:12px;color:var(--accent3);margin-bottom:4px;font-weight:600;">এতে যা যোগ হবে (index.html থেকে নেওয়া):</p>
-          <p style="font-size:12px;color:var(--text2);">11 ক্যাটাগরি: Baby Shoes, Baby Toys, Womens Cosmetics, Gold Plate, Indoor Plants, Artificial Flowers, Baby Dress, Feeding Items, Baby Care, Essentials, Trending</p>
-          <p style="font-size:12px;color:var(--text2);margin-top:4px;">24 পণ্য — ছবি, দাম, বিবরণ, সেল/স্টকআউট সব তথ্যসহ</p>
-          <p style="font-size:12px;color:var(--yellow);margin-top:4px;">পণ্য যোগ হলে ফ্রন্টএন্ডে সাথে সাথে দেখা যাবে</p>
+        <p style="font-size:13px;color:var(--text3);margin-bottom:12px;">প্রথমবার ব্যবহারের জন্য ডিফল্ট ক্যাটাগরি তৈরি করুন। পণ্য অ্যাডমিন প্যানেল থেকে যোগ করতে হবে।</p>
+        <div style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:8px;padding:12px;margin-bottom:14px;">
+          <p style="font-size:12px;color:#4ade80;margin-bottom:6px;font-weight:600;"><i class="fas fa-info-circle"></i> গুরুত্বপূর্ণ তথ্য:</p>
+          <p style="font-size:12px;color:var(--text2);">✅ <strong>ডিফল্ট ক্যাটাগরি সিড:</strong> ৮টি ক্যাটাগরি তৈরি হবে (শাড়ি, থ্রি-পিস, কামিজ, পাঞ্জাবি, কিডস, লেহেঙ্গা, কুর্তি, বোরখা)</p>
+          <p style="font-size:12px;color:var(--text2);margin-top:6px;">⚠️ <strong>পণ্য:</strong> ফ্রন্টএন্ডে ডিফল্টভাবে কোনো পণ্য নেই। "পণ্য" মেনু থেকে যোগ করুন।</p>
+          <p style="font-size:12px;color:var(--text2);margin-top:6px;">⚠️ <strong>স্লাইডার:</strong> "স্লাইডার" মেনু থেকে ব্যানার যোগ করুন।</p>
+          <p style="font-size:12px;color:var(--yellow);margin-top:6px;"><i class="fas fa-star"></i> রিভিউ যোগ ও অনুমোদন "রিভিউ" মেনু থেকে করুন।</p>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="btn btn-ghost btn-sm" onclick="seedAdmin()"><i class="fas fa-user-shield"></i> Admin Seed</button>
-          <button class="btn btn-primary btn-sm" onclick="seedAll()"><i class="fas fa-seedling"></i> Full Seed — ফ্রন্টএন্ডের সব পণ্য যোগ করুন</button>
+          <button class="btn btn-ghost btn-sm" onclick="seedAdmin()"><i class="fas fa-user-shield"></i> Admin অ্যাকাউন্ট তৈরি</button>
+          <button class="btn btn-primary btn-sm" onclick="seedAll()"><i class="fas fa-seedling"></i> ডিফল্ট ক্যাটাগরি তৈরি করুন</button>
         </div>
       </div>
       <button class="btn btn-success" onclick="saveSettings()"><i class="fas fa-save"></i> সেটিংস সংরক্ষণ করুন</button>
@@ -1492,55 +1493,19 @@ async function seedAdmin(){
 async function seedAll(){
   const btn=event.target;btn.disabled=true;btn.innerHTML='<span class="loading-spinner"></span> সিড হচ্ছে...';
 
-  // ===== index.html থেকে নেওয়া আসল পণ্যের ডেটা =====
+  // ===== ডিফল্ট ক্যাটাগরি (পণ্য নেই — সব অ্যাডমিন থেকে যোগ করতে হবে) =====
   const frontendCategories = [
-    { name:'Baby Shoes', slug:'baby-shoes', description:'শিশুর জন্য আরামদায়ক ও নিরাপদ জুতার সংগ্রহ', sortOrder:1 },
-    { name:'Baby Toys', slug:'baby-toys', description:'শিশুর মানসিক বিকাশে সহায়ক মজাদার খেলনা', sortOrder:2 },
-    { name:"Women's Cosmetics", slug:'women-cosmetics', description:'প্রাকৃতিক উপাদানে তৈরি বিউটি প্রোডাক্ট', sortOrder:3 },
-    { name:'Gold Plate Items', slug:'gold-plate', description:'মার্জিত গোল্ড প্লেটেড গহনার সংগ্রহ', sortOrder:4 },
-    { name:'Indoor Plants', slug:'indoor-plants', description:'ঘর সাজানো ও বায়ু বিশুদ্ধকারী গাছের সংগ্রহ', sortOrder:5 },
-    { name:'Artificial Flowers', slug:'artificial-flowers', description:'চিরন্তন সুন্দর কৃত্রিম ফুলের সংগ্রহ', sortOrder:6 },
-    { name:'Baby Dress', slug:'baby-dress', description:'শিশুর জন্য নরম ও আরামদায়ক পোশাক', sortOrder:7 },
-    { name:'Feeding Items', slug:'feeding-bottles', description:'শিশুর খাওয়ানোর জন্য নিরাপদ পণ্য সংগ্রহ', sortOrder:8 },
-    { name:'Baby Care', slug:'daily-care', description:'শিশুর দৈনন্দিন যত্নের পণ্য সংগ্রহ', sortOrder:9 },
-    { name:'Essentials', slug:'baby-essentials', description:'শিশুর প্রয়োজনীয় সব পণ্য', sortOrder:10 },
-    { name:'Trending', slug:'trending', description:'ট্রেন্ডিং পণ্য সংগ্রহ', sortOrder:11 },
+    { name:'শাড়ি', slug:'saree', description:'সুন্দর ও বৈচিত্র্যময় শাড়ির কালেকশন', sortOrder:1 },
+    { name:'থ্রি-পিস', slug:'three-piece', description:'মহিলাদের থ্রি-পিস কালেকশন', sortOrder:2 },
+    { name:'কামিজ ও সালোয়ার', slug:'kamiz-salwar', description:'সালোয়ার কামিজ কালেকশন', sortOrder:3 },
+    { name:'পাঞ্জাবি', slug:'panjabi', description:'ছেলেদের পাঞ্জাবি কালেকশন', sortOrder:4 },
+    { name:'কিডস কালেকশন', slug:'kids', description:'ছেলে ও মেয়ে শিশুদের পোশাক', sortOrder:5 },
+    { name:'লেহেঙ্গা', slug:'lehenga', description:'বিশেষ অনুষ্ঠানের জন্য লেহেঙ্গা', sortOrder:6 },
+    { name:'কুর্তি', slug:'kurti', description:'কুর্তি কালেকশন', sortOrder:7 },
+    { name:'বোরখা ও হিজাব', slug:'borka-hijab', description:'বোরখা, হিজাব ও আবায়া কালেকশন', sortOrder:8 },
   ];
 
-  const frontendProducts = [
-    // Baby Shoes
-    { name:'নরম Baby Shoes - নীল রঙ', price:450, oldPrice:600, saving:150, category:'baby-shoes', description:'আরামদায়ক এবং নরম Baby Shoes। শিশুর পায়ের জন্য নিরাপদ উপকরণ দিয়ে তৈরি। সহজে পরা যায় এবং খুলে যায় না।', onSale:true, soldOut:false, featured:true, stock:30, img:'https://images.unsplash.com/photo-1519457073994-14ae0a084e7f?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
-    { name:'বেবি স্পোর্টস শু - লাল', price:520, oldPrice:700, saving:180, category:'baby-shoes', description:'খেলাধুলার জন্য বিশেষভাবে ডিজাইন করা বেবি শু। হালকা ওজনের এবং ট্রেন্ডি ডিজাইন।', onSale:true, soldOut:false, stock:25, img:'https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
-    { name:'বেবি ওয়াকিং শু - গোলাপী', price:380, oldPrice:500, saving:120, category:'baby-shoes', description:'শিশুর প্রথম ধাপের জন্য পারফেক্ট শু। নরম সোল এবং উচ্চমানের ম্যাটেরিয়াল।', onSale:false, soldOut:false, stock:40, img:'https://images.unsplash.com/photo-1494341990857-2b10bb626166?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
-    { name:'বেবি ক্লোজড টু সু - সাদা', price:400, oldPrice:550, saving:150, category:'baby-shoes', description:'মসৃণ এবং টেকসই Baby Shoes। ঘরের বাইরে খেলার জন্য আদর্শ।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1525966222134-fcb0b60dbf60?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-    // Baby Toys
-    { name:'রেইনবো ডেনসিটি চেইন', price:350, oldPrice:500, saving:150, category:'baby-toys', description:'রঙিন এবং মজাদার Baby Toys। শিশুর দক্ষতা বৃদ্ধিতে সহায়ক।', onSale:true, soldOut:false, featured:true, stock:35, img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
-    { name:'সফট বেবি রেটল', price:280, oldPrice:400, saving:120, category:'baby-toys', description:'মসৃণ এবং নিরাপদ বেবি রেটল। শব্দ এবং অনুভূতি সৃষ্টি করে।', onSale:true, soldOut:false, stock:50, img:'https://images.unsplash.com/photo-1577720643272-265f434885cb?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
-    { name:'টিথিং রিং Toys', price:250, oldPrice:350, saving:100, category:'baby-toys', description:'দাঁত উঠার সময়ের জন্য বিশেষ Toys। নিরাপদ এবং রাসায়নিকমুক্ত।', onSale:false, soldOut:false, stock:60, img:'https://images.unsplash.com/photo-1585314662646-f8c7d9e5f5b5?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
-    { name:'মাল্টি কালার বিলড ব্লক', price:420, oldPrice:600, saving:180, category:'baby-toys', description:'শিশুর সৃজনশীলতা বৃদ্ধির জন্য ব্লক সেট। বিভিন্ন আকার এবং রঙের ব্লক।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-    // Women's Cosmetics
-    { name:'ন্যাচারাল লিপস্টিক - রেড', price:380, oldPrice:500, saving:120, category:'women-cosmetics', description:'প্রাকৃতিক উপাদান দিয়ে তৈরি লিপস্টিক। দীর্ঘস্থায়ী এবং সুন্দর রঙ।', onSale:true, soldOut:false, featured:true, stock:45, img:'https://images.unsplash.com/photo-1506925925274-1a9fa7a7bcfd?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
-    { name:'বিউটি ফেসপ্যাক সেট', price:650, oldPrice:850, saving:200, category:'women-cosmetics', description:'সম্পূর্ণ ত্বকের যত্ন কসমেটিক সেট। সব ধরনের ত্বকের জন্য উপযুক্ত।', onSale:true, soldOut:false, stock:30, img:'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
-    { name:'আই শ্যাডো প্যালেট', price:520, oldPrice:700, saving:180, category:'women-cosmetics', description:'সুন্দর রঙের কালেকশন। পেশাদার ফলাফলের জন্য।', onSale:false, soldOut:false, stock:25, img:'https://images.unsplash.com/photo-1596050112169-971882deef3d?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
-    { name:'নেইল পলিশ কালেকশন - ৫ রঙ', price:450, oldPrice:600, saving:150, category:'women-cosmetics', description:'বৈচিত্র্যময় রঙের নেইল পলিশ সেট। দীর্ঘস্থায়ী ফলাফল।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-    // Gold Plate Items
-    { name:'গোল্ড প্লেটেড ব্রেসলেট', price:850, oldPrice:1200, saving:350, category:'gold-plate', description:'মার্জিত গোল্ড প্লেটেড ব্রেসলেট। বিশেষ অনুষ্ঠানের জন্য আদর্শ।', onSale:true, soldOut:false, featured:true, stock:20, img:'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
-    { name:'গোল্ড প্লেটেড নেকলেস', price:1200, oldPrice:1600, saving:400, category:'gold-plate', description:'শানদার গোল্ড প্লেটেড নেকলেস। ঐতিহ্যবাহী ডিজাইন।', onSale:true, soldOut:false, stock:15, img:'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
-    { name:'গোল্ড প্লেটেড রিং সেট', price:680, oldPrice:900, saving:220, category:'gold-plate', description:'সুন্দর রিং সেট। বিভিন্ন ডিজাইন অন্তর্ভুক্ত।', onSale:false, soldOut:false, stock:30, img:'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
-    { name:'গোল্ড প্লেটেড ইয়ারিংস', price:520, oldPrice:700, saving:180, category:'gold-plate', description:'মার্জিত ইয়ারিংস সেট। সব আকার উপলব্ধ।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-    // Indoor Plants
-    { name:'অর্কিড গাছ (পাত্রসহ)', price:1200, oldPrice:1500, saving:300, category:'indoor-plants', description:'সুন্দর অর্কিড ফুল গাছ। ঘরকে সাজায় এবং বায়ু বিশুদ্ধ করে।', onSale:true, soldOut:false, featured:true, stock:18, img:'https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
-    { name:'স্পাইডার প্ল্যান্ট', price:350, oldPrice:500, saving:150, category:'indoor-plants', description:'সহজে যত্নযোগ্য ইনডোর গাছ। বায়ু পরিশোধনে দারুণ।', onSale:true, soldOut:false, stock:40, img:'https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
-    { name:'পটস সহ পটহোস গাছ', price:280, oldPrice:400, saving:120, category:'indoor-plants', description:'সুন্দর ঝুলন্ত গাছ। পরিবারের সকলের জন্য নিরাপদ।', onSale:false, soldOut:false, stock:55, img:'https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
-    { name:'মানি প্ল্যান্ট সেট', price:420, oldPrice:600, saving:180, category:'indoor-plants', description:'সৌভাগ্যের প্রতীক মানি প্ল্যান্ট। সুন্দর পাত্রে।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-    // Artificial Flowers
-    { name:'সিল্ক রোজ বুকে', price:650, oldPrice:900, saving:250, category:'artificial-flowers', description:'সুন্দর কৃত্রিম ফুলের তোড়া। কখনো ঝরে না।', onSale:true, soldOut:false, featured:true, stock:35, img:'https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
-    { name:'Artificial Flowers ভেস সেট', price:780, oldPrice:1100, saving:320, category:'artificial-flowers', description:'সুন্দর ফুলের ভেস সেট। ঘর সাজানোর জন্য আদর্শ।', onSale:true, soldOut:false, stock:28, img:'https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
-    { name:'মিক্স ফ্লাওয়ার অ্যারেঞ্জমেন্ট', price:520, oldPrice:700, saving:180, category:'artificial-flowers', description:'বৈচিত্র্যময় কৃত্রিম ফুলের সাজসজ্জা। যেকোনো কক্ষের জন্য।', onSale:false, soldOut:false, stock:22, img:'https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
-    { name:'সিল্ক ফ্লাওয়ার গ্যারল্যান্ড', price:450, oldPrice:600, saving:150, category:'artificial-flowers', description:'অনুষ্ঠান সাজানোর জন্য ফুলের মালা। সম্পূর্ণ প্লাস্টিক মুক্ত।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-  ];
-
-  // ---- Step 1: Categories তৈরি করো ----
+  // ---- ক্যাটাগরি তৈরি করো (পণ্য নেই — অ্যাডমিন থেকে যোগ করতে হবে) ----
   let catCreated=0, catSkipped=0;
   toast('ক্যাটাগরি তৈরি হচ্ছে...','info');
   for(const cat of frontendCategories){
@@ -1551,26 +1516,10 @@ async function seedAll(){
     }catch{catSkipped++;}
   }
 
-  // ---- Step 2: Products তৈরি করো ----
-  let prodCreated=0, prodSkipped=0;
-  toast('পণ্য তৈরি হচ্ছে...','info');
-  for(const prod of frontendProducts){
-    try{
-      const fd=new FormData();
-      Object.entries(prod).forEach(([k,v])=>{
-        if(k==='images')return;
-        fd.append(k,String(v));
-      });
-      fd.append('isActive','true');
-      const r=await fetch(`${API}/admin/products`,{method:'POST',headers:{'Authorization':'Bearer '+adminToken},body:fd});
-      const d=await r.json();
-      if(d.success)prodCreated++;else prodSkipped++;
-    }catch{prodSkipped++;}
-  }
-
-  toast(`✅ সম্পন্ন! ${catCreated} ক্যাটাগরি, ${prodCreated} পণ্য তৈরি হয়েছে।${catSkipped+prodSkipped>0?' ('+( catSkipped+prodSkipped)+' টি আগে থেকেই ছিল)':''}`, 'success');
+  toast(`✅ সম্পন্ন! ${catCreated}টি ক্যাটাগরি তৈরি হয়েছে। এখন "পণ্য" সেকশনে গিয়ে পণ্য যোগ করুন।`, 'success');
   loadCategories();
-  btn.disabled=false;btn.innerHTML='<i class="fas fa-seedling"></i> Full Seed (Categories + Products)';
+  loadCategoriesTable();
+  btn.disabled=false;btn.innerHTML='<i class="fas fa-seedling"></i> ডিফল্ট ক্যাটাগরি তৈরি করুন';
 }
 
 // ====== IMAGE HELPERS ======
