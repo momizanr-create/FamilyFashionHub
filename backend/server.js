@@ -10,8 +10,28 @@ require('dotenv').config();
 
 const app = express();
 
-// ===== MIDDLEWARE =====
-app.use(cors());
+// ===== CORS CONFIG =====
+// Frontend ও Admin উভয় URL থেকে request গ্রহণ করবে
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  process.env.ADMIN_URL,
+  'http://localhost:3000',
+  'http://localhost:5173',
+  'http://localhost:5174',
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Postman বা server-to-server এর জন্য origin নাও থাকতে পারে
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('CORS policy: এই origin অনুমোদিত নয়: ' + origin));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -22,8 +42,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ===== MULTER — memory storage (disk বা CloudinaryStorage লাগবে না) =====
-const upload = multer({ storage: multer.memoryStorage() });
+// ===== MULTER — memory storage =====
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // max 10MB
+});
 
 // ===== CLOUDINARY UPLOAD HELPER =====
 function uploadToCloudinary(buffer, folder) {
@@ -45,8 +68,12 @@ async function uploadMultiple(files, folder) {
 
 // ===== MONGODB CONNECTION =====
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB Connected'))
-  .catch(err => console.error('MongoDB Error:', err));
+  .then(() => {
+    console.log('✅ MongoDB Connected');
+    // DB connect হওয়ার পর auto admin setup চেক করো
+    autoSetupAdmin();
+  })
+  .catch(err => console.error('❌ MongoDB Error:', err));
 
 // ===== SCHEMAS =====
 
@@ -112,6 +139,37 @@ const Review   = mongoose.model('Review',   reviewSchema);
 const User     = mongoose.model('User',     userSchema);
 const Settings = mongoose.model('Settings', settingsSchema);
 const Order    = mongoose.model('Order',    orderSchema);
+
+// ===== AUTO ADMIN SETUP =====
+// .env-এর ADMIN_USERNAME ও ADMIN_PASSWORD দিয়ে স্বয়ংক্রিয়ভাবে admin তৈরি করবে
+async function autoSetupAdmin() {
+  try {
+    const adminPhone = process.env.ADMIN_USERNAME; // username হিসেবে phone ব্যবহার
+    const adminPass  = process.env.ADMIN_PASSWORD;
+
+    if (!adminPhone || !adminPass) {
+      console.log('⚠️  ADMIN_USERNAME বা ADMIN_PASSWORD .env-এ নেই — auto setup স্কিপ');
+      return;
+    }
+
+    const existing = await User.findOne({ phone: adminPhone, role: 'admin' });
+    if (existing) {
+      console.log('ℹ️  Admin ইতিমধ্যে আছে:', adminPhone);
+      return;
+    }
+
+    const hashed = await bcrypt.hash(adminPass, 10);
+    await User.create({
+      name:     'Super Admin',
+      phone:    adminPhone,
+      password: hashed,
+      role:     'admin',
+    });
+    console.log('✅ Auto Admin তৈরি হয়েছে — Phone/Username:', adminPhone);
+  } catch (err) {
+    console.error('❌ Auto admin setup error:', err.message);
+  }
+}
 
 // ===== AUTH HELPERS =====
 const JWT_SECRET = process.env.JWT_SECRET || 'ffh_secret_2024';
@@ -299,9 +357,33 @@ app.post('/api/users/login', async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
+// Admin Login — phone অথবা ADMIN_USERNAME দিয়ে login করা যাবে
 app.post('/api/admin/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
+
+    // প্রথমে .env-এর ADMIN_USERNAME দিয়ে চেক করো
+    if (
+      phone === process.env.ADMIN_USERNAME &&
+      password === process.env.ADMIN_PASSWORD
+    ) {
+      // DB-তে এই admin খোঁজো
+      let user = await User.findOne({ phone: process.env.ADMIN_USERNAME, role: 'admin' });
+      if (!user) {
+        // না থাকলে এখনই তৈরি করো
+        const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+        user = await User.create({
+          name: 'Super Admin',
+          phone: process.env.ADMIN_USERNAME,
+          password: hashed,
+          role: 'admin',
+        });
+      }
+      const token = jwt.sign({ id: user._id, phone: user.phone, role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
+      return res.json({ success: true, user: { id: user._id, name: user.name, phone: user.phone, role: 'admin' }, token });
+    }
+
+    // সাধারণ DB-based admin login
     const user = await User.findOne({ phone, role: 'admin' });
     if (!user) return res.json({ success: false, message: 'Admin খুঁজে পাওয়া যায়নি' });
     const match = await bcrypt.compare(password, user.password);
@@ -420,7 +502,7 @@ app.post('/api/upload', adminMiddleware, upload.single('image'), async (req, res
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== SETUP ADMIN =====
+// ===== MANUAL SETUP ADMIN (fallback) =====
 app.post('/api/setup-admin', async (req, res) => {
   try {
     const count = await User.countDocuments({ role: 'admin' });
@@ -433,8 +515,33 @@ app.post('/api/setup-admin', async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== ROOT =====
-app.get('/', (req, res) => res.json({ success: true, message: 'Family Fashion Hub API চলছে' }));
+// ===== ENV HEALTH CHECK (admin only) =====
+app.get('/api/admin/health', adminMiddleware, (req, res) => {
+  res.json({
+    success: true,
+    env: {
+      PORT:                 process.env.PORT,
+      MONGODB_URI:          process.env.MONGODB_URI ? '✅ সেট আছে' : '❌ নেই',
+      CLOUDINARY_CLOUD:     process.env.CLOUDINARY_CLOUD_NAME ? '✅ সেট আছে' : '❌ নেই',
+      CLOUDINARY_API_KEY:   process.env.CLOUDINARY_API_KEY ? '✅ সেট আছে' : '❌ নেই',
+      CLOUDINARY_API_SECRET:process.env.CLOUDINARY_API_SECRET ? '✅ সেট আছে' : '❌ নেই',
+      JWT_SECRET:           process.env.JWT_SECRET ? '✅ সেট আছে' : '❌ নেই',
+      ADMIN_USERNAME:       process.env.ADMIN_USERNAME || '❌ নেই',
+      FRONTEND_URL:         process.env.FRONTEND_URL || '❌ নেই',
+      ADMIN_URL:            process.env.ADMIN_URL || '❌ নেই',
+    }
+  });
+});
 
+// ===== ROOT =====
+app.get('/', (req, res) => res.json({
+  success: true,
+  message: '👗 Family Fashion Hub API চলছে',
+  version: '2.0.0',
+  frontend: process.env.FRONTEND_URL,
+  admin: process.env.ADMIN_URL,
+}));
+
+// ===== START =====
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log('Server running on port ' + PORT));
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
