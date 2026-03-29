@@ -287,7 +287,7 @@ tr:hover td { background: var(--bg); }
     <button class="btn btn-primary btn-block" onclick="adminLogin()" id="loginBtn" style="margin-top:4px;">
       <i class="fas fa-sign-in-alt"></i> লগইন
     </button>
-    <p style="text-align:center; margin-top:16px; font-size:12px; color:var(--text-muted);">প্রথমবার? <a href="#" onclick="showSetupModal()" style="color:var(--primary);">Admin তৈরি করুন</a></p>
+
   </div>
 </div>
 
@@ -548,25 +548,7 @@ tr:hover td { background: var(--bg); }
   </div>
 </div>
 
-<!-- ===== SETUP MODAL ===== -->
-<div class="modal-overlay" id="setupModal">
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header">
-      <h3>প্রথম Admin তৈরি করুন</h3>
-      <button class="modal-close" onclick="closeModal('setupModal')"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="modal-body">
-      <p style="font-size:13px; color:var(--text-muted); margin-bottom:16px;">এটি একবারই করা যাবে। Admin থাকলে এটি কাজ করবে না।</p>
-      <div class="form-group"><label class="form-label">নাম *</label><input type="text" class="form-control" id="setupName" placeholder="Admin নাম"></div>
-      <div class="form-group"><label class="form-label">ফোন নম্বর *</label><input type="tel" class="form-control" id="setupPhone" placeholder="01XXXXXXXXX"></div>
-      <div class="form-group"><label class="form-label">পাসওয়ার্ড *</label><input type="password" class="form-control" id="setupPassword" placeholder="••••••••"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-light" onclick="closeModal('setupModal')">বাতিল</button>
-      <button class="btn btn-primary" onclick="setupAdmin()"><i class="fas fa-user-plus"></i> Admin তৈরি</button>
-    </div>
-  </div>
-</div>
+
 
 <!-- Confirm Dialog -->
 <div class="confirm-overlay" id="confirmOverlay">
@@ -1157,24 +1139,7 @@ function saveApiUrl() {
   toast('API URL সেভ হয়েছে। পেইজ রিলোড করুন।', 'info');
 }
 
-// ===== SETUP ADMIN =====
-function showSetupModal() { openModal('setupModal'); }
 
-async function setupAdmin() {
-  const name = document.getElementById('setupName').value.trim();
-  const phone = document.getElementById('setupPhone').value.trim();
-  const password = document.getElementById('setupPassword').value;
-  if (!name || !phone || !password) return toast('সব তথ্য পূরণ করুন', 'error');
-  try {
-    const res = await fetch(API_URL + '/setup-admin', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, password })
-    });
-    const data = await res.json();
-    if (data.success) { toast('Admin তৈরি হয়েছে! এখন লগইন করুন'); closeModal('setupModal'); }
-    else toast(data.message || 'সমস্যা', 'error');
-  } catch { toast('সার্ভারের সাথে সংযোগ হচ্ছে না', 'error'); }
-}
 
 // ===== HELPERS =====
 function statusLabel(s) {
