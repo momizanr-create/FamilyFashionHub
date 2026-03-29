@@ -31,8 +31,6 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Hind Siliguri',sans-serif;}
 html,body{height:100%;background:var(--bg);}
 body{display:flex;overflow:hidden;}
-
-/* ====== SIDEBAR ====== */
 #sidebar{
   width:240px;min-width:240px;background:var(--bg2);border-right:1px solid var(--border);
   display:flex;flex-direction:column;height:100vh;overflow-y:auto;transition:all .3s;
@@ -51,7 +49,6 @@ body{display:flex;overflow:hidden;}
 .logo-text{font-size:13px;font-weight:700;color:var(--text);line-height:1.3;}
 .logo-text span{color:var(--accent2);font-size:11px;font-weight:400;}
 #sidebar.collapsed .logo-text{display:none;}
-
 .sidebar-toggle{
   position:absolute;right:-12px;top:22px;width:24px;height:24px;
   background:var(--accent);border-radius:50%;display:flex;align-items:center;
@@ -92,8 +89,6 @@ body{display:flex;overflow:hidden;}
 .admin-role{font-size:11px;color:var(--text3);}
 #sidebar.collapsed .admin-info .admin-name,
 #sidebar.collapsed .admin-info .admin-role{display:none;}
-
-/* ====== MAIN AREA ====== */
 #main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;}
 #topbar{
   height:60px;background:var(--bg2);border-bottom:1px solid var(--border);
@@ -115,8 +110,6 @@ body{display:flex;overflow:hidden;}
 }
 .store-link:hover{background:rgba(99,102,241,.15);border-color:var(--accent);}
 #content{flex:1;overflow-y:auto;padding:24px;background:var(--bg);}
-
-/* ====== TOAST ====== */
 #toast-container{position:fixed;top:70px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
 .toast{
   padding:12px 18px;border-radius:10px;font-size:13px;font-weight:500;
@@ -127,8 +120,6 @@ body{display:flex;overflow:hidden;}
 .toast.error{background:#7f1d1d;color:#fca5a5;border:1px solid #991b1b;}
 .toast.info{background:#1e3a5f;color:#93c5fd;border:1px solid #1d4ed8;}
 @keyframes slideIn{from{opacity:0;transform:translateX(40px);}to{opacity:1;transform:translateX(0);}}
-
-/* ====== MODAL ====== */
 .modal-overlay{
   position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:5000;
   display:flex;align-items:center;justify-content:center;padding:16px;
@@ -155,8 +146,6 @@ body{display:flex;overflow:hidden;}
 .modal-close:hover{color:var(--red);border-color:var(--red);}
 .modal-body{padding:24px;}
 .modal-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
-
-/* ====== FORMS ====== */
 .form-group{margin-bottom:16px;}
 .form-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px;letter-spacing:.3px;}
 .form-control{
@@ -168,8 +157,6 @@ body{display:flex;overflow:hidden;}
 textarea.form-control{resize:vertical;min-height:90px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;}
-
-/* ====== TOGGLE ====== */
 .toggle-wrap{display:flex;align-items:center;gap:10px;}
 .toggle{
   width:40px;height:22px;background:var(--bg4);border-radius:11px;
@@ -182,8 +169,6 @@ textarea.form-control{resize:vertical;min-height:90px;}
 }
 .toggle.on::after{transform:translateX(18px);}
 .toggle-label{font-size:13px;color:var(--text2);}
-
-/* ====== BUTTONS ====== */
 .btn{
   padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;
   cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:7px;
@@ -201,8 +186,6 @@ textarea.form-control{resize:vertical;min-height:90px;}
 .btn-sm{padding:6px 12px;font-size:12px;}
 .btn-xs{padding:4px 8px;font-size:11px;border-radius:6px;}
 .btn[disabled]{opacity:.5;cursor:not-allowed;transform:none!important;}
-
-/* ====== CARDS ====== */
 .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px;}
 .stat-card{
   background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
@@ -221,8 +204,6 @@ textarea.form-control{resize:vertical;min-height:90px;}
 .stat-change{font-size:11px;margin-top:6px;display:flex;align-items:center;gap:4px;}
 .stat-change.up{color:var(--green);}
 .stat-change.down{color:var(--red);}
-
-/* ====== TABLE ====== */
 .table-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
 .table-toolbar{
   padding:16px 20px;border-bottom:1px solid var(--border);
@@ -275,7 +256,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
 .badge-gray{background:rgba(148,163,184,.15);color:#94a3b8;}
 .badge-orange{background:rgba(249,115,22,.15);color:#fb923c;}
 .badge-cyan{background:rgba(6,182,212,.15);color:#22d3ee;}
-
 .action-btns{display:flex;gap:6px;align-items:center;}
 .pagination{
   padding:14px 20px;border-top:1px solid var(--border);
@@ -289,16 +269,12 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
   align-items:center;justify-content:center;font-size:12px;transition:all .2s;
 }
 .page-btn.active,.page-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent);}
-
-/* ====== STATUS COLORS ====== */
 .status-pending{color:#fcd34d;}
 .status-confirmed{color:#60a5fa;}
 .status-processing{color:#c084fc;}
 .status-shipped{color:#34d399;}
 .status-delivered{color:#4ade80;}
 .status-cancelled{color:#f87171;}
-
-/* ====== IMAGE UPLOAD ====== */
 .img-upload-zone{
   border:2px dashed var(--border);border-radius:10px;padding:24px;
   text-align:center;cursor:pointer;transition:all .2s;background:var(--bg3);
@@ -317,17 +293,12 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
   align-items:center;justify-content:center;opacity:0;transition:.2s;cursor:pointer;color:#fff;font-size:16px;
 }
 .img-preview-item:hover .remove-img{opacity:1;}
-
-/* ====== SECTION PAGES ====== */
 .page-section{display:none;animation:fadeSlide .25s ease;}
 .page-section.active{display:block;}
 @keyframes fadeSlide{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
-
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
 .section-title{font-size:20px;font-weight:700;color:var(--text);}
 .section-subtitle{font-size:13px;color:var(--text3);margin-top:2px;}
-
-/* ====== LOGIN ====== */
 #loginScreen{
   position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:9000;
 }
@@ -345,8 +316,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
 .login-form .form-group{text-align:left;margin-bottom:14px;}
 .login-btn{width:100%;justify-content:center;padding:12px;font-size:15px;margin-top:4px;}
 .login-error{background:#7f1d1d;border:1px solid #991b1b;border-radius:8px;padding:10px 14px;font-size:13px;color:#fca5a5;margin-bottom:14px;text-align:left;}
-
-/* ====== DASHBOARD CHARTS ====== */
 .chart-wrap{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;}
 .chart-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:16px;}
 .bar-chart{display:flex;align-items:flex-end;gap:8px;height:120px;}
@@ -359,8 +328,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
 .recent-orders-table{width:100%;}
 .dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
 @media(max-width:900px){.dashboard-grid{grid-template-columns:1fr;}}
-
-/* ====== ORDER DETAIL ====== */
 .order-timeline{padding:0;list-style:none;}
 .timeline-item{
   display:flex;gap:14px;padding-bottom:20px;position:relative;
@@ -380,23 +347,17 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
 .timeline-status{font-size:13px;font-weight:600;color:var(--text);}
 .timeline-time{font-size:11px;color:var(--text3);margin-top:2px;}
 .timeline-note{font-size:12px;color:var(--text2);margin-top:3px;}
-
-/* ====== SETTINGS ====== */
 .settings-section{
   background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
   padding:24px;margin-bottom:16px;
 }
 .settings-section-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border);}
-
-/* ====== RESPONSIVE ====== */
 @media(max-width:768px){
   #sidebar{position:absolute;left:-240px;z-index:300;transition:.3s;}
   #sidebar.mobile-open{left:0;}
   .form-row,.form-row-3{grid-template-columns:1fr;}
   .dashboard-grid{grid-template-columns:1fr;}
 }
-
-/* ====== MISC ====== */
 .empty-state{padding:48px;text-align:center;color:var(--text3);}
 .empty-state i{font-size:40px;margin-bottom:12px;opacity:.4;}
 .empty-state p{font-size:14px;}
@@ -431,8 +392,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
 </style>
 </head>
 <body>
-
-<!-- ====== LOGIN SCREEN ====== -->
 <div id="loginScreen">
   <div class="login-card">
     <div class="login-logo"><i class="fas fa-store"></i></div>
@@ -455,34 +414,26 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
     <p style="margin-top:16px;font-size:12px;color:var(--text3);">Default: admin / admin123</p>
   </div>
 </div>
-
-<!-- ====== TOAST ====== -->
 <div id="toast-container"></div>
-
-<!-- ====== SIDEBAR ====== -->
 <div id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-icon"><i class="fas fa-store"></i></div>
     <div class="logo-text">Family Fashion Hub<br><span>Admin Panel</span></div>
   </div>
   <div class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-chevron-left" id="toggleIcon"></i></div>
-
   <div class="sidebar-section">
     <div class="sidebar-section-title">ড্যাশবোর্ড</div>
     <div class="nav-item active" onclick="showPage('dashboard')"><i class="fas fa-chart-pie"></i><span class="nav-label">ওভারভিউ</span></div>
   </div>
-
   <div class="sidebar-section">
     <div class="sidebar-section-title">পণ্য ব্যবস্থাপনা</div>
     <div class="nav-item" onclick="showPage('products')"><i class="fas fa-tshirt"></i><span class="nav-label">পণ্য সমূহ</span></div>
     <div class="nav-item" onclick="showPage('categories')"><i class="fas fa-tags"></i><span class="nav-label">ক্যাটাগরি</span></div>
   </div>
-
   <div class="sidebar-section">
     <div class="sidebar-section-title">অর্ডার</div>
     <div class="nav-item" onclick="showPage('orders')"><i class="fas fa-shopping-bag"></i><span class="nav-label">অর্ডার সমূহ</span><span class="nav-badge" id="pendingOrderBadge" style="display:none;">0</span></div>
   </div>
-
   <div class="sidebar-section">
     <div class="sidebar-section-title">সাইট ম্যানেজমেন্ট</div>
     <div class="nav-item" onclick="showPage('sliders')"><i class="fas fa-images"></i><span class="nav-label">স্লাইডার / ব্যানার</span></div>
@@ -490,7 +441,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
     <div class="nav-item" onclick="showPage('users')"><i class="fas fa-users"></i><span class="nav-label">কাস্টমার</span></div>
     <div class="nav-item" onclick="showPage('settings')"><i class="fas fa-cog"></i><span class="nav-label">সেটিংস</span></div>
   </div>
-
   <div class="sidebar-footer">
     <div class="admin-info">
       <div class="admin-avatar" id="adminAvatarLetter">A</div>
@@ -505,8 +455,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
     </div>
   </div>
 </div>
-
-<!-- ====== MAIN ====== -->
 <div id="main">
   <div id="topbar">
     <button class="topbar-btn" onclick="toggleSidebar()" id="mobileMenuBtn"><i class="fas fa-bars"></i></button>
@@ -519,9 +467,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
       <button class="topbar-btn" onclick="refreshCurrentPage()" title="রিফ্রেশ"><i class="fas fa-sync-alt"></i></button>
     </div>
   </div>
-
   <div id="content">
-    <!-- DASHBOARD -->
     <div id="page-dashboard" class="page-section active">
       <div class="stat-grid" id="statGrid">
         <div class="stat-card"><div class="stat-icon" style="background:rgba(99,102,241,.15);color:var(--accent2);"><i class="fas fa-shopping-bag"></i></div><div class="stat-value" id="s-orders">—</div><div class="stat-label">মোট অর্ডার</div></div>
@@ -537,8 +483,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
       </div>
       <div class="table-wrap"><div style="padding:16px 20px;border-bottom:1px solid var(--border);"><span style="font-size:14px;font-weight:700;color:var(--text);">সাম্প্রতিক অর্ডার</span></div><table><thead><tr><th>অর্ডার ID</th><th>কাস্টমার</th><th>পরিমাণ</th><th>স্ট্যাটাস</th><th>তারিখ</th><th>অ্যাকশন</th></tr></thead><tbody id="recentOrdersBody"></tbody></table></div>
     </div>
-
-    <!-- ORDERS -->
     <div id="page-orders" class="page-section">
       <div class="section-header">
         <div><div class="section-title">অর্ডার ম্যানেজমেন্ট</div><div class="section-subtitle">সকল অর্ডার পরিচালনা করুন</div></div>
@@ -566,8 +510,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
         <div class="pagination"><span class="page-info" id="orderPageInfo"></span><div class="page-btns" id="orderPageBtns"></div></div>
       </div>
     </div>
-
-    <!-- PRODUCTS -->
     <div id="page-products" class="page-section">
       <div class="section-header">
         <div><div class="section-title">পণ্য ম্যানেজমেন্ট</div><div class="section-subtitle">পণ্য যোগ, সম্পাদনা ও মুছুন</div></div>
@@ -588,8 +530,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
         <div class="pagination"><span class="page-info" id="productPageInfo"></span><div class="page-btns" id="productPageBtns"></div></div>
       </div>
     </div>
-
-    <!-- CATEGORIES -->
     <div id="page-categories" class="page-section">
       <div class="section-header">
         <div><div class="section-title">ক্যাটাগরি ম্যানেজমেন্ট</div><div class="section-subtitle">ক্যাটাগরি পরিচালনা করুন</div></div>
@@ -602,8 +542,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
         </table>
       </div>
     </div>
-
-    <!-- SLIDERS -->
     <div id="page-sliders" class="page-section">
       <div class="section-header">
         <div><div class="section-title">স্লাইডার ও ব্যানার</div><div class="section-subtitle">হোমপেজ ব্যানার পরিচালনা</div></div>
@@ -616,8 +554,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
         </table>
       </div>
     </div>
-
-    <!-- REVIEWS -->
     <div id="page-reviews" class="page-section">
       <div class="section-header">
         <div><div class="section-title">রিভিউ ম্যানেজমেন্ট</div><div class="section-subtitle">গ্রাহকদের রিভিউ অনুমোদন করুন</div></div>
@@ -634,8 +570,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
         </table>
       </div>
     </div>
-
-    <!-- USERS -->
     <div id="page-users" class="page-section">
       <div class="section-header">
         <div><div class="section-title">কাস্টমার লিস্ট</div><div class="section-subtitle">নিবন্ধিত গ্রাহকগণ</div></div>
@@ -651,8 +585,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
         <div class="pagination"><span class="page-info" id="userPageInfo"></span><div class="page-btns" id="userPageBtns"></div></div>
       </div>
     </div>
-
-    <!-- SETTINGS -->
     <div id="page-settings" class="page-section">
       <div class="section-header">
         <div><div class="section-title">সাইট সেটিংস</div><div class="section-subtitle">ওয়েবসাইটের তথ্য আপডেট করুন</div></div>
@@ -699,8 +631,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
     </div>
   </div>
 </div>
-
-<!-- ====== PRODUCT MODAL ====== -->
 <div id="productModal" class="modal-overlay" style="display:none;" onclick="closeOnOverlay(event,'productModal')">
   <div class="modal modal-lg">
     <div class="modal-header">
@@ -745,8 +675,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
     </div>
   </div>
 </div>
-
-<!-- ====== CATEGORY MODAL ====== -->
 <div id="catModal" class="modal-overlay" style="display:none;" onclick="closeOnOverlay(event,'catModal')">
   <div class="modal">
     <div class="modal-header">
@@ -779,8 +707,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
     </div>
   </div>
 </div>
-
-<!-- ====== SLIDER MODAL ====== -->
 <div id="sliderModal" class="modal-overlay" style="display:none;" onclick="closeOnOverlay(event,'sliderModal')">
   <div class="modal">
     <div class="modal-header">
@@ -816,8 +742,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
     </div>
   </div>
 </div>
-
-<!-- ====== ORDER DETAIL MODAL ====== -->
 <div id="orderModal" class="modal-overlay" style="display:none;" onclick="closeOnOverlay(event,'orderModal')">
   <div class="modal modal-lg">
     <div class="modal-header">
@@ -827,8 +751,6 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
     <div class="modal-body" id="orderModalBody"></div>
   </div>
 </div>
-
-<!-- ====== CONFIRM MODAL ====== -->
 <div id="confirmModal" class="modal-overlay" style="display:none;">
   <div class="modal" style="max-width:400px;">
     <div class="modal-header"><div class="modal-title">নিশ্চিত করুন</div></div>
@@ -839,9 +761,7 @@ tbody tr:hover td{background:rgba(255,255,255,.02);}
     </div>
   </div>
 </div>
-
 <script>
-// ====== CONFIG ======
 const API = 'https://familyfashionhub.onrender.com/api';
 let adminToken = localStorage.getItem('ffh_admin_token') || '';
 let currentPage = 'dashboard';
@@ -849,8 +769,6 @@ let orderPage = 1, productPage = 1, userPage = 1;
 let categories = [];
 let reviewFilter = 'all';
 let selectedProducts = new Set();
-
-// ====== UTILITY ======
 function apiHeaders(){return{'Content-Type':'application/json','Authorization':'Bearer '+adminToken};}
 function toast(msg,type='info'){
   const c=document.getElementById('toast-container');
@@ -866,21 +784,17 @@ function closeOnOverlay(e,id){if(e.target.id===id)closeModal(id);}
 function toggleBtn(id){const el=document.getElementById(id);el.classList.toggle('on');}
 function isToggleOn(id){return document.getElementById(id).classList.contains('on');}
 function setToggle(id,on){const el=document.getElementById(id);if(on)el.classList.add('on');else el.classList.remove('on');}
-
 function confirm(text,cb){
   document.getElementById('confirmText').textContent=text;
   document.getElementById('confirmModal').style.display='flex';
   document.getElementById('confirmOkBtn').onclick=()=>{closeModal('confirmModal');cb();};
 }
-
 function autoSlug(){
   const name=document.getElementById('c-name').value;
   if(!document.getElementById('editCatId').value){
     document.getElementById('c-slug').value=name.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g,'');
   }
 }
-
-// ====== AUTH ======
 function doLogin(){
   const user=document.getElementById('loginUser').value;
   const pass=document.getElementById('loginPass').value;
@@ -903,26 +817,20 @@ function doLogin(){
   }).catch(()=>{document.getElementById('loginError').textContent='সংযোগ ব্যর্থ হয়েছে';document.getElementById('loginError').style.display='block';btn.innerHTML='<i class="fas fa-sign-in-alt"></i> লগইন করুন';});
 }
 document.getElementById('loginPass').addEventListener('keydown',e=>e.key==='Enter'&&doLogin());
-
 function doLogout(){
   localStorage.removeItem('ffh_admin_token');
   adminToken='';
   location.reload();
 }
-
-// ====== INIT ======
 function initApp(){
   loadCategories();
   loadDashboard();
   loadPendingBadge();
 }
-
 if(adminToken){
   document.getElementById('loginScreen').style.display='none';
   initApp();
 }
-
-// ====== SIDEBAR ======
 let sidebarCollapsed=false;
 function toggleSidebar(){
   sidebarCollapsed=!sidebarCollapsed;
@@ -930,8 +838,6 @@ function toggleSidebar(){
   s.classList.toggle('collapsed',sidebarCollapsed);
   document.getElementById('toggleIcon').className=sidebarCollapsed?'fas fa-chevron-right':'fas fa-chevron-left';
 }
-
-// ====== NAV ======
 function showPage(name){
   document.querySelectorAll('.page-section').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -950,10 +856,7 @@ function showPage(name){
   else if(name==='users'){loadUsers();}
   else if(name==='settings'){loadSettings();}
 }
-
 function refreshCurrentPage(){showPage(currentPage);}
-
-// ====== DASHBOARD ======
 async function loadDashboard(){
   try{
     const r=await fetch(API+'/admin/dashboard',{headers:apiHeaders()});
@@ -966,7 +869,6 @@ async function loadDashboard(){
     document.getElementById('s-products').textContent=dt.totalProducts;
     document.getElementById('s-users').textContent=dt.totalUsers;
     document.getElementById('s-revenue').textContent=fmtCurrency(dt.totalRevenue);
-    // Bar chart
     const bc=document.getElementById('barChart');
     if(dt.monthlyOrders&&dt.monthlyOrders.length){
       const max=Math.max(...dt.monthlyOrders.map(m=>m.count))||1;
@@ -975,27 +877,20 @@ async function loadDashboard(){
         return`<div class="bar" style="height:${Math.max(8,(m.count/max)*100)}%"><span class="bar-label">${mn[m._id.month-1]}</span></div>`;
       }).join('');
     }
-    // Top products
     const tp=document.getElementById('topProductsList');
     tp.innerHTML=dt.topProducts.length?dt.topProducts.map((p,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);"><span style="font-size:18px;font-weight:700;color:var(--text3);min-width:24px;">${i+1}</span><div style="flex:1"><div style="font-size:13px;color:var(--text);font-weight:500;">${p.name||'—'}</div><div style="font-size:11px;color:var(--text3);">বিক্রয়: ${p.totalSold} | ${fmtCurrency(p.revenue)}</div></div></div>`).join(''):`<div class="empty-state"><i class="fas fa-box-open"></i><p>ডেটা নেই</p></div>`;
-    // Recent orders
     const rob=document.getElementById('recentOrdersBody');
     rob.innerHTML=dt.recentOrders.map(o=>`<tr><td><span class="price-text">${o.orderId}</span></td><td>${o.customerName}</td><td class="price-text">${fmtCurrency(o.total)}</td><td>${statusBadge(o.status)}</td><td>${fmtDate(o.createdAt)}</td><td><button class="btn btn-ghost btn-xs" onclick="viewOrder('${o._id}')"><i class="fas fa-eye"></i></button></td></tr>`).join('');
   }catch(e){toast('ড্যাশবোর্ড লোড ব্যর্থ','error');}
 }
-
 async function loadPendingBadge(){
   try{const r=await fetch(API+'/admin/orders?status=pending&limit=1',{headers:apiHeaders()});const d=await r.json();if(d.success&&d.total>0){const b=document.getElementById('pendingOrderBadge');b.textContent=d.total;b.style.display='flex';}}catch{}
 }
-
-// ====== STATUS BADGE ======
 function statusBadge(s){
   const m={pending:'badge-yellow পেন্ডিং',confirmed:'badge-blue কনফার্মড',processing:'badge-purple প্রসেসিং',shipped:'badge-cyan শিপড',delivered:'badge-green ডেলিভারড',cancelled:'badge-red বাতিল'};
   const [cls,txt]=(m[s]||'badge-gray '+s).split(' ');
   return`<span class="badge ${cls}">${txt}</span>`;
 }
-
-// ====== ORDERS ======
 async function loadOrders(){
   const status=document.getElementById('orderStatusFilter').value;
   const search=document.getElementById('orderSearch').value;
@@ -1011,11 +906,11 @@ async function loadOrders(){
     const d=await r.json();
     if(!d.success)return;
     document.getElementById('ordersBody').innerHTML=d.data.length?d.data.map((o,i)=>`
-    <tr>
-      <td>${(orderPage-1)*15+i+1}</td>
-      <td><span class="price-text" style="font-size:12px;">${o.orderId}</span></td>
-      <td>${o.customerName}</td>
-      <td>${o.customerPhone}</td>
+     <tr>
+       <td>${(orderPage-1)*15+i+1}</td>
+       <td><span class="price-text" style="font-size:12px;">${o.orderId}</span></td>
+       <td>${o.customerName}</td>
+       <td>${o.customerPhone}</td>
       <td style="max-width:150px;"><span style="font-size:12px;">${o.items.map(it=>`${it.name}(${it.quantity})`).join(', ')}</span></td>
       <td class="price-text">${fmtCurrency(o.total)}</td>
       <td><span class="badge ${o.deliveryArea==='inside'?'badge-blue':'badge-orange'}">${o.deliveryArea==='inside'?'ঢাকার মধ্যে':'ঢাকার বাইরে'}</span></td>
@@ -1025,12 +920,11 @@ async function loadOrders(){
         <button class="btn btn-ghost btn-xs" onclick="viewOrder('${o._id}')"><i class="fas fa-eye"></i></button>
         <button class="btn btn-danger btn-xs" onclick="deleteOrder('${o._id}')"><i class="fas fa-trash"></i></button>
       </div></td>
-    </tr>`).join(''):`<tr><td colspan="10"><div class="empty-state"><i class="fas fa-inbox"></i><p>কোনো অর্ডার নেই</p></div></td></tr>`;
+     </tr>`).join(''):`<tr><td colspan="10"><div class="empty-state"><i class="fas fa-inbox"></i><p>কোনো অর্ডার নেই</p></div></td></tr>`;
     renderPagination('order',d.total,d.pages,orderPage,p=>{orderPage=p;loadOrders();});
     document.getElementById('orderPageInfo').textContent=`মোট ${d.total} অর্ডার`;
   }catch(e){toast('অর্ডার লোড ব্যর্থ','error');}
 }
-
 async function viewOrder(id){
   try{
     const r=await fetch(`${API}/admin/orders/${id}`,{headers:apiHeaders()});
@@ -1084,7 +978,6 @@ async function viewOrder(id){
     document.getElementById('orderModal').style.display='flex';
   }catch(e){toast('অর্ডার লোড ব্যর্থ','error');}
 }
-
 async function updateOrderStatus(id){
   const status=document.getElementById('orderNewStatus').value;
   const note=document.getElementById('orderStatusNote').value;
@@ -1096,7 +989,6 @@ async function updateOrderStatus(id){
     else toast(d.message,'error');
   }catch{toast('আপডেট ব্যর্থ','error');}
 }
-
 function deleteOrder(id){
   confirm('এই অর্ডারটি মুছতে চান?',async()=>{
     const r=await fetch(`${API}/admin/orders/${id}`,{method:'DELETE',headers:apiHeaders()});
@@ -1105,10 +997,7 @@ function deleteOrder(id){
     else toast(d.message,'error');
   });
 }
-
 function exportOrders(){toast('Export ফিচার শীঘ্রই আসছে','info');}
-
-// ====== PRODUCTS ======
 async function loadCategories(){
   try{
     const r=await fetch(`${API}/admin/categories`,{headers:apiHeaders()});
@@ -1122,7 +1011,6 @@ async function loadCategories(){
     }
   }catch{}
 }
-
 async function loadProducts(){
   const search=document.getElementById('productSearch').value;
   const cat=document.getElementById('productCatFilter').value;
@@ -1136,30 +1024,29 @@ async function loadProducts(){
     selectedProducts.clear();
     document.getElementById('selectAll').checked=false;
     document.getElementById('productsBody').innerHTML=d.data.length?d.data.map(p=>`
-    <tr>
-      <td><input type="checkbox" class="checkbox-input product-cb" data-id="${p._id}" onchange="toggleProductSelect('${p._id}')"></td>
-      <td>${p.img?`<img src="${p.img}" class="table-img">`:`<div class="table-img-placeholder"><i class="fas fa-tshirt"></i></div>`}</td>
-      <td><div style="font-weight:600;color:var(--text);font-size:13px;">${p.name}</div><div style="font-size:11px;color:var(--text3);">SKU: ${p.sku||'—'}</div></td>
-      <td><span class="badge badge-purple">${p.category}</span></td>
-      <td><span class="price-text">${fmtCurrency(p.price)}</span>${p.oldPrice?`<br><span style="font-size:11px;color:var(--text3);text-decoration:line-through;">${fmtCurrency(p.oldPrice)}</span>`:''}
-      </td>
-      <td>${p.stock}</td>
-      <td>
+     <tr>
+       <td><input type="checkbox" class="checkbox-input product-cb" data-id="${p._id}" onchange="toggleProductSelect('${p._id}')"></td>
+       <td>${p.img?`<img src="${p.img}" class="table-img">`:`<div class="table-img-placeholder"><i class="fas fa-tshirt"></i></div>`}</td>
+       <td><div style="font-weight:600;color:var(--text);font-size:13px;">${p.name}</div><div style="font-size:11px;color:var(--text3);">SKU: ${p.sku||'—'}</div></td>
+       <td><span class="badge badge-purple">${p.category}</span></td>
+       <td><span class="price-text">${fmtCurrency(p.price)}</span>${p.oldPrice?`<br><span style="font-size:11px;color:var(--text3);text-decoration:line-through;">${fmtCurrency(p.oldPrice)}</span>`:''}
+       </td>
+       <td>${p.stock}</td>
+       <td>
         ${p.isActive?'<span class="badge badge-green">সক্রিয়</span>':'<span class="badge badge-gray">নিষ্ক্রিয়</span>'}
         ${p.onSale?'<span class="badge badge-orange" style="margin-left:4px;">সেল</span>':''}
         ${p.soldOut?'<span class="badge badge-red" style="margin-left:4px;">শেষ</span>':''}
         ${p.featured?'<span class="badge badge-blue" style="margin-left:4px;">ফিচার্ড</span>':''}
-      </td>
-      <td><div class="action-btns">
+       </td>
+       <td><div class="action-btns">
         <button class="btn btn-ghost btn-xs" onclick="openProductModal('${p._id}')"><i class="fas fa-edit"></i></button>
         <button class="btn btn-danger btn-xs" onclick="deleteProduct('${p._id}')"><i class="fas fa-trash"></i></button>
       </div></td>
-    </tr>`).join(''):`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-box-open"></i><p>কোনো পণ্য নেই</p></div></td></tr>`;
+     </tr>`).join(''):`<tr><td colspan="8"><div class="empty-state"><i class="fas fa-box-open"></i><p>কোনো পণ্য নেই</p></div></td></tr>`;
     renderPagination('product',d.total,d.pages,productPage,p=>{productPage=p;loadProducts();});
     document.getElementById('productPageInfo').textContent=`মোট ${d.total} পণ্য`;
   }catch(e){toast('পণ্য লোড ব্যর্থ','error');}
 }
-
 function toggleSelectAll(){
   const checked=document.getElementById('selectAll').checked;
   document.querySelectorAll('.product-cb').forEach(cb=>{cb.checked=checked;if(checked)selectedProducts.add(cb.dataset.id);else selectedProducts.delete(cb.dataset.id);});
@@ -1167,7 +1054,6 @@ function toggleSelectAll(){
 function toggleProductSelect(id){
   if(selectedProducts.has(id))selectedProducts.delete(id);else selectedProducts.add(id);
 }
-
 async function bulkAction(action){
   if(!selectedProducts.size){toast('কোনো পণ্য সিলেক্ট করুন','info');return;}
   const msg=action==='delete'?`${selectedProducts.size}টি পণ্য মুছতে চান?`:`${selectedProducts.size}টি পণ্য ${action==='activate'?'সক্রিয়':'নিষ্ক্রিয়'} করতে চান?`;
@@ -1179,7 +1065,6 @@ async function bulkAction(action){
     }catch{toast('বাল্ক অ্যাকশন ব্যর্থ','error');}
   });
 }
-
 async function openProductModal(id=null){
   document.getElementById('editProductId').value=id||'';
   document.getElementById('productModalTitle').textContent=id?'পণ্য সম্পাদনা করুন':'নতুন পণ্য যোগ করুন';
@@ -1192,7 +1077,6 @@ async function openProductModal(id=null){
   document.getElementById('p-desc').value='';
   document.getElementById('productPreviewList').innerHTML='';
   setToggle('t-onsale',false);setToggle('t-soldout',false);setToggle('t-featured',false);setToggle('t-active',true);
-
   if(id){
     try{
       const r=await fetch(`${API}/products/${id}`);
@@ -1214,7 +1098,6 @@ async function openProductModal(id=null){
   }
   document.getElementById('productModal').style.display='flex';
 }
-
 async function saveProduct(){
   const id=document.getElementById('editProductId').value;
   const name=document.getElementById('p-name').value.trim();
@@ -1241,23 +1124,20 @@ async function saveProduct(){
   }catch(e){toast('সার্ভার সংযোগ ব্যর্থ','error');}
   btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> সংরক্ষণ করুন';
 }
-
 function deleteProduct(id){
   confirm('এই পণ্যটি স্থায়ীভাবে মুছতে চান?',async()=>{
     try{const r=await fetch(`${API}/admin/products/${id}`,{method:'DELETE',headers:apiHeaders()});const d=await r.json();if(d.success){toast('পণ্য মুছা হয়েছে','success');loadProducts();}else toast(d.message,'error');}
     catch{toast('মুছতে ব্যর্থ','error');}
   });
 }
-
-// ====== CATEGORIES ======
 async function loadCategoriesTable(){
   try{
     const r=await fetch(`${API}/admin/categories`,{headers:apiHeaders()});
     const d=await r.json();
     if(!d.success)return;
     document.getElementById('categoriesBody').innerHTML=d.data.length?d.data.map(c=>`
-    <tr>
-      <td>${c.image?`<img src="${c.image}" class="table-img">`:`<div class="table-img-placeholder"><i class="fas fa-tags"></i></div>`}</td>
+     <tr>
+       <td>${c.image?`<img src="${c.image}" class="table-img">`:`<div class="table-img-placeholder"><i class="fas fa-tags"></i></div>`}</td>
       <td style="font-weight:600;color:var(--text);">${c.name}</td>
       <td><code style="font-size:12px;color:var(--cyan);background:var(--bg3);padding:2px 6px;border-radius:4px;">${c.slug}</code></td>
       <td style="max-width:200px;font-size:12px;color:var(--text3);">${c.description||'—'}</td>
@@ -1267,10 +1147,9 @@ async function loadCategoriesTable(){
         <button class="btn btn-ghost btn-xs" onclick="openCatModal('${c._id}')"><i class="fas fa-edit"></i></button>
         <button class="btn btn-danger btn-xs" onclick="deleteCat('${c._id}')"><i class="fas fa-trash"></i></button>
       </div></td>
-    </tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-tags"></i><p>কোনো ক্যাটাগরি নেই</p></div></td></tr>`;
+     </tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-tags"></i><p>কোনো ক্যাটাগরি নেই</p></div></td></tr>`;
   }catch{}
 }
-
 async function openCatModal(id=null){
   document.getElementById('editCatId').value=id||'';
   document.getElementById('catModalTitle').textContent=id?'ক্যাটাগরি সম্পাদনা':'নতুন ক্যাটাগরি';
@@ -1285,7 +1164,6 @@ async function openCatModal(id=null){
   }
   document.getElementById('catModal').style.display='flex';
 }
-
 async function saveCat(){
   const id=document.getElementById('editCatId').value;
   const name=document.getElementById('c-name').value.trim();
@@ -1306,23 +1184,20 @@ async function saveCat(){
   }catch{toast('সংযোগ ব্যর্থ','error');}
   btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> সংরক্ষণ';
 }
-
 function deleteCat(id){
   confirm('এই ক্যাটাগরিটি মুছতে চান?',async()=>{
     try{const r=await fetch(`${API}/admin/categories/${id}`,{method:'DELETE',headers:apiHeaders()});const d=await r.json();if(d.success){toast('ক্যাটাগরি মুছা হয়েছে','success');loadCategoriesTable();loadCategories();}else toast(d.message,'error');}
     catch{toast('মুছতে ব্যর্থ','error');}
   });
 }
-
-// ====== SLIDERS ======
 async function loadSliders(){
   try{
     const r=await fetch(`${API}/admin/sliders`,{headers:apiHeaders()});
     const d=await r.json();
     if(!d.success)return;
     document.getElementById('slidersBody').innerHTML=d.data.length?d.data.map(s=>`
-    <tr>
-      <td><img src="${s.image}" class="table-img" onerror="this.style.display='none'"></td>
+     <tr>
+       <td><img src="${s.image}" class="table-img" onerror="this.style.display='none'"></td>
       <td style="font-weight:600;color:var(--text);">${s.title||'—'}</td>
       <td><span class="badge badge-purple">${s.type}</span></td>
       <td style="font-size:12px;color:var(--cyan);">${s.link||'#'}</td>
@@ -1332,10 +1207,9 @@ async function loadSliders(){
         <button class="btn btn-ghost btn-xs" onclick="openSliderModal('${s._id}')"><i class="fas fa-edit"></i></button>
         <button class="btn btn-danger btn-xs" onclick="deleteSlider('${s._id}')"><i class="fas fa-trash"></i></button>
       </div></td>
-    </tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-images"></i><p>কোনো স্লাইড নেই</p></div></td></tr>`;
+     </tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-images"></i><p>কোনো স্লাইড নেই</p></div></td></tr>`;
   }catch{}
 }
-
 async function openSliderModal(id=null){
   document.getElementById('editSliderId').value=id||'';
   document.getElementById('sliderModalTitle').textContent=id?'স্লাইড সম্পাদনা':'নতুন স্লাইড';
@@ -1349,7 +1223,6 @@ async function openSliderModal(id=null){
   }
   document.getElementById('sliderModal').style.display='flex';
 }
-
 async function saveSlider(){
   const id=document.getElementById('editSliderId').value;
   const btn=document.getElementById('saveSliderBtn');btn.disabled=true;btn.innerHTML='<span class="loading-spinner"></span>';
@@ -1367,14 +1240,11 @@ async function saveSlider(){
   }catch{toast('সংযোগ ব্যর্থ','error');}
   btn.disabled=false;btn.innerHTML='<i class="fas fa-save"></i> সংরক্ষণ';
 }
-
 function deleteSlider(id){
   confirm('এই স্লাইডটি মুছতে চান?',async()=>{
     try{const r=await fetch(`${API}/admin/sliders/${id}`,{method:'DELETE',headers:apiHeaders()});const d=await r.json();if(d.success){toast('স্লাইড মুছা হয়েছে','success');loadSliders();}else toast(d.message,'error');}catch{}
   });
 }
-
-// ====== REVIEWS ======
 async function loadReviews(){
   let url=`${API}/admin/reviews?`;
   if(reviewFilter==='pending')url+='approved=false';
@@ -1384,7 +1254,7 @@ async function loadReviews(){
     const d=await r.json();
     if(!d.success)return;
     document.getElementById('reviewsBody').innerHTML=d.data.length?d.data.map(rv=>`
-    <tr>
+     <tr>
       <td style="font-weight:600;color:var(--text);">${rv.name}<br><span style="font-size:11px;color:var(--text3);">${rv.phone||''}</span></td>
       <td style="font-size:12px;max-width:120px;">${rv.productName||'সাধারণ'}</td>
       <td>${'★'.repeat(rv.rating)}<span style="color:var(--text3);">${'★'.repeat(5-rv.rating)}</span></td>
@@ -1395,29 +1265,23 @@ async function loadReviews(){
         ${!rv.isApproved?`<button class="btn btn-success btn-xs" onclick="approveReview('${rv._id}')"><i class="fas fa-check"></i> অনুমোদন</button>`:`<span class="badge badge-green">অনুমোদিত</span>`}
         <button class="btn btn-danger btn-xs" onclick="deleteReview('${rv._id}')"><i class="fas fa-trash"></i></button>
       </div></td>
-    </tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-star"></i><p>কোনো রিভিউ নেই</p></div></td></tr>`;
+     </tr>`).join(''):`<tr><td colspan="7"><div class="empty-state"><i class="fas fa-star"></i><p>কোনো রিভিউ নেই</p></div></td></tr>`;
   }catch{}
 }
-
 function filterReviews(f,el){
   reviewFilter=f;document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');loadReviews();
 }
-
 async function approveReview(id){
   try{const r=await fetch(`${API}/admin/reviews/${id}`,{method:'PUT',headers:apiHeaders(),body:JSON.stringify({isApproved:true})});const d=await r.json();if(d.success){toast('রিভিউ অনুমোদন হয়েছে','success');loadReviews();}else toast(d.message,'error');}catch{}
 }
-
 async function toggleReview(id,field,current){
   try{const r=await fetch(`${API}/admin/reviews/${id}`,{method:'PUT',headers:apiHeaders(),body:JSON.stringify({isFeatured:!current})});const d=await r.json();if(d.success)loadReviews();}catch{}
 }
-
 function deleteReview(id){
   confirm('এই রিভিউটি মুছতে চান?',async()=>{
     try{const r=await fetch(`${API}/admin/reviews/${id}`,{method:'DELETE',headers:apiHeaders()});const d=await r.json();if(d.success){toast('রিভিউ মুছা হয়েছে','success');loadReviews();}else toast(d.message,'error');}catch{}
   });
 }
-
-// ====== USERS ======
 async function loadUsers(){
   const search=document.getElementById('userSearch').value;
   let url=`${API}/admin/users?page=${userPage}&limit=15`;
@@ -1427,20 +1291,18 @@ async function loadUsers(){
     const d=await r.json();
     if(!d.success)return;
     document.getElementById('usersBody').innerHTML=d.data.length?d.data.map(u=>`
-    <tr>
-      <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;">${u.name[0].toUpperCase()}</div><span style="font-weight:600;color:var(--text);">${u.name}</span></div></td>
-      <td>${u.phone}</td>
-      <td>${u.email||'—'}</td>
+     <tr>
+       <td><div style="display:flex;align-items:center;gap:8px;"><div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--cyan));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;">${u.name[0].toUpperCase()}</div><span style="font-weight:600;color:var(--text);">${u.name}</span></div></td>
+       <td>${u.phone}</td>
+       <td>${u.email||'—'}</td>
       <td style="font-size:12px;max-width:150px;">${u.address||'—'}</td>
       <td style="font-size:12px;">${fmtDate(u.createdAt)}</td>
       <td>${u.isActive!==false?'<span class="badge badge-green">সক্রিয়</span>':'<span class="badge badge-gray">নিষ্ক্রিয়</span>'}</td>
-    </tr>`).join(''):`<tr><td colspan="6"><div class="empty-state"><i class="fas fa-users"></i><p>কোনো কাস্টমার নেই</p></div></td></tr>`;
+     </tr>`).join(''):`<tr><td colspan="6"><div class="empty-state"><i class="fas fa-users"></i><p>কোনো কাস্টমার নেই</p></div></td></tr>`;
     renderPagination('user',d.total,d.pages,userPage,p=>{userPage=p;loadUsers();});
     document.getElementById('userPageInfo').textContent=`মোট ${d.total} কাস্টমার`;
   }catch(e){toast('কাস্টমার লোড ব্যর্থ','error');}
 }
-
-// ====== SETTINGS ======
 async function loadSettings(){
   try{
     const r=await fetch(`${API}/admin/settings`,{headers:apiHeaders()});
@@ -1456,7 +1318,6 @@ async function loadSettings(){
     }
   }catch{}
 }
-
 async function saveSettings(){
   const data={
     storeName:document.getElementById('set-storeName').value,
@@ -1473,7 +1334,6 @@ async function saveSettings(){
     else toast(d.message,'error');
   }catch{toast('সংরক্ষণ ব্যর্থ','error');}
 }
-
 async function changePassword(){
   const old=document.getElementById('set-oldPass').value;
   const nw=document.getElementById('set-newPass').value;
@@ -1485,14 +1345,11 @@ async function changePassword(){
     else toast(d.message,'error');
   }catch{toast('পরিবর্তন ব্যর্থ','error');}
 }
-
 async function seedAdmin(){
   try{const r=await fetch(`${API}/admin/seed`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({secret:'FFH_SEED_2024'})});const d=await r.json();toast(d.message,d.success?'success':'info');}catch{toast('Seed ব্যর্থ','error');}
 }
 async function seedAll(){
   const btn=event.target;btn.disabled=true;btn.innerHTML='<span class="loading-spinner"></span> সিড হচ্ছে...';
-
-  // ===== index.html থেকে নেওয়া আসল পণ্যের ডেটা =====
   const frontendCategories = [
     { name:'Baby Shoes', slug:'baby-shoes', description:'শিশুর জন্য আরামদায়ক ও নিরাপদ জুতার সংগ্রহ', sortOrder:1 },
     { name:'Baby Toys', slug:'baby-toys', description:'শিশুর মানসিক বিকাশে সহায়ক মজাদার খেলনা', sortOrder:2 },
@@ -1506,41 +1363,32 @@ async function seedAll(){
     { name:'Essentials', slug:'baby-essentials', description:'শিশুর প্রয়োজনীয় সব পণ্য', sortOrder:10 },
     { name:'Trending', slug:'trending', description:'ট্রেন্ডিং পণ্য সংগ্রহ', sortOrder:11 },
   ];
-
   const frontendProducts = [
-    // Baby Shoes
     { name:'নরম Baby Shoes - নীল রঙ', price:450, oldPrice:600, saving:150, category:'baby-shoes', description:'আরামদায়ক এবং নরম Baby Shoes। শিশুর পায়ের জন্য নিরাপদ উপকরণ দিয়ে তৈরি। সহজে পরা যায় এবং খুলে যায় না।', onSale:true, soldOut:false, featured:true, stock:30, img:'https://images.unsplash.com/photo-1519457073994-14ae0a084e7f?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
     { name:'বেবি স্পোর্টস শু - লাল', price:520, oldPrice:700, saving:180, category:'baby-shoes', description:'খেলাধুলার জন্য বিশেষভাবে ডিজাইন করা বেবি শু। হালকা ওজনের এবং ট্রেন্ডি ডিজাইন।', onSale:true, soldOut:false, stock:25, img:'https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
     { name:'বেবি ওয়াকিং শু - গোলাপী', price:380, oldPrice:500, saving:120, category:'baby-shoes', description:'শিশুর প্রথম ধাপের জন্য পারফেক্ট শু। নরম সোল এবং উচ্চমানের ম্যাটেরিয়াল।', onSale:false, soldOut:false, stock:40, img:'https://images.unsplash.com/photo-1494341990857-2b10bb626166?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
     { name:'বেবি ক্লোজড টু সু - সাদা', price:400, oldPrice:550, saving:150, category:'baby-shoes', description:'মসৃণ এবং টেকসই Baby Shoes। ঘরের বাইরে খেলার জন্য আদর্শ।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1525966222134-fcb0b60dbf60?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-    // Baby Toys
     { name:'রেইনবো ডেনসিটি চেইন', price:350, oldPrice:500, saving:150, category:'baby-toys', description:'রঙিন এবং মজাদার Baby Toys। শিশুর দক্ষতা বৃদ্ধিতে সহায়ক।', onSale:true, soldOut:false, featured:true, stock:35, img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
     { name:'সফট বেবি রেটল', price:280, oldPrice:400, saving:120, category:'baby-toys', description:'মসৃণ এবং নিরাপদ বেবি রেটল। শব্দ এবং অনুভূতি সৃষ্টি করে।', onSale:true, soldOut:false, stock:50, img:'https://images.unsplash.com/photo-1577720643272-265f434885cb?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
     { name:'টিথিং রিং Toys', price:250, oldPrice:350, saving:100, category:'baby-toys', description:'দাঁত উঠার সময়ের জন্য বিশেষ Toys। নিরাপদ এবং রাসায়নিকমুক্ত।', onSale:false, soldOut:false, stock:60, img:'https://images.unsplash.com/photo-1585314662646-f8c7d9e5f5b5?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
     { name:'মাল্টি কালার বিলড ব্লক', price:420, oldPrice:600, saving:180, category:'baby-toys', description:'শিশুর সৃজনশীলতা বৃদ্ধির জন্য ব্লক সেট। বিভিন্ন আকার এবং রঙের ব্লক।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-    // Women's Cosmetics
     { name:'ন্যাচারাল লিপস্টিক - রেড', price:380, oldPrice:500, saving:120, category:'women-cosmetics', description:'প্রাকৃতিক উপাদান দিয়ে তৈরি লিপস্টিক। দীর্ঘস্থায়ী এবং সুন্দর রঙ।', onSale:true, soldOut:false, featured:true, stock:45, img:'https://images.unsplash.com/photo-1506925925274-1a9fa7a7bcfd?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
     { name:'বিউটি ফেসপ্যাক সেট', price:650, oldPrice:850, saving:200, category:'women-cosmetics', description:'সম্পূর্ণ ত্বকের যত্ন কসমেটিক সেট। সব ধরনের ত্বকের জন্য উপযুক্ত।', onSale:true, soldOut:false, stock:30, img:'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
     { name:'আই শ্যাডো প্যালেট', price:520, oldPrice:700, saving:180, category:'women-cosmetics', description:'সুন্দর রঙের কালেকশন। পেশাদার ফলাফলের জন্য।', onSale:false, soldOut:false, stock:25, img:'https://images.unsplash.com/photo-1596050112169-971882deef3d?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
     { name:'নেইল পলিশ কালেকশন - ৫ রঙ', price:450, oldPrice:600, saving:150, category:'women-cosmetics', description:'বৈচিত্র্যময় রঙের নেইল পলিশ সেট। দীর্ঘস্থায়ী ফলাফল।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-    // Gold Plate Items
     { name:'গোল্ড প্লেটেড ব্রেসলেট', price:850, oldPrice:1200, saving:350, category:'gold-plate', description:'মার্জিত গোল্ড প্লেটেড ব্রেসলেট। বিশেষ অনুষ্ঠানের জন্য আদর্শ।', onSale:true, soldOut:false, featured:true, stock:20, img:'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
     { name:'গোল্ড প্লেটেড নেকলেস', price:1200, oldPrice:1600, saving:400, category:'gold-plate', description:'শানদার গোল্ড প্লেটেড নেকলেস। ঐতিহ্যবাহী ডিজাইন।', onSale:true, soldOut:false, stock:15, img:'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
     { name:'গোল্ড প্লেটেড রিং সেট', price:680, oldPrice:900, saving:220, category:'gold-plate', description:'সুন্দর রিং সেট। বিভিন্ন ডিজাইন অন্তর্ভুক্ত।', onSale:false, soldOut:false, stock:30, img:'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
     { name:'গোল্ড প্লেটেড ইয়ারিংস', price:520, oldPrice:700, saving:180, category:'gold-plate', description:'মার্জিত ইয়ারিংস সেট। সব আকার উপলব্ধ।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-    // Indoor Plants
     { name:'অর্কিড গাছ (পাত্রসহ)', price:1200, oldPrice:1500, saving:300, category:'indoor-plants', description:'সুন্দর অর্কিড ফুল গাছ। ঘরকে সাজায় এবং বায়ু বিশুদ্ধ করে।', onSale:true, soldOut:false, featured:true, stock:18, img:'https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
     { name:'স্পাইডার প্ল্যান্ট', price:350, oldPrice:500, saving:150, category:'indoor-plants', description:'সহজে যত্নযোগ্য ইনডোর গাছ। বায়ু পরিশোধনে দারুণ।', onSale:true, soldOut:false, stock:40, img:'https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
     { name:'পটস সহ পটহোস গাছ', price:280, oldPrice:400, saving:120, category:'indoor-plants', description:'সুন্দর ঝুলন্ত গাছ। পরিবারের সকলের জন্য নিরাপদ।', onSale:false, soldOut:false, stock:55, img:'https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
     { name:'মানি প্ল্যান্ট সেট', price:420, oldPrice:600, saving:180, category:'indoor-plants', description:'সৌভাগ্যের প্রতীক মানি প্ল্যান্ট। সুন্দর পাত্রে।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
-    // Artificial Flowers
     { name:'সিল্ক রোজ বুকে', price:650, oldPrice:900, saving:250, category:'artificial-flowers', description:'সুন্দর কৃত্রিম ফুলের তোড়া। কখনো ঝরে না।', onSale:true, soldOut:false, featured:true, stock:35, img:'https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:1 },
     { name:'Artificial Flowers ভেস সেট', price:780, oldPrice:1100, saving:320, category:'artificial-flowers', description:'সুন্দর ফুলের ভেস সেট। ঘর সাজানোর জন্য আদর্শ।', onSale:true, soldOut:false, stock:28, img:'https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:2 },
     { name:'মিক্স ফ্লাওয়ার অ্যারেঞ্জমেন্ট', price:520, oldPrice:700, saving:180, category:'artificial-flowers', description:'বৈচিত্র্যময় কৃত্রিম ফুলের সাজসজ্জা। যেকোনো কক্ষের জন্য।', onSale:false, soldOut:false, stock:22, img:'https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:3 },
     { name:'সিল্ক ফ্লাওয়ার গ্যারল্যান্ড', price:450, oldPrice:600, saving:150, category:'artificial-flowers', description:'অনুষ্ঠান সাজানোর জন্য ফুলের মালা। সম্পূর্ণ প্লাস্টিক মুক্ত।', onSale:false, soldOut:true, stock:0, img:'https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80', sortOrder:4 },
   ];
-
-  // ---- Step 1: Categories তৈরি করো ----
   let catCreated=0, catSkipped=0;
   toast('ক্যাটাগরি তৈরি হচ্ছে...','info');
   for(const cat of frontendCategories){
@@ -1550,8 +1398,6 @@ async function seedAll(){
       if(d.success)catCreated++;else catSkipped++;
     }catch{catSkipped++;}
   }
-
-  // ---- Step 2: Products তৈরি করো ----
   let prodCreated=0, prodSkipped=0;
   toast('পণ্য তৈরি হচ্ছে...','info');
   for(const prod of frontendProducts){
@@ -1567,13 +1413,10 @@ async function seedAll(){
       if(d.success)prodCreated++;else prodSkipped++;
     }catch{prodSkipped++;}
   }
-
   toast(`✅ সম্পন্ন! ${catCreated} ক্যাটাগরি, ${prodCreated} পণ্য তৈরি হয়েছে।${catSkipped+prodSkipped>0?' ('+( catSkipped+prodSkipped)+' টি আগে থেকেই ছিল)':''}`, 'success');
   loadCategories();
   btn.disabled=false;btn.innerHTML='<i class="fas fa-seedling"></i> Full Seed (Categories + Products)';
 }
-
-// ====== IMAGE HELPERS ======
 function previewImages(input,previewId){
   const list=document.getElementById(previewId);list.innerHTML='';
   Array.from(input.files).slice(0,5).forEach(f=>{
@@ -1593,8 +1436,6 @@ function handleDrop(e,inputId){
   Array.from(e.dataTransfer.files).forEach(f=>dt.items.add(f));
   inp.files=dt.files;previewImages(inp,'productPreviewList');
 }
-
-// ====== PAGINATION ======
 function renderPagination(prefix,total,pages,current,cb){
   const info=document.getElementById(prefix+'PageInfo');
   const btns=document.getElementById(prefix+'PageBtns');
