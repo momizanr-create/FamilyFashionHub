@@ -593,6 +593,110 @@ app.get('/api/categories', async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
+// ===== CATEGORIES CRUD (Admin) =====
+
+// GET — সব categories
+// (already handled by /api/categories above)
+
+// POST — নতুন main category যোগ
+app.post('/api/admin/categories', adminMiddleware, async (req, res) => {
+  try {
+    const { value, label } = req.body;
+    if (!value || !label) return res.json({ success: false, message: 'value ও label আবশ্যিক' });
+    const slug = value.trim().toLowerCase().replace(/\s+/g, '_');
+    const setting = await Settings.findOne({ key: 'categories' });
+    let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
+    if (cats.find(c => c.value === slug)) return res.json({ success: false, message: 'এই ক্যাটাগরি ইতিমধ্যে আছে' });
+    cats.push({ value: slug, label: label.trim(), subcategories: [] });
+    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
+    res.json({ success: true, data: cats, message: 'ক্যাটাগরি যোগ হয়েছে' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// PUT — main category আপডেট (rename label)
+app.put('/api/admin/categories/:value', adminMiddleware, async (req, res) => {
+  try {
+    const { label } = req.body;
+    if (!label) return res.json({ success: false, message: 'label আবশ্যিক' });
+    const setting = await Settings.findOne({ key: 'categories' });
+    let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
+    const idx = cats.findIndex(c => c.value === req.params.value);
+    if (idx === -1) return res.json({ success: false, message: 'ক্যাটাগরি পাওয়া যায়নি' });
+    cats[idx].label = label.trim();
+    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
+    res.json({ success: true, data: cats, message: 'ক্যাটাগরি আপডেট হয়েছে' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// DELETE — main category মুছো
+app.delete('/api/admin/categories/:value', adminMiddleware, async (req, res) => {
+  try {
+    const setting = await Settings.findOne({ key: 'categories' });
+    let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
+    cats = cats.filter(c => c.value !== req.params.value);
+    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
+    res.json({ success: true, data: cats, message: 'ক্যাটাগরি মুছে ফেলা হয়েছে' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// POST — subcategory যোগ
+app.post('/api/admin/categories/:catValue/subcategories', adminMiddleware, async (req, res) => {
+  try {
+    const { value, label } = req.body;
+    if (!value || !label) return res.json({ success: false, message: 'value ও label আবশ্যিক' });
+    const slug = value.trim().toLowerCase().replace(/\s+/g, '_');
+    const setting = await Settings.findOne({ key: 'categories' });
+    let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
+    const cat = cats.find(c => c.value === req.params.catValue);
+    if (!cat) return res.json({ success: false, message: 'ক্যাটাগরি পাওয়া যায়নি' });
+    if (!cat.subcategories) cat.subcategories = [];
+    if (cat.subcategories.find(s => s.value === slug)) return res.json({ success: false, message: 'এই সাব-ক্যাটাগরি ইতিমধ্যে আছে' });
+    cat.subcategories.push({ value: slug, label: label.trim() });
+    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
+    res.json({ success: true, data: cats, message: 'সাব-ক্যাটাগরি যোগ হয়েছে' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// PUT — subcategory আপডেট
+app.put('/api/admin/categories/:catValue/subcategories/:subValue', adminMiddleware, async (req, res) => {
+  try {
+    const { label } = req.body;
+    if (!label) return res.json({ success: false, message: 'label আবশ্যিক' });
+    const setting = await Settings.findOne({ key: 'categories' });
+    let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
+    const cat = cats.find(c => c.value === req.params.catValue);
+    if (!cat) return res.json({ success: false, message: 'ক্যাটাগরি পাওয়া যায়নি' });
+    const sub = (cat.subcategories || []).find(s => s.value === req.params.subValue);
+    if (!sub) return res.json({ success: false, message: 'সাব-ক্যাটাগরি পাওয়া যায়নি' });
+    sub.label = label.trim();
+    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
+    res.json({ success: true, data: cats, message: 'সাব-ক্যাটাগরি আপডেট হয়েছে' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// DELETE — subcategory মুছো
+app.delete('/api/admin/categories/:catValue/subcategories/:subValue', adminMiddleware, async (req, res) => {
+  try {
+    const setting = await Settings.findOne({ key: 'categories' });
+    let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
+    const cat = cats.find(c => c.value === req.params.catValue);
+    if (!cat) return res.json({ success: false, message: 'ক্যাটাগরি পাওয়া যায়নি' });
+    cat.subcategories = (cat.subcategories || []).filter(s => s.value !== req.params.subValue);
+    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
+    res.json({ success: true, data: cats, message: 'সাব-ক্যাটাগরি মুছে ফেলা হয়েছে' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// POST — সম্পূর্ণ categories replace (bulk save)
+app.post('/api/admin/categories/bulk', adminMiddleware, async (req, res) => {
+  try {
+    const { categories } = req.body;
+    if (!Array.isArray(categories)) return res.json({ success: false, message: 'categories array আবশ্যিক' });
+    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: categories }, { upsert: true });
+    res.json({ success: true, data: categories, message: 'Categories সেভ হয়েছে' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
 // ===== SETTINGS ROUTES =====
 
 app.get('/api/settings', async (req, res) => {
@@ -731,115 +835,6 @@ app.post('/api/admin/seed-categories', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== CATEGORIES CRUD (Admin) =====
-
-// সব categories পাওয়া (public)
-// GET /api/categories — already exists above
-
-// Categories আপডেট করো (পুরো array replace)
-app.put('/api/admin/categories', adminMiddleware, async (req, res) => {
-  try {
-    const { categories } = req.body;
-    if (!Array.isArray(categories)) return res.json({ success: false, message: 'categories array পাঠান' });
-    await Settings.findOneAndUpdate(
-      { key: 'categories' },
-      { key: 'categories', value: categories },
-      { upsert: true }
-    );
-    res.json({ success: true, message: 'Categories আপডেট হয়েছে', data: categories });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
-
-// নতুন Category যোগ করো
-app.post('/api/admin/categories', adminMiddleware, async (req, res) => {
-  try {
-    const { value, label, subcategories } = req.body;
-    if (!value || !label) return res.json({ success: false, message: 'value ও label দিন' });
-    const setting = await Settings.findOne({ key: 'categories' });
-    const cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
-    if (cats.find(c => c.value === value)) return res.json({ success: false, message: 'এই category value ইতিমধ্যে আছে' });
-    cats.push({ value, label, subcategories: subcategories || [] });
-    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, message: 'Category যোগ হয়েছে', data: cats });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
-
-// Category এডিট করো
-app.put('/api/admin/categories/:value', adminMiddleware, async (req, res) => {
-  try {
-    const { label, subcategories } = req.body;
-    const setting = await Settings.findOne({ key: 'categories' });
-    const cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
-    const idx = cats.findIndex(c => c.value === req.params.value);
-    if (idx === -1) return res.json({ success: false, message: 'Category পাওয়া যায়নি' });
-    if (label) cats[idx].label = label;
-    if (subcategories !== undefined) cats[idx].subcategories = subcategories;
-    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, message: 'Category আপডেট হয়েছে', data: cats[idx] });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
-
-// Category ডিলিট করো
-app.delete('/api/admin/categories/:value', adminMiddleware, async (req, res) => {
-  try {
-    const setting = await Settings.findOne({ key: 'categories' });
-    const cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
-    const newCats = cats.filter(c => c.value !== req.params.value);
-    if (newCats.length === cats.length) return res.json({ success: false, message: 'Category পাওয়া যায়নি' });
-    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: newCats }, { upsert: true });
-    res.json({ success: true, message: 'Category মুছে ফেলা হয়েছে' });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
-
-// Subcategory যোগ করো
-app.post('/api/admin/categories/:catValue/subcategories', adminMiddleware, async (req, res) => {
-  try {
-    const { value, label } = req.body;
-    if (!value || !label) return res.json({ success: false, message: 'value ও label দিন' });
-    const setting = await Settings.findOne({ key: 'categories' });
-    const cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
-    const cat = cats.find(c => c.value === req.params.catValue);
-    if (!cat) return res.json({ success: false, message: 'Category পাওয়া যায়নি' });
-    if (!Array.isArray(cat.subcategories)) cat.subcategories = [];
-    if (cat.subcategories.find(s => s.value === value)) return res.json({ success: false, message: 'এই subcategory value ইতিমধ্যে আছে' });
-    cat.subcategories.push({ value, label });
-    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, message: 'Subcategory যোগ হয়েছে', data: cat });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
-
-// Subcategory এডিট করো
-app.put('/api/admin/categories/:catValue/subcategories/:subValue', adminMiddleware, async (req, res) => {
-  try {
-    const { label, newValue } = req.body;
-    const setting = await Settings.findOne({ key: 'categories' });
-    const cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
-    const cat = cats.find(c => c.value === req.params.catValue);
-    if (!cat) return res.json({ success: false, message: 'Category পাওয়া যায়নি' });
-    const sub = cat.subcategories && cat.subcategories.find(s => s.value === req.params.subValue);
-    if (!sub) return res.json({ success: false, message: 'Subcategory পাওয়া যায়নি' });
-    if (label) sub.label = label;
-    if (newValue) sub.value = newValue;
-    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, message: 'Subcategory আপডেট হয়েছে', data: sub });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
-
-// Subcategory ডিলিট করো
-app.delete('/api/admin/categories/:catValue/subcategories/:subValue', adminMiddleware, async (req, res) => {
-  try {
-    const setting = await Settings.findOne({ key: 'categories' });
-    const cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
-    const cat = cats.find(c => c.value === req.params.catValue);
-    if (!cat) return res.json({ success: false, message: 'Category পাওয়া যায়নি' });
-    const before = cat.subcategories ? cat.subcategories.length : 0;
-    cat.subcategories = (cat.subcategories || []).filter(s => s.value !== req.params.subValue);
-    if (cat.subcategories.length === before) return res.json({ success: false, message: 'Subcategory পাওয়া যায়নি' });
-    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, message: 'Subcategory মুছে ফেলা হয়েছে' });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
-
 // ===== ROOT =====
 app.get('/', (req, res) => res.json({
   success: true,
@@ -851,4 +846,4 @@ app.get('/', (req, res) => res.json({
 
 // ===== START =====
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`)); 
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
