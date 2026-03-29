@@ -345,7 +345,7 @@ tr:hover td { background: var(--bg); }
       <div class="stats-grid" id="statsGrid">
         <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-tshirt"></i></div><div class="stat-info"><p id="statProducts">—</p><span>মোট পণ্য</span></div></div>
         <div class="stat-card"><div class="stat-icon amber"><i class="fas fa-shopping-bag"></i></div><div class="stat-info"><p id="statOrders">—</p><span>মোট অর্ডার</span></div></div>
-        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-taka-sign"></i></div><div class="stat-info"><p id="statRevenue">—</p><span>মোট রেভিনিউ</span></div></div>
+        <div class="stat-card"><div class="stat-icon green"><i class="fas fa-taka-sign"></i></div><div class="stat-info"><p id="statRevenue">—</p><span>রেভিনিউ <span style="font-size:9px;background:#d1fae5;color:#065f46;padding:1px 5px;border-radius:4px;font-weight:700;">ডেলিভার্ড</span></span></div></div>
         <div class="stat-card"><div class="stat-icon blue"><i class="fas fa-users"></i></div><div class="stat-info"><p id="statUsers">—</p><span>ব্যবহারকারী</span></div></div>
         <div class="stat-card"><div class="stat-icon red"><i class="fas fa-clock"></i></div><div class="stat-info"><p id="statPending">—</p><span>পেন্ডিং অর্ডার</span></div></div>
         <div class="stat-card"><div class="stat-icon purple"><i class="fas fa-star"></i></div><div class="stat-info"><p id="statReviews">—</p><span>মোট রিভিউ</span></div></div>
@@ -435,6 +435,15 @@ tr:hover td { background: var(--bg); }
         </div>
         <div class="card-body">
           <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">এখান থেকে মেইন ক্যাটাগরি এবং প্রতিটির সাব-ক্যাটাগরি যোগ, সম্পাদনা ও মুছে ফেলা যাবে।</p>
+
+          <!-- Seed Default Categories -->
+          <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+            <div>
+              <p style="font-size:13px;font-weight:600;color:#065f46;">🍼 Baby Products Default Categories</p>
+              <p style="font-size:11px;color:#6b7280;margin-top:2px;">প্রথমবার ব্যবহারের সময় এই বাটন ক্লিক করুন — সব Baby categories MongoDB-তে লোড হবে।</p>
+            </div>
+            <button class="btn btn-success btn-sm" onclick="seedDefaultCategories()"><i class="fas fa-seedling"></i> Default Categories লোড করুন</button>
+          </div>
 
           <!-- Add Main Category -->
           <div style="display:flex;gap:8px;margin-bottom:20px;align-items:flex-end;">
@@ -1008,8 +1017,15 @@ function filterOrders() {
 
 async function updateOrderStatus(id, status) {
   const data = await api('/admin/orders/' + id, 'PUT', { status });
-  if (data.success) { toast('স্ট্যাটাস আপডেট হয়েছে'); loadStats(); }
-  else toast(data.message || 'সমস্যা', 'error');
+  if (data.success) {
+    const label = statusLabel(status);
+    toast('স্ট্যাটাস আপডেট হয়েছে: ' + label);
+    loadStats();
+    // Revenue শুধু delivered থেকে — dashboard refresh
+    if (document.getElementById('page-dashboard').classList.contains('active')) {
+      loadDashboard();
+    }
+  } else toast(data.message || 'সমস্যা', 'error');
 }
 
 function viewOrder(id) {
@@ -1203,10 +1219,42 @@ function catLabel(c) {
 // ===== CATEGORY MANAGER (Local + Server via Settings) =====
 // Default categories
 const DEFAULT_CATEGORIES = [
-  { value: 'men',         label: 'পুরুষ',         subcategories: [] },
-  { value: 'women',       label: 'মহিলা',          subcategories: [] },
-  { value: 'kids',        label: 'শিশু',           subcategories: [] },
-  { value: 'accessories', label: 'অ্যাক্সেসরিজ',   subcategories: [] },
+  { value: 'baby_dress', label: 'বেবি পোশাক', subcategories: [
+      { value: 'newborn_set',    label: 'Baby Dress Newborn Set (0-6 Months)' },
+      { value: 'cotton_dress',   label: 'Cotton Dress (Summer Comfort)' },
+      { value: 'winter_dress',   label: 'Winter Dress' },
+      { value: 'frocks_tshirts', label: 'Frocks, T-Shirts & Pants' },
+  ]},
+  { value: 'toys', label: 'খেলনা', subcategories: [
+      { value: 'soft_toys',        label: 'Soft Toys (Dolls)' },
+      { value: 'sound_toys',       label: 'সাউন্ড টয় (Musical Toys)' },
+      { value: 'educational_toys', label: 'Educational Toys (ABC/Numbers)' },
+      { value: 'baby_rattle',      label: 'Baby Rattle' },
+  ]},
+  { value: 'feeding', label: 'ফিডিং আইটেম', subcategories: [
+      { value: 'feeding_bottle', label: 'Feeding Bottle' },
+      { value: 'feeding_bowl',   label: 'Baby Feeding Bowl + Spoon' },
+      { value: 'sipper_cup',     label: 'Sipper Cup' },
+      { value: 'feeding_chair',  label: 'Baby Feeding Chair' },
+  ]},
+  { value: 'baby_care', label: 'বেবি কেয়ার', subcategories: [
+      { value: 'soap_shampoo', label: 'Baby Soap & Shampoo' },
+      { value: 'lotion_oil',   label: 'Baby Lotion / Oil' },
+      { value: 'wet_tissue',   label: 'Wet Tissue' },
+      { value: 'diaper',       label: 'Diaper Essentials' },
+  ]},
+  { value: 'baby_bedding', label: 'বেবি বেডিং', subcategories: [
+      { value: 'mosquito_net', label: 'Baby Mosquito Net' },
+      { value: 'baby_bed',     label: 'Baby Bed / Nest' },
+      { value: 'blanket',      label: 'Baby Blanket' },
+      { value: 'towel',        label: 'Baby Towel' },
+  ]},
+  { value: 'trending', label: 'ট্রেন্ডিং', subcategories: [
+      { value: 'baby_carrier',   label: 'Baby Carrier' },
+      { value: 'baby_walker',    label: 'Baby Walker' },
+      { value: 'nail_cutter',    label: 'Baby Nail Cutter Set' },
+      { value: 'thermometer',    label: 'Baby Thermometer' },
+  ]},
 ];
 
 let allCategories = JSON.parse(localStorage.getItem('ffh_categories') || 'null') || DEFAULT_CATEGORIES;
@@ -1423,6 +1471,22 @@ function showNewOrderNotification(order) {
   };
   c.appendChild(t);
   setTimeout(() => t.remove(), 8000);
+}
+
+// ===== SEED DEFAULT CATEGORIES =====
+async function seedDefaultCategories() {
+  const data = await api('/admin/seed-categories', 'POST');
+  if (data.success) {
+    toast('Default Baby Categories লোড হয়েছে!');
+    await loadCategoriesFromServer();
+    renderCategoryManager();
+    refreshCategoryDropdowns();
+  } else {
+    // Already exists — reload from server anyway
+    toast(data.message || 'সমস্যা', 'info');
+    await loadCategoriesFromServer();
+    renderCategoryManager();
+  }
 }
 
 // Close modals on overlay click

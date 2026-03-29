@@ -548,14 +548,46 @@ app.get('/api/categories', async (req, res) => {
     if (setting && Array.isArray(setting.value) && setting.value.length) {
       return res.json({ success: true, data: setting.value });
     }
-    // Default fallback
+    // Default fallback — Baby Products full structure
     res.json({
       success: true,
       data: [
-        { value: 'men',         label: 'পুরুষ',        subcategories: [] },
-        { value: 'women',       label: 'মহিলা',         subcategories: [] },
-        { value: 'kids',        label: 'শিশু',          subcategories: [] },
-        { value: 'accessories', label: 'অ্যাক্সেসরিজ', subcategories: [] },
+        { value: 'baby_dress', label: 'বেবি পোশাক', subcategories: [
+            { value: 'newborn_set',    label: 'Baby Dress Newborn Set (0-6 Months)' },
+            { value: 'cotton_dress',   label: 'Cotton Dress (Summer Comfort)' },
+            { value: 'winter_dress',   label: 'Winter Dress' },
+            { value: 'frocks_tshirts', label: 'Frocks, T-Shirts & Pants' },
+        ]},
+        { value: 'toys', label: 'খেলনা', subcategories: [
+            { value: 'soft_toys',        label: 'Soft Toys (Dolls)' },
+            { value: 'sound_toys',       label: 'সাউন্ড টয় (Musical Toys)' },
+            { value: 'educational_toys', label: 'Educational Toys (ABC/Numbers)' },
+            { value: 'baby_rattle',      label: 'Baby Rattle' },
+        ]},
+        { value: 'feeding', label: 'ফিডিং আইটেম', subcategories: [
+            { value: 'feeding_bottle', label: 'Feeding Bottle' },
+            { value: 'feeding_bowl',   label: 'Baby Feeding Bowl + Spoon' },
+            { value: 'sipper_cup',     label: 'Sipper Cup' },
+            { value: 'feeding_chair',  label: 'Baby Feeding Chair' },
+        ]},
+        { value: 'baby_care', label: 'বেবি কেয়ার', subcategories: [
+            { value: 'soap_shampoo', label: 'Baby Soap & Shampoo' },
+            { value: 'lotion_oil',   label: 'Baby Lotion / Oil' },
+            { value: 'wet_tissue',   label: 'Wet Tissue' },
+            { value: 'diaper',       label: 'Diaper Essentials' },
+        ]},
+        { value: 'baby_bedding', label: 'বেবি বেডিং', subcategories: [
+            { value: 'mosquito_net', label: 'Baby Mosquito Net' },
+            { value: 'baby_bed',     label: 'Baby Bed / Nest' },
+            { value: 'blanket',      label: 'Baby Blanket' },
+            { value: 'towel',        label: 'Baby Towel' },
+        ]},
+        { value: 'trending', label: 'ট্রেন্ডিং', subcategories: [
+            { value: 'baby_carrier',   label: 'Baby Carrier' },
+            { value: 'baby_walker',    label: 'Baby Walker' },
+            { value: 'nail_cutter',    label: 'Baby Nail Cutter Set' },
+            { value: 'thermometer',    label: 'Baby Thermometer' },
+        ]},
       ]
     });
   } catch (e) { res.json({ success: false, message: e.message }); }
@@ -592,7 +624,7 @@ app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
       Review.countDocuments(),
     ]);
     const revenue = await Order.aggregate([
-      { $match: { status: { $ne: 'cancelled' } } },
+      { $match: { status: 'delivered' } },
       { $group: { _id: null, total: { $sum: '$total' } } },
     ]);
     const pendingOrders = await Order.countDocuments({ status: 'pending' });
@@ -641,6 +673,62 @@ app.get('/api/admin/health', adminMiddleware, (req, res) => {
       ADMIN_URL:            process.env.ADMIN_URL || '❌ নেই',
     }
   });
+});
+
+
+// ===== SEED DEFAULT CATEGORIES (admin only) =====
+// প্রথমবার রান করলে MongoDB-তে default baby categories সেট হবে
+app.post('/api/admin/seed-categories', adminMiddleware, async (req, res) => {
+  try {
+    const existing = await Settings.findOne({ key: 'categories' });
+    if (existing && Array.isArray(existing.value) && existing.value.length) {
+      return res.json({ success: false, message: 'Categories ইতিমধ্যে সেট আছে। Reset করতে force=true পাঠান।' });
+    }
+    const defaultCategories = [
+      { value: 'baby_dress', label: 'বেবি পোশাক', subcategories: [
+          { value: 'newborn_set',    label: 'Baby Dress Newborn Set (0-6 Months)' },
+          { value: 'cotton_dress',   label: 'Cotton Dress (Summer Comfort)' },
+          { value: 'winter_dress',   label: 'Winter Dress' },
+          { value: 'frocks_tshirts', label: 'Frocks, T-Shirts & Pants' },
+      ]},
+      { value: 'toys', label: 'খেলনা', subcategories: [
+          { value: 'soft_toys',        label: 'Soft Toys (Dolls)' },
+          { value: 'sound_toys',       label: 'সাউন্ড টয় (Musical Toys)' },
+          { value: 'educational_toys', label: 'Educational Toys (ABC/Numbers)' },
+          { value: 'baby_rattle',      label: 'Baby Rattle' },
+      ]},
+      { value: 'feeding', label: 'ফিডিং আইটেম', subcategories: [
+          { value: 'feeding_bottle', label: 'Feeding Bottle' },
+          { value: 'feeding_bowl',   label: 'Baby Feeding Bowl + Spoon' },
+          { value: 'sipper_cup',     label: 'Sipper Cup' },
+          { value: 'feeding_chair',  label: 'Baby Feeding Chair' },
+      ]},
+      { value: 'baby_care', label: 'বেবি কেয়ার', subcategories: [
+          { value: 'soap_shampoo', label: 'Baby Soap & Shampoo' },
+          { value: 'lotion_oil',   label: 'Baby Lotion / Oil' },
+          { value: 'wet_tissue',   label: 'Wet Tissue' },
+          { value: 'diaper',       label: 'Diaper Essentials' },
+      ]},
+      { value: 'baby_bedding', label: 'বেবি বেডিং', subcategories: [
+          { value: 'mosquito_net', label: 'Baby Mosquito Net' },
+          { value: 'baby_bed',     label: 'Baby Bed / Nest' },
+          { value: 'blanket',      label: 'Baby Blanket' },
+          { value: 'towel',        label: 'Baby Towel' },
+      ]},
+      { value: 'trending', label: 'ট্রেন্ডিং', subcategories: [
+          { value: 'baby_carrier',   label: 'Baby Carrier' },
+          { value: 'baby_walker',    label: 'Baby Walker' },
+          { value: 'nail_cutter',    label: 'Baby Nail Cutter Set' },
+          { value: 'thermometer',    label: 'Baby Thermometer' },
+      ]},
+    ];
+    await Settings.findOneAndUpdate(
+      { key: 'categories' },
+      { key: 'categories', value: defaultCategories },
+      { upsert: true }
+    );
+    res.json({ success: true, message: 'Default baby categories সেট হয়েছে!', data: defaultCategories });
+  } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
 // ===== ROOT =====
