@@ -2093,98 +2093,90 @@
         applyCatFilters();
       }
       function renderCatGrid(list) {
-  const grid  = document.getElementById('catProductGrid');
-  const empty = document.getElementById('catEmptyState');
-  const mGrid = document.getElementById('catProductGridMobile');
-  const mEmpty = document.getElementById('catEmptyStateMobile');
-  grid.innerHTML = '';
-  if (mGrid) mGrid.innerHTML = '';
-  if (list.length === 0) {
-    empty.style.display = 'block'; grid.style.display='none';
-    if (mEmpty) mEmpty.style.display = 'block';
-    if (mGrid) mGrid.style.display = 'none';
-    return;
-  }
-  empty.style.display = 'none'; grid.style.display = 'grid';
-  if (mEmpty) mEmpty.style.display = 'none';
-  if (mGrid) mGrid.style.display = 'grid';
+        const grid  = document.getElementById('catProductGrid');
+        const empty = document.getElementById('catEmptyState');
+        const mGrid = document.getElementById('catProductGridMobile');
+        const mEmpty = document.getElementById('catEmptyStateMobile');
+        grid.innerHTML = '';
+        if (mGrid) mGrid.innerHTML = '';
+        if (list.length === 0) {
+          empty.style.display = 'block'; grid.style.display='none';
+          if (mEmpty) mEmpty.style.display = 'block';
+          if (mGrid) mGrid.style.display = 'none';
+          return;
+        }
+        empty.style.display = 'none'; grid.style.display = 'grid';
+        if (mEmpty) mEmpty.style.display = 'none';
+        if (mGrid) mGrid.style.display = 'grid';
 
-  list.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'product-card bg-white border border-gray-100 shadow-sm';
-    card.dataset.id = p.id;
-    let badgeHtml = '';
-    if (p.soldOut) badgeHtml = '<div class="soldout-badge">Sold Out</div>';
-    else if (p.onSale) badgeHtml = '<div class="sale-badge">ছাড়!</div>';
-    let discountHtml = '';
-    if (p.oldPrice && p.price) {
-      const disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
-      if (disc > 0) discountHtml = `<div class="discount-badge">Save: ${p.oldPrice - p.price}ট (-${disc}%)</div>`;
-    }
-    card.innerHTML = `
-      <div class="card-container">
-        ${discountHtml}${badgeHtml}
-        <div class="card-image-wrapper">
-          <img src="${p.img}" class="card-image" alt="${p.name}" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">${p.name}</h3>
-          <div class="card-price">
-            <span class="price-new">${p.price}ট</span>
-            <span class="price-old">${p.oldPrice || ''}ট</span>
-          </div>
-          <button data-id="${p.id}" class="cat-quick-add-btn quick-add-btn" ${p.soldOut ? 'disabled' : ''}>
-            ${p.soldOut ? 'Sold Out' : '🛒 Add To Cart'}
-          </button>
-        </div>
-      </div>`;
-    grid.appendChild(card);
-    if (mGrid) {
-      const mCard = card.cloneNode(true);
-      mGrid.appendChild(mCard);
-    }
-  });
+        list.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'product-card bg-white border border-gray-100 shadow-sm';
+          card.dataset.id = p.id;
+          let badgeHtml = '';
+          if (p.soldOut) badgeHtml = '<div class="soldout-badge">Sold Out</div>';
+          else if (p.onSale) badgeHtml = '<div class="sale-badge">ছাড়!</div>';
+          let discountHtml = '';
+          if (p.oldPrice && p.price) {
+            const disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
+            if (disc > 0) discountHtml = `<div class="discount-badge">Save: ${p.oldPrice - p.price}ট (-${disc}%)</div>`;
+          }
+          card.innerHTML = `
+            <div class="card-container">
+              ${discountHtml}${badgeHtml}
+              <div class="card-image-wrapper">
+                <img src="${p.img}" class="card-image" alt="${p.name}">
+              </div>
+              <div class="card-content">
+                <h3 class="card-title">${p.name}</h3>
+                <div class="card-price">
+                  <span class="price-new">${p.price}ট</span>
+                  <span class="price-old">${p.oldPrice}ট</span>
+                </div>
+                <button data-id="${p.id}" class="cat-quick-add-btn quick-add-btn" ${p.soldOut ? 'disabled' : ''}>
+                  🛒 Add To Cart
+                </button>
+              </div>
+            </div>`;
+          grid.appendChild(card);
+          if (mGrid) {
+            const mCard = card.cloneNode(true);
+            mGrid.appendChild(mCard);
+          }
+        });
 
-  // add to cart buttons
-  grid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      let product = null;
-      if (window._ffhApiProducts) product = window._ffhApiProducts.find(p => String(p.id) === String(id));
-      if (!product && products) product = products.find(p => String(p.id) === String(id));
-      if (product) addToCart(product);
-    });
-  });
-  // click to detail
-  grid.querySelectorAll('.product-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      if (e.target.classList.contains('quick-add-btn') || e.target.closest('.quick-add-btn')) return;
-      const id = card.dataset.id;
-      showProductDetailPage(id);
-    });
-  });
+        grid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const product = products.find(pp => pp.id === parseInt(btn.dataset.id));
+            if (product) addToCart(product);
+          });
+        });
 
-  if (mGrid) {
-    mGrid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const id = btn.dataset.id;
-        let product = null;
-        if (window._ffhApiProducts) product = window._ffhApiProducts.find(p => String(p.id) === String(id));
-        if (!product && products) product = products.find(p => String(p.id) === String(id));
-        if (product) addToCart(product);
-      });
-    });
-    mGrid.querySelectorAll('.product-card').forEach(card => {
-      card.addEventListener('click', (e) => {
-        if (e.target.closest('.quick-add-btn')) return;
-        const id = card.dataset.id;
-        showProductDetailPage(id);
-      });
-    });
-  }
-}
+        grid.querySelectorAll('.product-card').forEach(card => {
+          card.addEventListener('click', (e) => {
+            if (e.target.classList.contains('quick-add-btn') || e.target.closest('.quick-add-btn')) return;
+            showProductDetailPage(parseInt(card.dataset.id));
+          });
+        });
+
+        if (mGrid) {
+          mGrid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const product = products.find(pp => pp.id === parseInt(btn.dataset.id));
+              if (product) addToCart(product);
+            });
+          });
+          mGrid.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', (e) => {
+              if (e.target.classList.contains('quick-add-btn') || e.target.closest('.quick-add-btn')) return;
+              showProductDetailPage(parseInt(card.dataset.id));
+            });
+          });
+        }
+      }
+
       const catSortMob = document.getElementById('catSortSelectMobile');
       if (catSortMob) {
         catSortMob.addEventListener('change', function() {
@@ -2282,217 +2274,197 @@
         renderProductGrid(filtered);
       }
 
-     function renderProductGrid(filteredProducts) {
-  productGrid.innerHTML = '';
-  if (filteredProducts.length === 0) {
-    productGrid.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500">কোনো পণ্য পাওয়া যায়নি</p>';
-    return;
-  }
-  
-  filteredProducts.forEach(p => {
-    const card = document.createElement('div');
-    card.className = 'product-card bg-white border border-gray-100 shadow-sm';
-    // আইডি string আকারে রাখুন
-    card.dataset.id = p.id;
-    
-    let badgeHtml = '';
-    if (p.soldOut) {
-      badgeHtml = '<div class="soldout-badge">Sold Out</div>';
-    } else if (p.onSale) {
-      badgeHtml = '<div class="sale-badge">ছাড়!</div>';
-    }
-    
-    badgeHtml += '<div class="organic-badge">🌱 অর্গানিক</div>';
-    
-    let discountPercent = '';
-    if (p.oldPrice && p.price) {
-      const discount = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
-      if (discount > 0) {
-        const savingAmount = p.oldPrice - p.price;
-        discountPercent = `<div class="discount-badge">Save: ${savingAmount}ট (-${discount}%)</div>`;
+      function renderProductGrid(filteredProducts) {
+        productGrid.innerHTML = '';
+        if (filteredProducts.length === 0) {
+          productGrid.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500">কোনো পণ্য পাওয়া যায়নি</p>';
+          return;
+        }
+        
+        filteredProducts.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'product-card bg-white border border-gray-100 shadow-sm';
+          card.dataset.id = p.id;
+          
+          let badgeHtml = '';
+          if (p.soldOut) {
+            badgeHtml = '<div class="soldout-badge">Sold Out</div>';
+          } else if (p.onSale) {
+            badgeHtml = '<div class="sale-badge">ছাড়!</div>';
+          }
+          
+          badgeHtml += '<div class="organic-badge">🌱 অর্গানিক</div>';
+          
+          card.innerHTML = `
+            <div class="card-container">
+              ${(() => {
+                let discountPercent = '';
+                if (p.oldPrice && p.price) {
+                  const discount = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
+                  if (discount > 0) {
+                    const savingAmount = p.oldPrice - p.price;
+                    discountPercent = `<div class="discount-badge">Save: ${savingAmount}ট (-${discount}%)</div>`;
+                  }
+                }
+                return discountPercent;
+              })()}
+              ${p.special ? `<div class="special-badge">${p.special}</div>` : ''}
+              <div class="card-image-wrapper">
+                <img src="${p.img}" class="card-image" alt="${p.name}">
+              </div>
+              <div class="card-content">
+                <h3 class="card-title">${p.name}</h3>
+                <div class="card-price">
+                  <span class="price-new">${p.price}ট</span>
+                  <span class="price-old">${p.oldPrice}ট</span>
+                </div>
+                <button data-id="${p.id}" class="quick-add-btn" ${p.soldOut ? 'disabled' : ''}>
+                  🛒 Add To Cart
+                </button>
+              </div>
+            </div>
+          `;
+          productGrid.appendChild(card);
+        });
+
+        document.querySelectorAll('.quick-add-btn:not([disabled])').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const id = parseInt(e.target.dataset.id);
+            const product = products.find(p => p.id === id);
+            if (product) addToCart(product);
+          });
+        });
+
+        document.querySelectorAll('.product-card').forEach(card => {
+          card.addEventListener('click', (e) => {
+            if (e.target.classList.contains('quick-add-btn') || e.target.closest('.quick-add-btn')) return;
+            const id = parseInt(card.dataset.id);
+            showProductDetailPage(id);
+          });
+        });
       }
-    }
-    
-    card.innerHTML = `
-      <div class="card-container">
-        ${discountPercent}
-        ${p.special ? `<div class="special-badge">${p.special}</div>` : ''}
-        <div class="card-image-wrapper">
-          <img src="${p.img}" class="card-image" alt="${p.name}" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
-        </div>
-        <div class="card-content">
-          <h3 class="card-title">${p.name}</h3>
-          <div class="card-price">
-            <span class="price-new">${p.price}ট</span>
-            <span class="price-old">${p.oldPrice || ''}ট</span>
-          </div>
-          <button data-id="${p.id}" class="quick-add-btn" ${p.soldOut ? 'disabled' : ''}>
-            ${p.soldOut ? 'Sold Out' : '🛒 Add To Cart'}
-          </button>
-        </div>
-      </div>
-    `;
-    productGrid.appendChild(card);
-  });
 
-  // Add to cart button events
-  document.querySelectorAll('.quick-add-btn:not([disabled])').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      // পণ্য খুঁজুন (API বা পুরনো)
-      let product = null;
-      if (window._ffhApiProducts) product = window._ffhApiProducts.find(p => String(p.id) === String(id));
-      if (!product && products) product = products.find(p => String(p.id) === String(id));
-      if (product) addToCart(product);
-    });
-  });
+      function showProductDetailPage(productId) {
+        const product = products.find(p => p.id === productId);
+        if (!product) return;
+        
+        currentProduct = product;
+        
+        homePage.classList.add('hidden');
+        detailPage.classList.add('active');
+        detailPage.classList.remove('detail-page');
+        const _lp = document.getElementById('loginPage');
+        const _rp = document.getElementById('registerPage');
+        const _cp = document.getElementById('categoryPage');
+        const _acp = document.getElementById('allCategoriesPage');
+        const _sbp = document.getElementById('signInBreadcrumbPage');
+        const _dp2 = document.getElementById('dashboardPage');
+        if (_lp) { _lp.classList.remove('active'); _lp.classList.add('detail-page'); }
+        if (_rp) { _rp.classList.remove('active'); _rp.classList.add('detail-page'); }
+        if (_cp) { _cp.classList.remove('active'); _cp.classList.add('detail-page'); }
+        if (_acp) { _acp.classList.remove('active'); _acp.classList.add('detail-page'); }
+        if (_sbp) { _sbp.classList.remove('active'); _sbp.classList.add('detail-page'); }
+        if (_dp2) { _dp2.classList.remove('active'); _dp2.classList.add('detail-page'); }
+        const _crs = document.getElementById('customerReviewSection');
+        if (_crs) _crs.style.display = 'none';
+        const _mf = document.getElementById('mainFooter');
+        if (_mf) _mf.style.display = 'none';
+        const _aps = document.getElementById('allProductsSection');
+        if (_aps) _aps.style.display = 'none';
+        const _ocs = document.getElementById('ourCollectionSection');
+        if (_ocs) _ocs.style.display = 'none';
+        const _ofs = document.getElementById('organicFeatureSection');
+        if (_ofs) _ofs.style.display = 'none';
+        window.scrollTo({ top: 0 });
+        if (typeof setMobileNavActive === 'function') setMobileNavActive('home');
+        detailPageImg.src = product.img;
+        detailPageTitle.innerText = product.name;
+        detailPagePrice.innerText = product.price;
+        detailPageOldPrice.innerText = product.oldPrice;
+        detailPageSaving.innerText = product.saving;
+        detailPageDescription.innerText = product.description;
+        detailPageQty.value = 1;
 
-  // Card click to detail page (no parseInt)
-  document.querySelectorAll('.product-card').forEach(card => {
-    card.addEventListener('click', (e) => {
-      if (e.target.classList.contains('quick-add-btn') || e.target.closest('.quick-add-btn')) return;
-      const id = card.dataset.id;
-      showProductDetailPage(id);
-    });
-  });
-}
-     function showProductDetailPage(productId) {
-  // productId string বা number হতে পারে; API থেকে আসা string_id ঠিক রাখতে হবে
-  const idStr = String(productId);
-  
-  // প্রথমে API থেকে লোড হওয়া পণ্যগুলোতে খুঁজি
-  let product = null;
-  if (window._ffhApiProducts && window._ffhApiProducts.length) {
-    product = window._ffhApiProducts.find(p => String(p.id) === idStr || String(p._apiId) === idStr);
-  }
-  // না পেলে পুরনো products অ্যারেতে খুঁজি
-  if (!product && products && products.length) {
-    product = products.find(p => String(p.id) === idStr);
-  }
-  
-  if (!product) {
-    console.warn('পণ্য পাওয়া যায়নি:', productId);
-    return;
-  }
-  
-  currentProduct = product;
-  
-  homePage.classList.add('hidden');
-  detailPage.classList.add('active');
-  detailPage.classList.remove('detail-page');
-  const _lp = document.getElementById('loginPage');
-  const _rp = document.getElementById('registerPage');
-  const _cp = document.getElementById('categoryPage');
-  const _acp = document.getElementById('allCategoriesPage');
-  const _sbp = document.getElementById('signInBreadcrumbPage');
-  const _dp2 = document.getElementById('dashboardPage');
-  if (_lp) { _lp.classList.remove('active'); _lp.classList.add('detail-page'); }
-  if (_rp) { _rp.classList.remove('active'); _rp.classList.add('detail-page'); }
-  if (_cp) { _cp.classList.remove('active'); _cp.classList.add('detail-page'); }
-  if (_acp) { _acp.classList.remove('active'); _acp.classList.add('detail-page'); }
-  if (_sbp) { _sbp.classList.remove('active'); _sbp.classList.add('detail-page'); }
-  if (_dp2) { _dp2.classList.remove('active'); _dp2.classList.add('detail-page'); }
-  const _crs = document.getElementById('customerReviewSection');
-  if (_crs) _crs.style.display = 'none';
-  const _mf = document.getElementById('mainFooter');
-  if (_mf) _mf.style.display = 'none';
-  const _aps = document.getElementById('allProductsSection');
-  if (_aps) _aps.style.display = 'none';
-  const _ocs = document.getElementById('ourCollectionSection');
-  if (_ocs) _ocs.style.display = 'none';
-  const _ofs = document.getElementById('organicFeatureSection');
-  if (_ofs) _ofs.style.display = 'none';
-  window.scrollTo({ top: 0 });
-  if (typeof setMobileNavActive === 'function') setMobileNavActive('home');
-  
-  detailPageImg.src = product.img;
-  detailPageTitle.innerText = product.name;
-  detailPagePrice.innerText = product.price;
-  detailPageOldPrice.innerText = product.oldPrice || '';
-  detailPageSaving.innerText = product.saving || (product.oldPrice && product.price ? product.oldPrice - product.price : 0);
-  detailPageDescription.innerText = product.description || '';
-  detailPageQty.value = 1;
+        const thumbStrip = document.getElementById('detailThumbStrip');
+        if (thumbStrip) {
+          thumbStrip.innerHTML = '';
+          const imgList = (product.images && product.images.length > 0) ? product.images : [product.img];
+          imgList.forEach(function(imgUrl, idx) {
+            const wrap = document.createElement('div');
+            wrap.style.cssText = 'width:56px;height:56px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#f9fafb;border:2px solid ' + (idx === 0 ? '#f97316' : '#e5e7eb') + ';flex-shrink:0;transition:border-color 0.2s;';
+            const tImg = document.createElement('img');
+            tImg.src = imgUrl;
+            tImg.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+            wrap.appendChild(tImg);
+            wrap.addEventListener('click', function() {
+              detailPageImg.src = imgUrl;
+              thumbStrip.querySelectorAll('div').forEach(function(d){ d.style.borderColor = '#e5e7eb'; });
+              wrap.style.borderColor = '#f97316';
+            });
+            thumbStrip.appendChild(wrap);
+          });
+        }
 
-  const thumbStrip = document.getElementById('detailThumbStrip');
-  if (thumbStrip) {
-    thumbStrip.innerHTML = '';
-    const imgList = (product.images && product.images.length > 0) ? product.images : [product.img];
-    imgList.forEach(function(imgUrl, idx) {
-      const wrap = document.createElement('div');
-      wrap.style.cssText = 'width:56px;height:56px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#f9fafb;border:2px solid ' + (idx === 0 ? '#f97316' : '#e5e7eb') + ';flex-shrink:0;transition:border-color 0.2s;';
-      const tImg = document.createElement('img');
-      tImg.src = imgUrl;
-      tImg.style.cssText = 'width:100%;height:100%;object-fit:contain;';
-      wrap.appendChild(tImg);
-      wrap.addEventListener('click', function() {
-        detailPageImg.src = imgUrl;
-        thumbStrip.querySelectorAll('div').forEach(function(d){ d.style.borderColor = '#e5e7eb'; });
-        wrap.style.borderColor = '#f97316';
-      });
-      thumbStrip.appendChild(wrap);
-    });
-  }
+        const saveBadge = document.getElementById('detailSaveBadge');
+        if (saveBadge && product.oldPrice && product.price) {
+          const pct = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
+          saveBadge.innerText = pct > 0 ? `Save${pct}%` : '';
+        }
+        
+        let catName = '';
+        if (product.category === 'baby-shoes') catName = 'Baby Shoes';
+        else if (product.category === 'baby-toys') catName = 'Baby Toys';
+        else if (product.category === 'feeding-bottles') catName = 'Feeding Bottle';
+        else if (product.category === 'baby-feeding') catName = 'বেবি খাবার';
+        else if (product.category === 'daily-care') catName = 'দৈনন্দিন পরিচর্যা';
+        else if (product.category === 'baby-dress' || product.category === 'baby_dress') catName = '🧸 Baby Dress';
+        else if (product.category === 'baby-essentials') catName = 'বেবি Essentials';
+        else if (product.category === 'baby-carriers') catName = 'ডাডিং প্রোডাক্ট';
+        else if (product.category === 'women-cosmetics') catName = "Women's Cosmetics";
+        else if (product.category === 'gold-plate') catName = 'গোল্ড প্লেটের আইটেম';
+        else if (product.category === 'indoor-plants') catName = 'ইনডোর গাছ';
+        else if (product.category === 'artificial-flowers') catName = 'Artificial Flowers';
+        else if (product.category === 'toys') catName = '🧸 Toys';
+        else if (product.category === 'feeding') catName = '🍼 Feeding Items';
+        else if (product.category === 'baby_care') catName = '🛁 Baby Care';
+        else if (product.category === 'baby_bedding') catName = '👶 Essentials';
+        else if (product.category === 'trending') catName = '🔥 Trending';
+        detailCategory.innerText = catName;
+        detailNameBreadcrumb.innerText = product.name;
+        
+        detailCategory.onclick = () => {
+          currentCategory = product.category;
+          showCategoryPage(product.category);
+        };
+        
+        detailPageBadge.innerHTML = '';
+        if (product.soldOut) {
+          detailPageBadge.innerHTML = '<div class="soldout-badge text-base">Sold Out</div>';
+        } else if (product.onSale) {
+          detailPageBadge.innerHTML = '<div class="sale-badge text-base">ছাড়!</div>';
+        }
+        
+        if (product.soldOut) {
+          detailPageQtySection.style.display = 'none';
+          detailPageActions.style.display = 'none';
+          soldOutMessage.classList.remove('hidden');
+        } else {
+          detailPageQtySection.style.display = 'flex';
+          detailPageActions.style.display = 'flex';
+          soldOutMessage.classList.add('hidden');
+        }
+        
+        const whatsappText = `আমি ${product.name} অর্গানিক পণ্যটি কিনতে আগ্রহী। দাম: ${product.price} BDT।`;
+        whatsappShareBtn.href = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
+        
+        showRelatedProducts(product.category, product.id);
+        showBottomRelatedProducts(product.category, product.id);
+        switchDetailTab('desc');
+        
+        window.scrollTo({ top: 0 });
+      }
 
-  const saveBadge = document.getElementById('detailSaveBadge');
-  if (saveBadge && product.oldPrice && product.price) {
-    const pct = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
-    saveBadge.innerText = pct > 0 ? `Save ${pct}%` : '';
-  }
-  
-  let catName = '';
-  if (product.category === 'baby-shoes') catName = 'Baby Shoes';
-  else if (product.category === 'baby-toys') catName = 'Baby Toys';
-  else if (product.category === 'feeding-bottles') catName = 'Feeding Bottle';
-  else if (product.category === 'baby-feeding') catName = 'বেবি খাবার';
-  else if (product.category === 'daily-care') catName = 'দৈনন্দিন পরিচর্যা';
-  else if (product.category === 'baby-dress' || product.category === 'baby_dress') catName = '🧸 Baby Dress';
-  else if (product.category === 'baby-essentials') catName = 'বেবি Essentials';
-  else if (product.category === 'baby-carriers') catName = 'ডাডিং প্রোডাক্ট';
-  else if (product.category === 'women-cosmetics') catName = "Women's Cosmetics";
-  else if (product.category === 'gold-plate') catName = 'গোল্ড প্লেটের আইটেম';
-  else if (product.category === 'indoor-plants') catName = 'ইনডোর গাছ';
-  else if (product.category === 'artificial-flowers') catName = 'Artificial Flowers';
-  else if (product.category === 'toys') catName = '🧸 Toys';
-  else if (product.category === 'feeding') catName = '🍼 Feeding Items';
-  else if (product.category === 'baby_care') catName = '🛁 Baby Care';
-  else if (product.category === 'baby_bedding') catName = '👶 Essentials';
-  else if (product.category === 'trending') catName = '🔥 Trending';
-  else catName = product.category || 'পণ্য';
-  detailCategory.innerText = catName;
-  detailNameBreadcrumb.innerText = product.name;
-  
-  detailCategory.onclick = () => {
-    currentCategory = product.category;
-    showCategoryPage(product.category);
-  };
-  
-  detailPageBadge.innerHTML = '';
-  if (product.soldOut) {
-    detailPageBadge.innerHTML = '<div class="soldout-badge text-base">Sold Out</div>';
-  } else if (product.onSale) {
-    detailPageBadge.innerHTML = '<div class="sale-badge text-base">ছাড়!</div>';
-  }
-  
-  if (product.soldOut) {
-    detailPageQtySection.style.display = 'none';
-    detailPageActions.style.display = 'none';
-    soldOutMessage.classList.remove('hidden');
-  } else {
-    detailPageQtySection.style.display = 'flex';
-    detailPageActions.style.display = 'flex';
-    soldOutMessage.classList.add('hidden');
-  }
-  
-  const whatsappText = `আমি ${product.name} অর্গানিক পণ্যটি কিনতে আগ্রহী। দাম: ${product.price} BDT।`;
-  whatsappShareBtn.href = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
-  
-  showRelatedProducts(product.category, product.id);
-  showBottomRelatedProducts(product.category, product.id);
-  switchDetailTab('desc');
-  
-  window.scrollTo({ top: 0 });
-}
       window.showHomePage = function() { goToHome(); };
 
       const loginPage = document.getElementById('loginPage');

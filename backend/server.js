@@ -343,6 +343,53 @@ app.put('/api/products/:id', adminMiddleware, upload.array('images', 10), async 
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
+// ===== PRODUCT IMAGE — একটি ছবি যোগ করা =====
+app.post('/api/products/:id/images', adminMiddleware, upload.array('images', 10), async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.json({ success: false, message: 'পণ্য পাওয়া যায়নি' });
+    if (!req.files || req.files.length === 0) return res.json({ success: false, message: 'কোনো ছবি নেই' });
+    const results = await uploadMultiple(req.files, 'FamilyFashionHub');
+    const newImages = results.map(r => ({ url: r.secure_url, public_id: r.public_id }));
+    product.images = [...(product.images || []), ...newImages];
+    if (!product.img) product.img = product.images[0].url;
+    await product.save();
+    res.json({ success: true, data: product.images, message: 'ছবি যোগ হয়েছে' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// ===== PRODUCT IMAGE — একটি ছবি মুছে ফেলা =====
+app.delete('/api/products/:id/images/:publicId', adminMiddleware, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.json({ success: false, message: 'পণ্য পাওয়া যায়নি' });
+    // publicId URL-encoded হয়ে আসে, decode করো
+    const publicId = decodeURIComponent(req.params.publicId);
+    // Cloudinary থেকে মুছো
+    await cloudinary.uploader.destroy(publicId).catch(() => {});
+    // DB থেকে সরাও
+    product.images = (product.images || []).filter(img => img.public_id !== publicId);
+    // প্রধান img আপডেট করো
+    product.img = product.images.length > 0 ? product.images[0].url : '';
+    await product.save();
+    res.json({ success: true, data: product.images, message: 'ছবি মুছে ফেলা হয়েছে' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// ===== PRODUCT IMAGE — ক্রম পরিবর্তন =====
+app.put('/api/products/:id/images/reorder', adminMiddleware, async (req, res) => {
+  try {
+    const product = await Product.findById(req.params.id);
+    if (!product) return res.json({ success: false, message: 'পণ্য পাওয়া যায়নি' });
+    const { images } = req.body; // [{url, public_id}, ...] নতুন ক্রমে
+    if (!Array.isArray(images)) return res.json({ success: false, message: 'images array প্রয়োজন' });
+    product.images = images;
+    product.img = images.length > 0 ? images[0].url : '';
+    await product.save();
+    res.json({ success: true, data: product.images, message: 'ছবির ক্রম আপডেট হয়েছে' });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
 app.delete('/api/products/:id', adminMiddleware, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);

@@ -186,6 +186,104 @@ tr:hover td { background: var(--bg); }
 .img-preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .img-thumb { width: 70px; height: 70px; object-fit: cover; border-radius: 6px; border: 1.5px solid var(--border); }
 
+/* ===== MULTI IMAGE MANAGER ===== */
+.img-manager { margin-top: 10px; }
+.img-manager-label {
+  font-size: 12px; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.5px;
+  margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+}
+.img-gallery {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  padding: 12px; background: #faf9ff;
+  border: 2px dashed var(--border); border-radius: 10px;
+  min-height: 80px; transition: border-color 0.2s;
+}
+.img-gallery:empty::after {
+  content: 'কোনো ছবি নেই — নিচে থেকে যোগ করুন';
+  color: var(--text-muted); font-size: 12px;
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; text-align: center;
+}
+.img-gallery.drag-over { border-color: var(--primary); background: var(--primary-light); }
+.img-card {
+  position: relative; width: 90px; height: 90px;
+  border-radius: 8px; overflow: hidden;
+  border: 2px solid var(--border); background: #fff;
+  cursor: grab; transition: transform 0.15s, box-shadow 0.15s;
+  flex-shrink: 0;
+}
+.img-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.12); }
+.img-card.dragging { opacity: 0.4; cursor: grabbing; }
+.img-card.drag-target { border-color: var(--primary); border-style: dashed; }
+.img-card img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.img-card-actions {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.55); display: flex;
+  align-items: center; justify-content: center; gap: 6px;
+  opacity: 0; transition: opacity 0.2s;
+}
+.img-card:hover .img-card-actions { opacity: 1; }
+.img-card-btn {
+  width: 28px; height: 28px; border-radius: 50%; border: none;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; transition: all 0.15s;
+}
+.img-card-btn.del { background: var(--danger); color: #fff; }
+.img-card-btn.del:hover { background: #c53030; transform: scale(1.1); }
+.img-card-btn.primary-mark { background: var(--accent); color: #fff; }
+.img-card-btn.primary-mark:hover { background: #d97706; transform: scale(1.1); }
+.img-card-badge {
+  position: absolute; top: 4px; left: 4px;
+  background: var(--accent); color: #fff;
+  font-size: 9px; font-weight: 700; padding: 2px 5px;
+  border-radius: 4px; letter-spacing: 0.3px;
+  pointer-events: none;
+}
+.img-card-drag-hint {
+  position: absolute; bottom: 3px; right: 4px;
+  color: rgba(255,255,255,0.8); font-size: 9px;
+  pointer-events: none; opacity: 0; transition: opacity 0.2s;
+}
+.img-card:hover .img-card-drag-hint { opacity: 1; }
+
+.img-add-zone {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; width: 90px; height: 90px; border-radius: 8px;
+  border: 2px dashed #c4b5fd; background: var(--primary-light);
+  cursor: pointer; transition: all 0.2s; flex-shrink: 0;
+}
+.img-add-zone:hover { border-color: var(--primary); background: #ddd6fe; }
+.img-add-zone i { font-size: 20px; color: var(--primary); }
+.img-add-zone span { font-size: 10px; color: var(--primary); font-weight: 600; }
+.img-upload-bar {
+  margin-top: 8px; display: flex; align-items: center; gap: 8px;
+  background: #f0fdf4; border: 1px solid #bbf7d0;
+  border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #065f46;
+}
+.img-upload-bar i { color: #10b981; }
+.img-count-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  background: var(--primary-light); color: var(--primary);
+  padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 600;
+  margin-left: 6px;
+}
+/* নতুন ছবি আপলোড section */
+.new-img-section {
+  margin-top: 10px; padding: 10px 12px;
+  background: #fff; border: 1.5px solid var(--border);
+  border-radius: 8px;
+}
+.new-img-section-title {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  margin-bottom: 8px; display: flex; align-items: center; gap: 6px;
+}
+.new-img-preview { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.new-img-preview .img-thumb {
+  width: 60px; height: 60px; object-fit: cover; border-radius: 6px;
+  border: 1.5px solid var(--border);
+}
+
 /* ===== TOAST ===== */
 .toast-container { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 10px; }
 .toast { background: var(--dark); color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); animation: slideIn 0.3s ease; min-width: 250px; }
@@ -842,10 +940,35 @@ tr:hover td { background: var(--bg); }
             <label class="form-label">মূল বৈশিষ্ট্য (Highlights) <span style="font-size:11px;color:var(--text-muted);">— কমা দিয়ে আলাদা করুন</span></label>
             <textarea class="form-control" id="productHighlights" rows="2" placeholder="যেমন: ১০০% কটন, হাত ধোয়া যায়, নরম ও আরামদায়ক"></textarea>
           </div>
+          <!-- ===== মাল্টি-ইমেজ ম্যানেজার ===== -->
           <div class="form-group" style="grid-column:1/-1;">
-            <label class="form-label">ছবি আপলোড</label>
-            <input type="file" class="form-control" id="productImages" multiple accept="image/*" onchange="previewImages()">
-            <div class="img-preview" id="imagePreview"></div>
+            <label class="form-label">
+              ছবি গ্যালারি
+              <span id="imgCountBadge" class="img-count-badge"><i class="fas fa-images"></i> <span id="imgCountNum">0</span> টি ছবি</span>
+            </label>
+
+            <!-- বিদ্যমান ছবি গ্যালারি (Edit mode-এ দেখাবে) -->
+            <div class="img-manager" id="existingImgManager" style="display:none;">
+              <div class="img-manager-label">
+                <i class="fas fa-images"></i> বিদ্যমান ছবি
+                <span style="font-size:11px;font-weight:400;color:var(--text-muted);">— টেনে সরান (ক্রম পরিবর্তন) | প্রথম ছবিটি থাম্বনেইল হিসেবে ব্যবহৃত হবে</span>
+              </div>
+              <div class="img-gallery" id="existingImgGallery" ondragover="handleGalleryDragOver(event)" ondrop="handleGalleryDrop(event)" ondragleave="handleGalleryDragLeave(event)"></div>
+              <div class="img-upload-bar" id="imgReorderHint" style="display:none;">
+                <i class="fas fa-check-circle"></i> ক্রম পরিবর্তন হয়েছে — সেভ করলে আপডেট হবে
+              </div>
+            </div>
+
+            <!-- নতুন ছবি যোগ করা -->
+            <div class="new-img-section" style="margin-top:8px;">
+              <div class="new-img-section-title">
+                <i class="fas fa-plus-circle" style="color:var(--primary);"></i>
+                নতুন ছবি যোগ করুন
+                <span style="font-size:11px;font-weight:400;color:var(--text-muted);">— সর্বোচ্চ ১০টি, প্রতিটি ১০MB এর কম</span>
+              </div>
+              <input type="file" class="form-control" id="productImages" multiple accept="image/*" onchange="previewNewImages()" style="margin-bottom:0;">
+              <div class="new-img-preview" id="newImagePreview"></div>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">স্ট্যাটাস</label>
@@ -1459,7 +1582,13 @@ function openProductModal(product = null) {
   document.getElementById('productSoldOut').checked = false;
   document.getElementById('productFeatured').checked = false;
   document.getElementById('productImages').value = '';
-  document.getElementById('imagePreview').innerHTML = '';
+  document.getElementById('newImagePreview').innerHTML = '';
+  document.getElementById('existingImgManager').style.display = 'none';
+  document.getElementById('existingImgGallery').innerHTML = '';
+  document.getElementById('imgCountNum').textContent = '0';
+  document.getElementById('imgReorderHint').style.display = 'none';
+  window._existingImages = [];
+  window._reorderedImages = null;
   // বিস্তারিত ফিল্ড
   document.getElementById('productSizes').value = '';
   document.getElementById('productColors').value = '';
@@ -1499,8 +1628,10 @@ async function editProduct(id) {
   document.getElementById('productSoldOut').checked = p.soldOut;
   document.getElementById('productFeatured').checked = p.featured;
   document.getElementById('productImages').value = '';
-  document.getElementById('imagePreview').innerHTML = (p.images || []).map(i =>
-    `<img src="${i.url || i}" class="img-thumb">`).join('');
+  document.getElementById('newImagePreview').innerHTML = '';
+  window._existingImages = p.images || [];
+  window._reorderedImages = null;
+  renderExistingImages(p.images || [], p._id);
   // বিস্তারিত ফিল্ড
   document.getElementById('productSizes').value = (p.sizes || []).join(', ');
   document.getElementById('productColors').value = (p.colors || []).join(', ');
@@ -1558,6 +1689,17 @@ async function saveProduct() {
   const files = document.getElementById('productImages').files;
   for (const f of files) form.append('images', f);
 
+  // ছবির ক্রম পরিবর্তন হয়ে থাকলে reorder API call করো (নতুন পণ্যের জন্য নয়)
+  if (id && window._reorderedImages && window._reorderedImages.length > 0) {
+    try {
+      await api(`/products/${id}/images/reorder`, 'PUT', { images: window._reorderedImages });
+    } catch { /* reorder failed silently */ }
+    window._reorderedImages = null;
+  }
+
+  // নতুন ছবি থাকলেই PUT/POST; না থাকলে ছবি-সংক্রান্ত field skip করো
+  // (server.js শুধু req.files থাকলে images আপডেট করে)
+
   try {
     const endpoint = id ? `/products/${id}` : '/products';
     const method = id ? 'PUT' : 'POST';
@@ -1581,8 +1723,11 @@ function deleteProduct(id, name) {
   });
 }
 
-function previewImages() {
-  const prev = document.getElementById('imagePreview');
+// ===== MULTI-IMAGE MANAGEMENT =====
+
+// নতুন ছবি preview
+function previewNewImages() {
+  const prev = document.getElementById('newImagePreview');
   prev.innerHTML = '';
   const files = document.getElementById('productImages').files;
   for (const f of files) {
@@ -1591,7 +1736,155 @@ function previewImages() {
     img.src = URL.createObjectURL(f);
     prev.appendChild(img);
   }
+  updateImgCount();
 }
+
+// মোট ছবি সংখ্যা আপডেট
+function updateImgCount() {
+  const existing = (window._existingImages || []).length;
+  const newFiles = document.getElementById('productImages').files.length;
+  document.getElementById('imgCountNum').textContent = existing + newFiles;
+}
+
+// বিদ্যমান ছবি রেন্ডার (Edit mode)
+function renderExistingImages(images, productId) {
+  window._existingImages = images || [];
+  const gallery = document.getElementById('existingImgGallery');
+  const manager = document.getElementById('existingImgManager');
+
+  if (!images || images.length === 0) {
+    manager.style.display = 'none';
+    gallery.innerHTML = '';
+    updateImgCount();
+    return;
+  }
+
+  manager.style.display = 'block';
+  gallery.innerHTML = images.map((img, idx) => `
+    <div class="img-card" draggable="true"
+      data-idx="${idx}" data-public-id="${img.public_id || ''}" data-url="${img.url || img}"
+      ondragstart="handleImgDragStart(event)"
+      ondragend="handleImgDragEnd(event)">
+      <img src="${img.url || img}" alt="ছবি ${idx+1}" loading="lazy">
+      ${idx === 0 ? '<div class="img-card-badge">মেইন</div>' : ''}
+      <div class="img-card-actions">
+        <button class="img-card-btn del" title="ছবি মুছুন"
+          onclick="deleteExistingImage(event, '${productId}', '${img.public_id || ''}', ${idx})">
+          <i class="fas fa-trash"></i>
+        </button>
+        ${idx !== 0 ? `<button class="img-card-btn primary-mark" title="প্রধান ছবি করুন"
+          onclick="setMainImage(event, ${idx})">
+          <i class="fas fa-star"></i>
+        </button>` : ''}
+      </div>
+      <div class="img-card-drag-hint"><i class="fas fa-grip-vertical"></i></div>
+    </div>
+  `).join('') + `
+    <div class="img-add-zone" title="নতুন ছবি যোগ করুন" onclick="document.getElementById('productImages').click()">
+      <i class="fas fa-plus"></i>
+      <span>যোগ করুন</span>
+    </div>
+  `;
+
+  updateImgCount();
+}
+
+// Drag & Drop — শুরু
+function handleImgDragStart(e) {
+  window._dragSrcIdx = parseInt(e.currentTarget.dataset.idx);
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+// Drag & Drop — শেষ
+function handleImgDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.img-card').forEach(c => c.classList.remove('drag-target'));
+}
+
+// Gallery dragover
+function handleGalleryDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  e.currentTarget.classList.add('drag-over');
+  const card = e.target.closest('.img-card');
+  document.querySelectorAll('.img-card').forEach(c => c.classList.remove('drag-target'));
+  if (card) card.classList.add('drag-target');
+}
+
+function handleGalleryDragLeave(e) {
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    e.currentTarget.classList.remove('drag-over');
+    document.querySelectorAll('.img-card').forEach(c => c.classList.remove('drag-target'));
+  }
+}
+
+// Gallery drop — ক্রম পরিবর্তন
+function handleGalleryDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  document.querySelectorAll('.img-card').forEach(c => c.classList.remove('drag-target'));
+
+  const card = e.target.closest('.img-card');
+  if (!card) return;
+  const destIdx = parseInt(card.dataset.idx);
+  const srcIdx  = window._dragSrcIdx;
+  if (srcIdx === undefined || srcIdx === destIdx) return;
+
+  const imgs = [...window._existingImages];
+  const [moved] = imgs.splice(srcIdx, 1);
+  imgs.splice(destIdx, 0, moved);
+  window._existingImages = imgs;
+  window._reorderedImages = imgs;
+
+  const productId = document.getElementById('productId').value;
+  renderExistingImages(imgs, productId);
+  document.getElementById('imgReorderHint').style.display = 'flex';
+}
+
+// প্রধান ছবি সেট
+function setMainImage(e, idx) {
+  e.stopPropagation();
+  const imgs = [...window._existingImages];
+  const [main] = imgs.splice(idx, 1);
+  imgs.unshift(main);
+  window._existingImages = imgs;
+  window._reorderedImages = imgs;
+  const productId = document.getElementById('productId').value;
+  renderExistingImages(imgs, productId);
+  document.getElementById('imgReorderHint').style.display = 'flex';
+}
+
+// বিদ্যমান ছবি মুছে ফেলা
+async function deleteExistingImage(e, productId, publicId, idx) {
+  e.stopPropagation();
+  if (!productId) {
+    // নতুন পণ্য — শুধু local থেকে সরাও
+    window._existingImages.splice(idx, 1);
+    renderExistingImages(window._existingImages, '');
+    return;
+  }
+  if (!confirm('এই ছবিটি স্থায়ীভাবে মুছে ফেলবেন?')) return;
+  if (!publicId) {
+    toast('public_id নেই, ছবি মুছতে পারছি না', 'error'); return;
+  }
+  try {
+    const encodedId = encodeURIComponent(publicId);
+    const data = await api(`/products/${productId}/images/${encodedId}`, 'DELETE');
+    if (data.success) {
+      toast('ছবি মুছে ফেলা হয়েছে');
+      window._existingImages = data.data || [];
+      renderExistingImages(window._existingImages, productId);
+      // allProducts আপডেট করো
+      const prod = allProducts.find(p => p._id === productId);
+      if (prod) { prod.images = window._existingImages; prod.img = prod.images[0]?.url || ''; }
+      loadProducts();
+    } else { toast(data.message || 'মুছতে পারিনি', 'error'); }
+  } catch { toast('সার্ভার সমস্যা', 'error'); }
+}
+
+// পুরনো function — fallback
+function previewImages() { previewNewImages(); }
 
 // ===== ORDERS =====
 async function loadOrders() {
