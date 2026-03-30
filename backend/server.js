@@ -96,6 +96,21 @@ const productSchema = new mongoose.Schema({
   onSale:      { type: Boolean, default: false },
   soldOut:     { type: Boolean, default: false },
   featured:    { type: Boolean, default: false },
+
+  // ===== বিস্তারিত পণ্য তথ্য =====
+  sizes:          [{ type: String }],                  // সাইজ যেমন: S, M, L, XL, 0-6M
+  colors:         [{ type: String }],                  // রঙ যেমন: লাল, নীল, সাদা
+  ageGroup:       { type: String, default: '' },        // বয়স: 0-6 মাস, 6-12 মাস ইত্যাদি
+  material:       { type: String, default: '' },        // কাপড়: Cotton, Fleece ইত্যাদি
+  stock:          { type: Number, default: 0 },         // স্টক সংখ্যা
+  sku:            { type: String, default: '' },         // স্টক কোড
+  weight:         { type: String, default: '' },         // ওজন/মাপ
+  deliveryInfo:   { type: String, default: '' },         // ডেলিভারি তথ্য
+  returnPolicy:   { type: String, default: '' },         // রিটার্ন নীতি
+  highlights:     [{ type: String }],                   // মূল বৈশিষ্ট্য তালিকা
+  careInstructions: { type: String, default: '' },      // পরিচর্যা নির্দেশনা
+  tags:           [{ type: String }],                   // সার্চ ট্যাগ
+
   createdAt:   { type: Date, default: Date.now },
 });
 
@@ -230,13 +245,23 @@ app.get('/api/products/:id', async (req, res) => {
 
 app.post('/api/products', adminMiddleware, upload.array('images', 10), async (req, res) => {
   try {
-    const { name, description, price, oldPrice, saving, category, subcategory, onSale, soldOut, featured } = req.body;
+    const {
+      name, description, price, oldPrice, saving, category, subcategory, onSale, soldOut, featured,
+      ageGroup, material, stock, sku, weight, deliveryInfo, returnPolicy, careInstructions,
+      sizes, colors, highlights, tags,
+    } = req.body;
     let images = [];
     if (req.files && req.files.length > 0) {
       const results = await uploadMultiple(req.files);
       images = results.map(r => ({ url: r.secure_url, public_id: r.public_id }));
     }
     const img = images.length > 0 ? images[0].url : '';
+    // Array field parse helper (comma-separated string অথবা array হতে পারে)
+    const parseArr = v => {
+      if (!v) return [];
+      if (Array.isArray(v)) return v.map(x => x.trim()).filter(Boolean);
+      return v.split(',').map(x => x.trim()).filter(Boolean);
+    };
     const product = await Product.create({
       name, description,
       price:       +price,
@@ -248,6 +273,18 @@ app.post('/api/products', adminMiddleware, upload.array('images', 10), async (re
       onSale:   onSale   === 'true',
       soldOut:  soldOut  === 'true',
       featured: featured === 'true',
+      ageGroup:         ageGroup || '',
+      material:         material || '',
+      stock:            +(stock  || 0),
+      sku:              sku || '',
+      weight:           weight || '',
+      deliveryInfo:     deliveryInfo || '',
+      returnPolicy:     returnPolicy || '',
+      careInstructions: careInstructions || '',
+      sizes:      parseArr(sizes),
+      colors:     parseArr(colors),
+      highlights: parseArr(highlights),
+      tags:       parseArr(tags),
     });
     res.json({ success: true, data: product });
   } catch (e) { res.json({ success: false, message: e.message }); }
@@ -255,7 +292,16 @@ app.post('/api/products', adminMiddleware, upload.array('images', 10), async (re
 
 app.put('/api/products/:id', adminMiddleware, upload.array('images', 10), async (req, res) => {
   try {
-    const { name, description, price, oldPrice, saving, category, subcategory, onSale, soldOut, featured } = req.body;
+    const {
+      name, description, price, oldPrice, saving, category, subcategory, onSale, soldOut, featured,
+      ageGroup, material, stock, sku, weight, deliveryInfo, returnPolicy, careInstructions,
+      sizes, colors, highlights, tags,
+    } = req.body;
+    const parseArr = v => {
+      if (!v) return [];
+      if (Array.isArray(v)) return v.map(x => x.trim()).filter(Boolean);
+      return v.split(',').map(x => x.trim()).filter(Boolean);
+    };
     const update = {
       name, description,
       price:       +price,
@@ -266,6 +312,18 @@ app.put('/api/products/:id', adminMiddleware, upload.array('images', 10), async 
       onSale:   onSale   === 'true',
       soldOut:  soldOut  === 'true',
       featured: featured === 'true',
+      ageGroup:         ageGroup || '',
+      material:         material || '',
+      stock:            +(stock  || 0),
+      sku:              sku || '',
+      weight:           weight || '',
+      deliveryInfo:     deliveryInfo || '',
+      returnPolicy:     returnPolicy || '',
+      careInstructions: careInstructions || '',
+      sizes:      parseArr(sizes),
+      colors:     parseArr(colors),
+      highlights: parseArr(highlights),
+      tags:       parseArr(tags),
     };
     if (req.files && req.files.length > 0) {
       const old = await Product.findById(req.params.id);

@@ -394,8 +394,11 @@ tr:hover td { background: var(--bg); }
       <div class="card">
         <div class="toolbar">
           <div class="search-input"><i class="fas fa-search"></i><input type="text" placeholder="পণ্য খুঁজুন..." id="productSearch" oninput="filterProducts()"></div>
-          <select class="form-control form-control-sm" id="productCategoryFilter" onchange="filterProducts()" style="width:auto;">
+          <select class="form-control form-control-sm" id="productCategoryFilter" onchange="updateFilterSubcategoryOptions(); filterProducts();" style="width:auto;">
             <option value="">সব ক্যাটাগরি</option>
+          </select>
+          <select class="form-control form-control-sm" id="productSubcategoryFilter" onchange="filterProducts()" style="width:auto;">
+            <option value="">সব সাব-ক্যাটাগরি</option>
           </select>
           <button class="btn btn-primary btn-sm" onclick="openProductModal()"><i class="fas fa-plus"></i> নতুন পণ্য</button>
         </div>
@@ -576,66 +579,148 @@ tr:hover td { background: var(--bg); }
 
 <!-- ===== PRODUCT MODAL ===== -->
 <div class="modal-overlay" id="productModal">
-  <div class="modal">
+  <div class="modal" style="max-width:700px;">
     <div class="modal-header">
       <h3 id="productModalTitle">নতুন পণ্য যোগ করুন</h3>
       <button class="modal-close" onclick="closeModal('productModal')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="productId">
-      <div class="form-grid">
-        <div class="form-group" style="grid-column: 1/-1;">
-          <label class="form-label">পণ্যের নাম *</label>
-          <input type="text" class="form-control" id="productName" placeholder="পণ্যের নাম লিখুন">
-        </div>
-        <div class="form-group">
-          <label class="form-label">বিক্রয় মূল্য (৳) *</label>
-          <input type="number" class="form-control" id="productPrice" placeholder="0">
-        </div>
-        <div class="form-group">
-          <label class="form-label">আগের মূল্য (৳)</label>
-          <input type="number" class="form-control" id="productOldPrice" placeholder="0">
-        </div>
-        <div class="form-group">
-          <label class="form-label">সাশ্রয় (৳)</label>
-          <input type="number" class="form-control" id="productSaving" placeholder="0">
-        </div>
-        <div class="form-group">
-          <label class="form-label">ক্যাটাগরি *</label>
-          <select class="form-control" id="productCategory" onchange="updateSubcategoryOptions()">
-            <option value="">বেছে নিন</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">সাব-ক্যাটাগরি</label>
-          <select class="form-control" id="productSubcategory">
-            <option value="">-- নির্বাচন করুন --</option>
-          </select>
-        </div>
-        <div class="form-group" style="grid-column: 1/-1;">
-          <label class="form-label">বিবরণ</label>
-          <textarea class="form-control" id="productDescription" rows="3" placeholder="পণ্যের বিবরণ লিখুন..."></textarea>
-        </div>
-        <div class="form-group" style="grid-column: 1/-1;">
-          <label class="form-label">ছবি আপলোড</label>
-          <input type="file" class="form-control" id="productImages" multiple accept="image/*" onchange="previewImages()">
-          <div class="img-preview" id="imagePreview"></div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">স্ট্যাটাস</label>
-          <div style="display:flex; flex-direction:column; gap:8px; margin-top:4px;">
-            <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
-              <input type="checkbox" id="productOnSale"> সেলে আছে
-            </label>
-            <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
-              <input type="checkbox" id="productSoldOut"> স্টক শেষ
-            </label>
-            <label style="display:flex; align-items:center; gap:8px; font-size:13px; cursor:pointer;">
-              <input type="checkbox" id="productFeatured"> ফিচার্ড
-            </label>
+
+      <!-- ট্যাব নেভিগেশন -->
+      <div style="display:flex;gap:4px;margin-bottom:18px;border-bottom:2px solid var(--border);padding-bottom:0;">
+        <button class="prod-tab-btn active" onclick="switchProdTab('basic',this)" style="padding:8px 16px;background:none;border:none;border-bottom:2px solid var(--primary);color:var(--primary);font-weight:600;font-size:13px;cursor:pointer;margin-bottom:-2px;font-family:var(--font);">মূল তথ্য</button>
+        <button class="prod-tab-btn" onclick="switchProdTab('detail',this)" style="padding:8px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:13px;cursor:pointer;margin-bottom:-2px;font-family:var(--font);">বিস্তারিত</button>
+        <button class="prod-tab-btn" onclick="switchProdTab('delivery',this)" style="padding:8px 16px;background:none;border:none;border-bottom:2px solid transparent;color:var(--text-muted);font-size:13px;cursor:pointer;margin-bottom:-2px;font-family:var(--font);">ডেলিভারি ও নীতি</button>
+      </div>
+
+      <!-- ট্যাব ১: মূল তথ্য -->
+      <div id="prodTab-basic" class="prod-tab-content">
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">পণ্যের নাম *</label>
+            <input type="text" class="form-control" id="productName" placeholder="পণ্যের নাম লিখুন">
+          </div>
+          <div class="form-group">
+            <label class="form-label">বিক্রয় মূল্য (৳) *</label>
+            <input type="number" class="form-control" id="productPrice" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">আগের মূল্য (৳)</label>
+            <input type="number" class="form-control" id="productOldPrice" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">সাশ্রয় (৳)</label>
+            <input type="number" class="form-control" id="productSaving" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">স্টক সংখ্যা</label>
+            <input type="number" class="form-control" id="productStock" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ক্যাটাগরি *</label>
+            <select class="form-control" id="productCategory" onchange="updateSubcategoryOptions()">
+              <option value="">বেছে নিন</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">সাব-ক্যাটাগরি</label>
+            <select class="form-control" id="productSubcategory">
+              <option value="">-- নির্বাচন করুন --</option>
+            </select>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">সংক্ষিপ্ত বিবরণ</label>
+            <textarea class="form-control" id="productDescription" rows="3" placeholder="পণ্যের বিবরণ লিখুন..."></textarea>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">মূল বৈশিষ্ট্য (Highlights) <span style="font-size:11px;color:var(--text-muted);">— কমা দিয়ে আলাদা করুন</span></label>
+            <textarea class="form-control" id="productHighlights" rows="2" placeholder="যেমন: ১০০% কটন, হাত ধোয়া যায়, নরম ও আরামদায়ক"></textarea>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">ছবি আপলোড</label>
+            <input type="file" class="form-control" id="productImages" multiple accept="image/*" onchange="previewImages()">
+            <div class="img-preview" id="imagePreview"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">স্ট্যাটাস</label>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="productOnSale"> সেলে আছে</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="productSoldOut"> স্টক শেষ</label>
+              <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="productFeatured"> ফিচার্ড</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">SKU / পণ্য কোড</label>
+            <input type="text" class="form-control" id="productSku" placeholder="যেমন: FFH-BD-001">
           </div>
         </div>
       </div>
+
+      <!-- ট্যাব ২: বিস্তারিত -->
+      <div id="prodTab-detail" class="prod-tab-content" style="display:none;">
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">সাইজ সমূহ <span style="font-size:11px;color:var(--text-muted);">— কমা দিয়ে আলাদা করুন</span></label>
+            <input type="text" class="form-control" id="productSizes" placeholder="যেমন: 0-6M, 6-12M, 1-2Y, S, M, L, XL">
+            <p style="font-size:11px;color:var(--text-muted);margin-top:5px;">Baby: 0-6M, 6-12M, 1-2Y, 2-3Y | পোশাক: S, M, L, XL, XXL</p>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">রঙ সমূহ <span style="font-size:11px;color:var(--text-muted);">— কমা দিয়ে আলাদা করুন</span></label>
+            <input type="text" class="form-control" id="productColors" placeholder="যেমন: লাল, নীল, সাদা, হলুদ, সবুজ">
+          </div>
+          <div class="form-group">
+            <label class="form-label">বয়সসীমা</label>
+            <input type="text" class="form-control" id="productAgeGroup" placeholder="যেমন: 0-6 মাস, 6-12 মাস">
+          </div>
+          <div class="form-group">
+            <label class="form-label">কাপড়ের ধরন / উপাদান</label>
+            <input type="text" class="form-control" id="productMaterial" placeholder="যেমন: ১০০% Cotton, Fleece, Polyester">
+          </div>
+          <div class="form-group">
+            <label class="form-label">ওজন / মাপ</label>
+            <input type="text" class="form-control" id="productWeight" placeholder="যেমন: 200gm, 30x40cm">
+          </div>
+          <div class="form-group">
+            <label class="form-label">সার্চ ট্যাগ <span style="font-size:11px;color:var(--text-muted);">— কমা দিয়ে</span></label>
+            <input type="text" class="form-control" id="productTags" placeholder="যেমন: বেবি, নবজাতক, উপহার">
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">পরিচর্যার নির্দেশনা (Wash Care)</label>
+            <textarea class="form-control" id="productCareInstructions" rows="2" placeholder="যেমন: ঠান্ডা পানিতে হাত ধুতে হবে, ড্রায়ার ব্যবহার করবেন না"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- ট্যাব ৩: ডেলিভারি ও নীতি -->
+      <div id="prodTab-delivery" class="prod-tab-content" style="display:none;">
+        <div class="form-grid">
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">ডেলিভারি তথ্য</label>
+            <textarea class="form-control" id="productDeliveryInfo" rows="3" placeholder="যেমন: ঢাকার ভেতরে ৪৮ ঘন্টা, ঢাকার বাইরে ৩-৫ দিন। ডেলিভারি চার্জ: ঢাকায় ৬০৳, বাইরে ১২০৳"></textarea>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <label class="form-label">রিটার্ন / এক্সচেঞ্জ নীতি</label>
+            <textarea class="form-control" id="productReturnPolicy" rows="3" placeholder="যেমন: পণ্য পেলে ২৪ ঘন্টার মধ্যে সমস্যা জানাতে হবে। ত্রুটিপূর্ণ পণ্য এক্সচেঞ্জ করা হবে।"></textarea>
+          </div>
+          <div class="form-group" style="grid-column:1/-1;">
+            <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:14px;">
+              <p style="font-size:13px;font-weight:600;color:#065f46;margin-bottom:6px;"><i class="fas fa-info-circle"></i> ফ্রন্টএন্ড পণ্য বিস্তারিত পেজে কী দেখাবে:</p>
+              <ul style="font-size:12px;color:#374151;padding-left:16px;line-height:1.8;">
+                <li>পণ্যের নাম, মূল্য, ছবি গ্যালারি</li>
+                <li>সাইজ সিলেকশন বাটন</li>
+                <li>রঙ সিলেকশন বাটন</li>
+                <li>মূল বৈশিষ্ট্য (Highlights) তালিকা</li>
+                <li>বিবরণ, কাপড়ের ধরন, বয়সসীমা</li>
+                <li>পরিচর্যার নির্দেশনা</li>
+                <li>ডেলিভারি তথ্য ও রিটার্ন নীতি</li>
+                <li>স্টক স্ট্যাটাস</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
     <div class="modal-footer">
       <button class="btn btn-light" onclick="closeModal('productModal')">বাতিল</button>
@@ -1087,13 +1172,15 @@ function renderProducts(list) {
   const el = document.getElementById('productsTable');
   if (!list.length) { el.innerHTML = '<div class="empty-state"><i class="fas fa-tshirt"></i><p>কোনো পণ্য নেই</p></div>'; return; }
   el.innerHTML = `<div class="table-wrapper"><table>
-    <thead><tr><th>ছবি</th><th>নাম</th><th>ক্যাটাগরি</th><th>মূল্য</th><th>স্ট্যাটাস</th><th>অ্যাকশন</th></tr></thead>
+    <thead><tr><th>ছবি</th><th>নাম</th><th>ক্যাটাগরি</th><th>সাব-ক্যাটাগরি</th><th>মূল্য</th><th>স্টক</th><th>স্ট্যাটাস</th><th>অ্যাকশন</th></tr></thead>
     <tbody>${list.map(p => `
       <tr>
         <td><img src="${p.img || 'https://placehold.co/46x46?text=?'}" class="product-img" onerror="this.src='https://placehold.co/46x46?text=?'"></td>
-        <td><p style="font-weight:600;font-size:13px;">${p.name}</p><p style="font-size:11px;color:var(--text-muted);">${p._id.slice(-6)}</p></td>
+        <td><p style="font-weight:600;font-size:13px;">${p.name}</p><p style="font-size:11px;color:var(--text-muted);">${p.sku || p._id.slice(-6)}</p></td>
         <td><span class="badge badge-purple">${catLabel(p.category)}</span></td>
+        <td><span class="badge badge-gray" style="font-size:11px;">${subCatLabel(p.category, p.subcategory)}</span></td>
         <td><p style="font-weight:700;color:var(--primary);">৳${p.price}</p>${p.oldPrice ? `<p style="font-size:11px;color:var(--text-muted);text-decoration:line-through;">৳${p.oldPrice}</p>` : ''}</td>
+        <td><span style="font-size:13px;font-weight:600;color:${(p.stock||0)===0?'var(--danger)':'var(--success)'}">${p.stock||0}</span></td>
         <td style="display:flex;flex-direction:column;gap:4px;">
           ${p.onSale ? '<span class="badge badge-success">সেলে</span>' : ''}
           ${p.soldOut ? '<span class="badge badge-danger">স্টক শেষ</span>' : ''}
@@ -1108,31 +1195,79 @@ function renderProducts(list) {
     </tbody></table></div>`;
 }
 
+function updateFilterSubcategoryOptions() {
+  const catVal = document.getElementById('productCategoryFilter').value;
+  const subSel = document.getElementById('productSubcategoryFilter');
+  subSel.innerHTML = '<option value="">সব সাব-ক্যাটাগরি</option>';
+  if (!catVal) return;
+  const cat = allCategories.find(c => c.value === catVal);
+  if (!cat || !cat.subcategories) return;
+  cat.subcategories.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.value;
+    opt.textContent = s.label;
+    subSel.appendChild(opt);
+  });
+}
+
 function filterProducts() {
   const q = document.getElementById('productSearch').value.toLowerCase();
   const cat = document.getElementById('productCategoryFilter').value;
+  const sub = document.getElementById('productSubcategoryFilter').value;
   const filtered = allProducts.filter(p =>
     (!q || p.name.toLowerCase().includes(q)) &&
-    (!cat || p.category === cat)
+    (!cat || p.category === cat) &&
+    (!sub || p.subcategory === sub)
   );
   renderProducts(filtered);
 }
 
+function switchProdTab(tab, btn) {
+  document.querySelectorAll('.prod-tab-content').forEach(t => t.style.display = 'none');
+  document.getElementById('prodTab-' + tab).style.display = 'block';
+  document.querySelectorAll('.prod-tab-btn').forEach(b => {
+    b.style.borderBottomColor = 'transparent';
+    b.style.color = 'var(--text-muted)';
+    b.style.fontWeight = '400';
+  });
+  btn.style.borderBottomColor = 'var(--primary)';
+  btn.style.color = 'var(--primary)';
+  btn.style.fontWeight = '600';
+}
+
 function openProductModal(product = null) {
+  // মূল ফিল্ড
   document.getElementById('productId').value = '';
   document.getElementById('productName').value = '';
   document.getElementById('productPrice').value = '';
   document.getElementById('productOldPrice').value = '';
   document.getElementById('productSaving').value = '';
+  document.getElementById('productStock').value = '';
+  document.getElementById('productSku').value = '';
   document.getElementById('productCategory').value = '';
   document.getElementById('productSubcategory').innerHTML = '<option value="">-- নির্বাচন করুন --</option>';
   document.getElementById('productDescription').value = '';
+  document.getElementById('productHighlights').value = '';
   document.getElementById('productOnSale').checked = false;
   document.getElementById('productSoldOut').checked = false;
   document.getElementById('productFeatured').checked = false;
   document.getElementById('productImages').value = '';
   document.getElementById('imagePreview').innerHTML = '';
+  // বিস্তারিত ফিল্ড
+  document.getElementById('productSizes').value = '';
+  document.getElementById('productColors').value = '';
+  document.getElementById('productAgeGroup').value = '';
+  document.getElementById('productMaterial').value = '';
+  document.getElementById('productWeight').value = '';
+  document.getElementById('productTags').value = '';
+  document.getElementById('productCareInstructions').value = '';
+  // ডেলিভারি ফিল্ড
+  document.getElementById('productDeliveryInfo').value = '';
+  document.getElementById('productReturnPolicy').value = '';
+
   document.getElementById('productModalTitle').textContent = 'নতুন পণ্য যোগ করুন';
+  // প্রথম ট্যাবে ফিরে যাও
+  switchProdTab('basic', document.querySelector('.prod-tab-btn'));
   openModal('productModal');
 }
 
@@ -1144,20 +1279,35 @@ async function editProduct(id) {
   document.getElementById('productPrice').value = p.price;
   document.getElementById('productOldPrice').value = p.oldPrice || '';
   document.getElementById('productSaving').value = p.saving || '';
+  document.getElementById('productStock').value = p.stock || '';
+  document.getElementById('productSku').value = p.sku || '';
   document.getElementById('productCategory').value = p.category;
   updateSubcategoryOptions();
-  // subcategory set koro (slight delay so options are populated)
   setTimeout(() => {
     if (p.subcategory) document.getElementById('productSubcategory').value = p.subcategory;
   }, 50);
   document.getElementById('productDescription').value = p.description || '';
+  document.getElementById('productHighlights').value = (p.highlights || []).join(', ');
   document.getElementById('productOnSale').checked = p.onSale;
   document.getElementById('productSoldOut').checked = p.soldOut;
   document.getElementById('productFeatured').checked = p.featured;
   document.getElementById('productImages').value = '';
   document.getElementById('imagePreview').innerHTML = (p.images || []).map(i =>
     `<img src="${i.url || i}" class="img-thumb">`).join('');
+  // বিস্তারিত ফিল্ড
+  document.getElementById('productSizes').value = (p.sizes || []).join(', ');
+  document.getElementById('productColors').value = (p.colors || []).join(', ');
+  document.getElementById('productAgeGroup').value = p.ageGroup || '';
+  document.getElementById('productMaterial').value = p.material || '';
+  document.getElementById('productWeight').value = p.weight || '';
+  document.getElementById('productTags').value = (p.tags || []).join(', ');
+  document.getElementById('productCareInstructions').value = p.careInstructions || '';
+  // ডেলিভারি ফিল্ড
+  document.getElementById('productDeliveryInfo').value = p.deliveryInfo || '';
+  document.getElementById('productReturnPolicy').value = p.returnPolicy || '';
+
   document.getElementById('productModalTitle').textContent = 'পণ্য সম্পাদনা করুন';
+  switchProdTab('basic', document.querySelector('.prod-tab-btn'));
   openModal('productModal');
 }
 
@@ -1177,12 +1327,27 @@ async function saveProduct() {
   form.append('price', price);
   form.append('oldPrice', document.getElementById('productOldPrice').value || 0);
   form.append('saving', document.getElementById('productSaving').value || 0);
+  form.append('stock', document.getElementById('productStock').value || 0);
+  form.append('sku', document.getElementById('productSku').value || '');
   form.append('category', category);
   form.append('subcategory', subcategory);
   form.append('description', document.getElementById('productDescription').value);
+  form.append('highlights', document.getElementById('productHighlights').value);
   form.append('onSale', document.getElementById('productOnSale').checked);
   form.append('soldOut', document.getElementById('productSoldOut').checked);
   form.append('featured', document.getElementById('productFeatured').checked);
+  // বিস্তারিত ফিল্ড
+  form.append('sizes', document.getElementById('productSizes').value);
+  form.append('colors', document.getElementById('productColors').value);
+  form.append('ageGroup', document.getElementById('productAgeGroup').value);
+  form.append('material', document.getElementById('productMaterial').value);
+  form.append('weight', document.getElementById('productWeight').value);
+  form.append('tags', document.getElementById('productTags').value);
+  form.append('careInstructions', document.getElementById('productCareInstructions').value);
+  // ডেলিভারি
+  form.append('deliveryInfo', document.getElementById('productDeliveryInfo').value);
+  form.append('returnPolicy', document.getElementById('productReturnPolicy').value);
+
   const files = document.getElementById('productImages').files;
   for (const f of files) form.append('images', f);
 
@@ -1465,6 +1630,14 @@ function catLabel(c) {
   return found ? found.label : c;
 }
 
+function subCatLabel(catVal, subVal) {
+  if (!subVal) return '—';
+  const cat = allCategories.find(c => c.value === catVal);
+  if (!cat) return subVal;
+  const sub = (cat.subcategories || []).find(s => s.value === subVal);
+  return sub ? sub.label : subVal;
+}
+
 // ===== CATEGORY MANAGER (Full API-connected) =====
 const DEFAULT_CATEGORIES = [
   { value: 'baby_dress', label: 'বেবি পোশাক', subcategories: [
@@ -1538,12 +1711,14 @@ function refreshCategoryDropdowns() {
       allCategories.map(c => `<option value="${c.value}" ${cur===c.value?'selected':''}>${c.label}</option>`).join('');
     updateSubcategoryOptions();
   }
-  // Filter dropdown
+  // Filter category dropdown
   const filterSel = document.getElementById('productCategoryFilter');
   if (filterSel) {
     const cur = filterSel.value;
     filterSel.innerHTML = '<option value="">সব ক্যাটাগরি</option>' +
       allCategories.map(c => `<option value="${c.value}" ${cur===c.value?'selected':''}>${c.label}</option>`).join('');
+    // Restore subcategory filter options if category still selected
+    updateFilterSubcategoryOptions();
   }
 }
 
