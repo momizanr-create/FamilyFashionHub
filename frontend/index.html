@@ -3768,84 +3768,15 @@ function _ffhRenderDashOrders(orders) {
   if (listEl)   listEl.innerHTML   = orders.map(orderCard).join('');
 }
 
-async function loadProductsFromAPI() {
-  try {
-    const res = await fetch(window.FFH_API + '/products?limit=200');
-    const data = await res.json();
-    if (!data.success || !data.data || !data.data.length) return;
-
-    var apiMapped = data.data.map(function(p, idx) {
-      return {
-        id: p._id,
-        _apiId: p._id,
-        name: p.name,
-        price: p.price,
-        oldPrice: p.oldPrice || 0,
-        saving: p.saving || 0,
-        img: p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
-        images: (p.images || []).map(function(i){ return i.url || i; }),
-        description: p.description || '',
-        category: p.category || 'all',
-        subcategory: p.subcategory || '',
-        onSale: !!p.onSale,
-        soldOut: !!p.soldOut,
-        featured: !!p.featured,
-      };
-    });
-
-    window.apiProducts = apiMapped;
-    window._ffhApiProducts = apiMapped;
-
-    var _origFilter = window.filterByCategory;
-    window.filterByCategory = function(cat) {
-      if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
-        if (_origFilter) _origFilter(cat);
-        setTimeout(function() {
-          var catProducts = cat === 'all'
-            ? window._ffhApiProducts
-            : window._ffhApiProducts.filter(function(p) { return p.category === cat; });
-          var catGrid   = document.getElementById('catProductGrid');
-          var catGridM  = document.getElementById('catProductGridMobile');
-          var catEmpty  = document.getElementById('catEmptyState');
-          var catEmptyM = document.getElementById('catEmptyStateMobile');
-          if (catGrid && cat !== 'all') {
-            _ffhRenderCatGrid(catProducts, catGrid, catGridM, catEmpty, catEmptyM);
-          }
-          var homeGrid = document.getElementById('productGrid');
-          if (homeGrid) {
-            _ffhRenderHomeGrid(catProducts, homeGrid);
-          }
-        }, 50);
-      } else {
-        if (_origFilter) _origFilter(cat);
-      }
-    };
-
-    var _origRender = window.renderProductsByCategory;
-    window.renderProductsByCategory = function(cat, searchTerm) {
-      if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
-        var filtered = window._ffhApiProducts;
-        if (cat && cat !== 'all') {
-          filtered = filtered.filter(function(p){ return p.category === cat; });
-        }
-        if (searchTerm) {
-          var q = searchTerm.toLowerCase();
-          filtered = filtered.filter(function(p){ return p.name.toLowerCase().includes(q); });
-        }
-        var homeGrid = document.getElementById('productGrid');
-        if (homeGrid) _ffhRenderHomeGrid(filtered, homeGrid);
-      } else {
-        if (_origRender) _origRender(cat, searchTerm);
-      }
-    };
-
-    var homeGrid = document.getElementById('productGrid');
-    if (homeGrid) _ffhRenderHomeGrid(apiMapped, homeGrid);
-
-  } catch(e) {
-    console.warn('[FFH] Product API unavailable:', e.message);
-  }
-}
+// পুরনো performSearch ফাংশনটিকে নিচের মতো পরিবর্তন করুন
+window.performSearch = async function() {
+    // প্রথমে পণ্য তালিকা API থেকে নতুন করে লোড করুন
+    await loadProductsFromAPI();
+    const term = document.getElementById('searchInput').value.trim();
+    hideSuggestions();
+    renderProductsByCategory(currentCategory, term);
+    goToHome();
+};
 
 function _ffhRenderHomeGrid(productList, gridEl) {
   if (!gridEl) return;
