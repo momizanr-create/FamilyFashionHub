@@ -586,8 +586,10 @@ tr:hover td{background:#f8fafc;}
 <script>
 const API = (function(){
   var h = window.location.hostname;
+  // localhost এ আলাদা port এ backend চলে
   if(h==='localhost'||h==='127.0.0.1') return 'http://localhost:5000/api';
-  return 'https://familyfashionhub-backend.onrender.com/api';
+  // Production: same server থেকে serve হয়, তাই relative URL ব্যবহার করো
+  return window.location.origin + '/api';
 })();
 
 let adminToken = localStorage.getItem('ffh_admin_token') || '';
