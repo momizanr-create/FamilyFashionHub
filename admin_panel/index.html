@@ -2025,7 +2025,7 @@ async function saveContactSettings() {
   if (res.success) toast('যোগাযোগ সেটিংস সেভ হয়েছে ✓','success');
   else toast(res.message||'সেভ ব্যর্থ হয়েছে','error');
 }
-}
+
 function renderSliderList() {
   const el = document.getElementById('sliderList');
   if (!sliderData.length) { el.innerHTML = '<div class="empty-state"><i class="fas fa-images"></i><p>কোনো স্লাইড নেই</p></div>'; return; }
