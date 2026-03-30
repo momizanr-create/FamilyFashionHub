@@ -2966,13 +2966,39 @@
         });
       });
 
-      function performSearch() {
-        const term = searchInput.value.trim();
-        hideSuggestions();
-        renderProductsByCategory(currentCategory, term);
-        goToHome();
-      }
+      async function performSearch() {
+  const term = searchInput.value.trim();
+  hideSuggestions();
+  
+  if (!term) {
+    // সার্চ টার্ম খালি থাকলে সব পণ্য দেখাও (ক্যাশ বা API থেকে)
+    renderProductsByCategory(currentCategory, '');
+    goToHome();
+    return;
+  }
 
+  // API থেকে সরাসরি সার্চ রেজাল্ট আনা
+  try {
+    const url = `${window.FFH_API}/products?search=${encodeURIComponent(term)}&limit=100`;
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    if (data.success && data.data) {
+      // হোম পেজের গ্রিড আপডেট করা
+      const homeGrid = document.getElementById('productGrid');
+      if (homeGrid) {
+        _ffhRenderHomeGrid(data.data, homeGrid);
+      }
+      // ক্যাটেগরি পেজ খোলা থাকলে সেটাও আপডেট করতে পারেন (ঐচ্ছিক)
+      goToHome(); // হোম পেজে দেখাবে
+    } else {
+      renderProductsByCategory(currentCategory, term);
+    }
+  } catch (err) {
+    console.error('Search API error:', err);
+    renderProductsByCategory(currentCategory, term);
+  }
+}
       const suggestBox = document.createElement('div');
       suggestBox.id = 'searchSuggestions';
       suggestBox.style.cssText = `
@@ -3064,14 +3090,33 @@
         if (e.key === 'Escape') hideSuggestions();
       });
       
-      mobileSearchBtn.addEventListener('click', () => {
-        const term = mobileSearchInput.value.trim();
-        hideSuggestions();
-        renderProductsByCategory(currentCategory, term);
-        mobileSearchBar.classList.add('hidden');
-        goToHome();
-      });
-      
+      mobileSearchBtn.addEventListener('click', async () => {
+  const term = mobileSearchInput.value.trim();
+  hideSuggestions();
+  
+  if (!term) {
+    renderProductsByCategory(currentCategory, '');
+    mobileSearchBar.classList.add('hidden');
+    goToHome();
+    return;
+  }
+
+  try {
+    const url = `${window.FFH_API}/products?search=${encodeURIComponent(term)}&limit=100`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.success && data.data) {
+      const homeGrid = document.getElementById('productGrid');
+      if (homeGrid) _ffhRenderHomeGrid(data.data, homeGrid);
+      goToHome();
+    } else {
+      renderProductsByCategory(currentCategory, term);
+    }
+  } catch (err) {
+    renderProductsByCategory(currentCategory, term);
+  }
+  mobileSearchBar.classList.add('hidden');
+});
       mobileSearchInput.addEventListener('keyup', (e) => {
         if (e.key === 'Enter') {
           const term = mobileSearchInput.value.trim();
