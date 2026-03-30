@@ -2291,15 +2291,19 @@
       };
 
       function renderProductsByCategory(cat, searchTerm = '') {
-  let filtered = appProducts;   // API ডেটা ব্যবহার
-  if (cat !== 'all') {
-    filtered = filtered.filter(p => p.category === cat);
-  }
-  if (searchTerm) {
-    filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-  }
-  renderProductGrid(filtered);
-}
+        let filtered = products;
+        
+        if (cat !== 'all') {
+          filtered = filtered.filter(p => p.category === cat);
+        }
+        
+        if (searchTerm) {
+          filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        }
+        
+        renderProductGrid(filtered);
+      }
+
       function renderProductGrid(filteredProducts) {
         productGrid.innerHTML = '';
         if (filteredProducts.length === 0) {
