@@ -3721,8 +3721,8 @@ window.addToCart = addToCart;
   </script>
 <script>
 (function() {
-  // ========== GLOBAL VARIABLES ==========
-  let products = [];          // API থেকে লোড হওয়া পণ্য এখানে থাকবে
+  // ===== GLOBAL VARIABLES =====
+  let products = []; // This will be populated from API
   let cart = [];
   let currentCategory = 'all';
   let currentProduct = null;
@@ -3730,286 +3730,1145 @@ window.addToCart = addToCart;
   let loggedInUser = { name: '', email: '', phone: '' };
   let userReviews = [];
   let pendingReview = null;
-  let ffhUser = null, ffhToken = '';
-
-  // ========== API HELPER ==========
-  const API_URL = (function() {
-    const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:5000/api';
+  let ffhUser = JSON.parse(localStorage.getItem('ffh_user') || 'null');
+  let ffhToken = localStorage.getItem('ffh_user_token') || '';
+  
+  // API URL
+  window.FFH_API = (function() {
+    var h = window.location.hostname;
+    if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:5000/api';
     return 'https://familyfashionhub.onrender.com/api';
   })();
-
-  async function fetchProducts() {
-    try {
-      const res = await fetch(API_URL + '/products?limit=500');
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        products = data.data.map(p => ({
-          id: p._id,
-          _apiId: p._id,
-          name: p.name,
-          price: p.price,
-          oldPrice: p.oldPrice || 0,
-          saving: (p.oldPrice || 0) - p.price,
-          img: p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
-          images: (p.images || []).map(i => i.url || i),
-          description: p.description || '',
-          category: p.category || 'all',
-          subcategory: p.subcategory || '',
-          onSale: !!p.onSale,
-          soldOut: !!p.soldOut,
-          featured: !!p.featured,
-          stock: p.stock || 0,
-          sizes: p.sizes || [],
-          colors: p.colors || [],
-          ageGroup: p.ageGroup || '',
-          material: p.material || '',
-          highlights: p.highlights || [],
-          deliveryInfo: p.deliveryInfo || '',
-          returnPolicy: p.returnPolicy || '',
-          careInstructions: p.careInstructions || '',
-          tags: p.tags || []
-        }));
-        // সব UI রিফ্রেশ
-        renderProductsByCategory(currentCategory, '');
-        if (document.getElementById('productGrid')) renderProductGrid(products);
-        if (document.getElementById('catProductGrid')) applyCatFilters();
-      } else {
-        throw new Error('API response invalid');
-      }
-    } catch (err) {
-      console.warn('API failed, using fallback static products');
-      // Fallback static data (original array from your file)
-      products = [
-        { id:1, name:'নরম Baby Shoes - নীল রঙ', price:450, oldPrice:600, img:'https://images.unsplash.com/photo-1519457073994-14ae0a084e7f?w=300&h=300&fit=crop', images:[], saving:150, description:'আরামদায়ক এবং নরম Baby Shoes।', category:'baby-shoes', onSale:true, soldOut:false },
-        { id:2, name:'বেবি স্পোর্টস শু - লাল', price:520, oldPrice:700, img:'https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=300&h=300&fit=crop', images:[], saving:180, description:'খেলাধুলার জন্য বিশেষভাবে ডিজাইন করা বেবি শু।', category:'baby-shoes', onSale:true, soldOut:false },
-        // ... অন্যান্য স্ট্যাটিক পণ্য (আপনার আসল array থেকে কপি করুন) 
-      ];
-      renderProductsByCategory(currentCategory, '');
-      renderProductGrid(products);
-    }
-  }
-
-  // ========== DOM Elements (সংক্ষেপে কিছু) ==========
+  
+  // ===== DOM ELEMENTS =====
   const homePage = document.getElementById('homePage');
   const detailPage = document.getElementById('productDetailPage');
   const productGrid = document.getElementById('productGrid');
-  const categoryTitle = document.getElementById('categoryTitle');
-  const searchInput = document.getElementById('searchInput');
-  const mobileSearchInput = document.getElementById('mobileSearchInput');
+  const relatedProductsGrid = document.getElementById('relatedProductsGrid');
+  const cartPopup = document.getElementById('cartPopup');
+  const closeCartBtn = document.getElementById('closeCartBtn');
+  const cartIconBtn = document.getElementById('cartIconBtn');
+  const cartIconBtnMobile = document.getElementById('cartIconBtnMobile');
+  const cartItemsContainer = document.getElementById('cartItemsContainer');
+  const cartTotalSpan = document.getElementById('cartTotalPrice');
   const cartCountSpan = document.getElementById('cartCount');
   const cartCountMobile = document.getElementById('cartCountMobile');
+  const goTopBtn = document.getElementById('goTopBtn');
+  const paymentModal = document.getElementById('paymentModal');
+  const closePaymentBtn = document.getElementById('closePaymentBtn');
+  const orderSummaryItems = document.getElementById('orderSummaryItems');
+  const finalTotalSpan = document.getElementById('finalTotalAmount');
+  const deliveryRadios = document.querySelectorAll('input[name="deliveryArea"]');
+  const paymentForm = document.getElementById('paymentForm');
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const mobileSearchInput = document.getElementById('mobileSearchInput');
+  const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+  const mobileSearchBar = document.getElementById('mobileSearchBar');
+  const successPopup = document.getElementById('successPopup');
+  const closeSuccessBtn = document.getElementById('closeSuccessBtn');
+  const errorPopup = document.getElementById('errorPopup');
+  const closeErrorBtn = document.getElementById('closeErrorBtn');
+  const categoryTitle = document.getElementById('categoryTitle');
+  
+  // Detail page elements
+  const detailPageImg = document.getElementById('detailPageImg');
+  const detailPageTitle = document.getElementById('detailPageTitle');
+  const detailPagePrice = document.getElementById('detailPagePrice');
+  const detailPageOldPrice = document.getElementById('detailPageOldPrice');
+  const detailPageSaving = document.getElementById('detailPageSaving');
+  const detailPageDescription = document.getElementById('detailPageDescription');
+  const detailPageQty = document.getElementById('detailPageQty');
+  const detailPageIncQty = document.getElementById('detailPageIncQty');
+  const detailPageDecQty = document.getElementById('detailPageDecQty');
+  const detailPageAddToCart = document.getElementById('detailPageAddToCart');
+  const detailPageOrderNow = document.getElementById('detailPageOrderNow');
+  const detailCategory = document.getElementById('detailCategory');
+  const detailNameBreadcrumb = document.getElementById('detailNameBreadcrumb');
+  const detailPageBadge = document.getElementById('detailPageBadge');
+  const whatsappShareBtn = document.getElementById('whatsappShareBtn');
+  const homeBreadcrumb = document.getElementById('homeBreadcrumb');
+  const homeLogo = document.getElementById('homeLogo');
+  const detailPageQtySection = document.getElementById('detailPageQtySection');
+  const detailPageActions = document.getElementById('detailPageActions');
+  const soldOutMessage = document.getElementById('soldOutMessage');
 
-  // ========== CORE FUNCTIONS (API based) ==========
+  // ===== API FUNCTIONS =====
+  async function loadProductsFromAPI() {
+    try {
+      const res = await fetch(window.FFH_API + '/products?limit=200');
+      const data = await res.json();
+      if (data.success && data.data && data.data.length) {
+        products = data.data.map(function(p) {
+          return {
+            id: p._id,
+            _apiId: p._id,
+            name: p.name,
+            price: p.price,
+            oldPrice: p.oldPrice || 0,
+            saving: p.saving || 0,
+            img: p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
+            images: (p.images || []).map(function(i){ return i.url || i; }),
+            description: p.description || '',
+            category: p.category || 'all',
+            subcategory: p.subcategory || '',
+            onSale: !!p.onSale,
+            soldOut: !!p.soldOut,
+            featured: !!p.featured,
+            stock: p.stock || 0,
+            sku: p.sku || '',
+            sizes: p.sizes || [],
+            colors: p.colors || [],
+            ageGroup: p.ageGroup || '',
+            material: p.material || '',
+            weight: p.weight || '',
+            deliveryInfo: p.deliveryInfo || '',
+            returnPolicy: p.returnPolicy || '',
+            careInstructions: p.careInstructions || '',
+            highlights: p.highlights || [],
+            tags: p.tags || []
+          };
+        });
+        
+        // Update global reference
+        window.apiProducts = products;
+        window._ffhApiProducts = products;
+        
+        // Re-render home page products
+        renderProductsByCategory(currentCategory, '');
+        
+        return true;
+      }
+    } catch(e) {
+      console.warn('[FFH] Product API unavailable:', e.message);
+      return false;
+    }
+  }
+  
+  // ===== RENDER FUNCTIONS =====
+  function renderProductsByCategory(cat, searchTerm = '') {
+    let filtered = products;
+    
+    if (cat !== 'all') {
+      filtered = filtered.filter(p => p.category === cat);
+    }
+    
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
+    }
+    
+    renderProductGrid(filtered);
+  }
+  
   function renderProductGrid(filteredProducts) {
     if (!productGrid) return;
     productGrid.innerHTML = '';
+    
     if (filteredProducts.length === 0) {
       productGrid.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500">কোনো পণ্য পাওয়া যায়নি</p>';
       return;
     }
+    
     filteredProducts.forEach(p => {
       const card = document.createElement('div');
       card.className = 'product-card bg-white border border-gray-100 shadow-sm';
       card.dataset.id = p.id;
+      
       let badgeHtml = '';
-      if (p.soldOut) badgeHtml = '<div class="soldout-badge">Sold Out</div>';
-      else if (p.onSale) badgeHtml = '<div class="sale-badge">ছাড়!</div>';
-      let discountHtml = '';
-      if (p.oldPrice && p.price && p.oldPrice > p.price) {
-        const disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
-        discountHtml = `<div class="discount-badge">Save: ${p.oldPrice-p.price}ট (-${disc}%)</div>`;
+      if (p.soldOut) {
+        badgeHtml = '<div class="soldout-badge">Sold Out</div>';
+      } else if (p.onSale) {
+        badgeHtml = '<div class="sale-badge">ছাড়!</div>';
       }
+      
+      badgeHtml += '<div class="organic-badge">🌱 অর্গানিক</div>';
+      
+      let discountPercent = '';
+      if (p.oldPrice && p.price && p.oldPrice > p.price) {
+        const discount = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
+        if (discount > 0) {
+          const savingAmount = p.oldPrice - p.price;
+          discountPercent = `<div class="discount-badge">Save: ${savingAmount}ট (-${discount}%)</div>`;
+        }
+      }
+      
       card.innerHTML = `
         <div class="card-container">
-          ${discountHtml}${badgeHtml}
-          <div class="card-image-wrapper"><img src="${p.img}" class="card-image" alt="${p.name}" onerror="this.src='https://placehold.co/300x300?text=No+Image'"></div>
-          <div class="card-content">
-            <h3 class="card-title">${p.name}</h3>
-            <div class="card-price"><span class="price-new">${p.price}ট</span>${p.oldPrice ? `<span class="price-old">${p.oldPrice}ট</span>` : ''}</div>
-            <button data-id="${p.id}" class="quick-add-btn" ${p.soldOut ? 'disabled' : ''}>🛒 Add To Cart</button>
+          ${discountPercent}
+          ${p.special ? `<div class="special-badge">${p.special}</div>` : ''}
+          <div class="card-image-wrapper">
+            <img src="${p.img}" class="card-image" alt="${p.name}" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
           </div>
-        </div>`;
+          <div class="card-content">
+            <h3 class="card-title">${escapeHtml(p.name)}</h3>
+            <div class="card-price">
+              <span class="price-new">${p.price}ট</span>
+              ${p.oldPrice ? `<span class="price-old">${p.oldPrice}ট</span>` : ''}
+            </div>
+            <button data-id="${p.id}" class="quick-add-btn" ${p.soldOut ? 'disabled' : ''}>
+              🛒 Add To Cart
+            </button>
+          </div>
+        </div>
+      `;
       productGrid.appendChild(card);
     });
-    // attach add to cart events
+    
+    // Add event listeners to add-to-cart buttons
     document.querySelectorAll('.quick-add-btn:not([disabled])').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const id = btn.dataset.id;
+        const id = e.target.dataset.id;
         const product = products.find(p => p.id == id);
         if (product) addToCart(product);
       });
     });
+    
+    // Add event listeners to product cards
     document.querySelectorAll('.product-card').forEach(card => {
       card.addEventListener('click', (e) => {
-        if (e.target.closest('.quick-add-btn')) return;
+        if (e.target.classList.contains('quick-add-btn') || e.target.closest('.quick-add-btn')) return;
         const id = card.dataset.id;
-        const product = products.find(p => p.id == id);
-        if (product) showProductDetailPage(product);
+        showProductDetailPage(id);
       });
     });
   }
-
-  function renderProductsByCategory(cat, searchTerm = '') {
-    let filtered = products;
-    if (cat !== 'all') filtered = filtered.filter(p => p.category === cat);
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(p => p.name.toLowerCase().includes(term));
-    }
-    renderProductGrid(filtered);
-    if (categoryTitle) {
-      if (cat === 'all') categoryTitle.innerText = '🌿 All Products';
-      else categoryTitle.innerText = `${cat} Products`;
-    }
-  }
-
+  
+  // ===== SEARCH FUNCTIONS =====
   function performSearch() {
     const term = searchInput.value.trim();
+    hideSuggestions();
     renderProductsByCategory(currentCategory, term);
     goToHome();
   }
-
-  function showProductDetailPage(product) {
+  
+  function performMobileSearch() {
+    const term = mobileSearchInput.value.trim();
+    hideSuggestions();
+    renderProductsByCategory(currentCategory, term);
+    mobileSearchBar.classList.add('hidden');
+    goToHome();
+  }
+  
+  // ===== SUGGESTIONS =====
+  const suggestBox = document.createElement('div');
+  suggestBox.id = 'searchSuggestions';
+  suggestBox.style.cssText = `
+    display:none;
+    position:fixed;
+    background:white;
+    border:1px solid #e5e7eb;
+    border-radius:0;
+    box-shadow:0 12px 32px rgba(0,0,0,0.18);
+    z-index:99999;
+    max-height:400px;
+    overflow-y:auto;
+  `;
+  document.body.appendChild(suggestBox);
+  
+  function positionSuggestBox(inputEl) {
+    const rect = inputEl.getBoundingClientRect();
+    suggestBox.style.top = (rect.bottom + 6) + 'px';
+    suggestBox.style.left = rect.left + 'px';
+    suggestBox.style.width = rect.width + 'px';
+  }
+  
+  function buildSuggestionItem(product) {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-bottom:1px solid #f3f4f6;background:white;';
+    div.innerHTML = `
+      <img src="${product.img}" style="width:44px;height:44px;object-fit:cover;border-radius:0;flex-shrink:0;" onerror="this.src='https://placehold.co/44x44?text=No+Image'">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(product.name)}</div>
+        <div style="font-size:12px;color:#f97316;font-weight:500;">৳ ${product.price.toLocaleString()}</div>
+      </div>
+      ${product.soldOut ? '<span style="font-size:11px;background:#e5e7eb;color:#6b7280;border-radius:0;padding:2px 6px;flex-shrink:0;white-space:nowrap;">স্টক নেই</span>' : ''}
+    `;
+    div.addEventListener('mouseover', () => div.style.background = '#fff7ed');
+    div.addEventListener('mouseout', () => div.style.background = 'white');
+    div.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      hideSuggestions();
+      showProductDetailPage(product.id);
+    });
+    return div;
+  }
+  
+  let activeInput = null;
+  function showSuggestions(term, inputEl) {
+    activeInput = inputEl;
+    if (!term || term.length < 1) { hideSuggestions(); return; }
+    const lower = term.toLowerCase();
+    const matched = products.filter(p => p.name.toLowerCase().includes(lower));
+    suggestBox.innerHTML = '';
+    if (matched.length === 0) {
+      suggestBox.innerHTML = '<div style="padding:14px 16px;color:#9ca3af;font-size:13px;text-align:center;">No products found</div>';
+    } else {
+      matched.slice(0, 10).forEach(p => suggestBox.appendChild(buildSuggestionItem(p)));
+      if (matched.length > 10) {
+        const more = document.createElement('div');
+        more.style.cssText = 'padding:9px 14px;font-size:12px;color:#6b7280;text-align:center;cursor:pointer;background:#f9fafb;border-top:1px solid #f3f4f6;';
+        more.textContent = `আরও ${matched.length - 10}টি ফলাফল দেখতে Enter চাপুন`;
+        more.addEventListener('mousedown', (e) => { e.preventDefault(); performSearch(); });
+        suggestBox.appendChild(more);
+      }
+    }
+    positionSuggestBox(inputEl);
+    suggestBox.style.display = 'block';
+  }
+  
+  function hideSuggestions() {
+    suggestBox.style.display = 'none';
+  }
+  
+  // ===== CATEGORY FUNCTIONS =====
+  window.filterByCategory = function(cat) {
+    currentCategory = cat;
+    
+    if (cat === 'all') {
+      const categoryPage = document.getElementById('categoryPage');
+      const detailPageEl = document.getElementById('productDetailPage');
+      if (categoryPage) {
+        categoryPage.classList.remove('active');
+        categoryPage.classList.add('detail-page');
+      }
+      if (detailPageEl) {
+        detailPageEl.classList.remove('active');
+        detailPageEl.classList.add('detail-page');
+      }
+      homePage.classList.remove('hidden');
+      const crs = document.getElementById('customerReviewSection');
+      if (crs) crs.style.display = '';
+      const mf = document.getElementById('mainFooter');
+      if (mf) mf.style.display = '';
+      const aps = document.getElementById('allProductsSection');
+      if (aps) aps.style.display = '';
+      const ocs = document.getElementById('ourCollectionSection');
+      if (ocs) ocs.style.display = '';
+      const ofs = document.getElementById('organicFeatureSection');
+      if (ofs) ofs.style.display = '';
+      renderProductsByCategory('all', searchInput.value.trim());
+      let titleText = '🌿 All Products';
+      if (categoryTitle) categoryTitle.innerText = titleText;
+      window.scrollTo({ top: 0 });
+    } else {
+      showCategoryPage(cat);
+    }
+    
+    // Close mobile menu
+    const mobileMenu = document.getElementById('mobileMenu');
+    const menuOverlay = document.getElementById('menuOverlay');
+    const closeMenuBtn = document.getElementById('closeMenuBtn');
+    if (mobileMenu) mobileMenu.classList.remove('open');
+    if (menuOverlay) menuOverlay.classList.add('hidden');
+    if (closeMenuBtn) { closeMenuBtn.style.opacity = '0'; closeMenuBtn.style.pointerEvents = 'none'; }
+  };
+  
+  function showCategoryPage(cat) {
+    homePage.classList.add('hidden');
+    const detailPageEl = document.getElementById('productDetailPage');
+    const categoryPage = document.getElementById('categoryPage');
+    if (detailPageEl) {
+      detailPageEl.classList.remove('active');
+      detailPageEl.classList.add('detail-page');
+    }
+    if (categoryPage) {
+      categoryPage.classList.remove('detail-page');
+      categoryPage.classList.add('active');
+    }
+    
+    const lp = document.getElementById('loginPage');
+    const rp = document.getElementById('registerPage');
+    const dp = document.getElementById('dashboardPage');
+    if (lp) { lp.classList.remove('active'); lp.classList.add('detail-page'); }
+    if (rp) { rp.classList.remove('active'); rp.classList.add('detail-page'); }
+    if (dp) { dp.classList.remove('active'); dp.classList.add('detail-page'); }
+    
+    const crs = document.getElementById('customerReviewSection');
+    if (crs) crs.style.display = 'none';
+    const mf = document.getElementById('mainFooter');
+    if (mf) mf.style.display = 'none';
+    const aps = document.getElementById('allProductsSection');
+    if (aps) aps.style.display = 'none';
+    const ocs = document.getElementById('ourCollectionSection');
+    if (ocs) ocs.style.display = 'none';
+    const ofs = document.getElementById('organicFeatureSection');
+    if (ofs) ofs.style.display = 'none';
+    
+    window.scrollTo({ top: 0 });
+    
+    // Get category info
+    const meta = getCategoryMeta(cat);
+    const catPageName = document.getElementById('catPageName');
+    const catPageIcon = document.getElementById('catPageIcon');
+    const catPageTitle = document.getElementById('catPageTitle');
+    const catPageDesc = document.getElementById('catPageDesc');
+    if (catPageName) catPageName.innerText = meta.title;
+    if (catPageIcon) catPageIcon.innerText = meta.icon;
+    if (catPageTitle) catPageTitle.innerText = meta.title;
+    if (catPageDesc) catPageDesc.innerText = meta.desc;
+    
+    const mobTitle = document.getElementById('catMobileTitle');
+    const mobPageName = document.getElementById('catMobilePageName');
+    if (mobTitle) mobTitle.innerText = meta.title;
+    if (mobPageName) mobPageName.innerText = meta.title;
+    
+    // Filter products by category
+    const catProducts = products.filter(p => p.category === cat);
+    renderCatProducts(catProducts);
+  }
+  
+  function getCategoryMeta(cat) {
+    const meta = {
+      'all': { title: 'সকল পণ্য', icon: '🛍️', desc: 'আমাদের সমস্ত পণ্যের সংগ্রহ দেখুন' },
+      'baby-shoes': { title: 'Baby Shoes', icon: '👟', desc: 'শিশুর জন্য আরামদায়ক ও নিরাপদ জুতার সংগ্রহ' },
+      'baby-toys': { title: 'বেবি Toys', icon: '🧸', desc: 'শিশুর মানসিক বিকাশে সহায়ক মজাদার খেলনা' },
+      'women-cosmetics': { title: "Women's Cosmetics", icon: '💄', desc: 'প্রাকৃতিক উপাদানে তৈরি বিউটি প্রোডাক্ট' },
+      'gold-plate': { title: 'Gold Plate Items', icon: '✨', desc: 'মার্জিত গোল্ড প্লেটেড গহনার সংগ্রহ' },
+      'indoor-plants': { title: 'Indoor Plants', icon: '🪴', desc: 'ঘর সাজানো ও বায়ু বিশুদ্ধকারী গাছের সংগ্রহ' },
+      'artificial-flowers': { title: 'Artificial Flowers', icon: '🌸', desc: 'চিরন্তন সুন্দর কৃত্রিম ফুলের সংগ্রহ' },
+      'baby-dress': { title: 'Baby Dress', icon: '👗', desc: 'শিশুর জন্য নরম ও আরামদায়ক পোশাক' },
+      'feeding-bottles': { title: 'Feeding Items', icon: '🍼', desc: 'শিশুর খাওয়ানোর জন্য নিরাপদ পণ্য সংগ্রহ' },
+      'daily-care': { title: 'Baby Care', icon: '❤️', desc: 'শিশুর দৈনন্দিন যত্নের পণ্য সংগ্রহ' },
+      'trending': { title: 'Trending', icon: '🔥', desc: 'এই মুহূর্তের সবচেয়ে জনপ্রিয় শিশু পণ্য সমূহ' }
+    };
+    return meta[cat] || { title: cat, icon: '📦', desc: '' };
+  }
+  
+  function renderCatProducts(productList) {
+    const catGrid = document.getElementById('catProductGrid');
+    const catGridMobile = document.getElementById('catProductGridMobile');
+    const catEmpty = document.getElementById('catEmptyState');
+    const catEmptyMobile = document.getElementById('catEmptyStateMobile');
+    const catResultText = document.getElementById('catResultText');
+    const catProductCount = document.getElementById('catProductCount');
+    
+    if (catResultText) catResultText.innerText = `${productList.length} টি পণ্য পাওয়া গেছে`;
+    if (catProductCount) catProductCount.innerText = productList.length;
+    
+    if (!catGrid) return;
+    
+    if (productList.length === 0) {
+      if (catEmpty) catEmpty.style.display = 'block';
+      if (catEmptyMobile) catEmptyMobile.style.display = 'block';
+      catGrid.style.display = 'none';
+      if (catGridMobile) catGridMobile.style.display = 'none';
+      return;
+    }
+    
+    if (catEmpty) catEmpty.style.display = 'none';
+    if (catEmptyMobile) catEmptyMobile.style.display = 'none';
+    catGrid.style.display = 'grid';
+    if (catGridMobile) catGridMobile.style.display = 'grid';
+    
+    catGrid.innerHTML = '';
+    if (catGridMobile) catGridMobile.innerHTML = '';
+    
+    productList.forEach(p => {
+      const card = createProductCard(p);
+      catGrid.appendChild(card);
+      if (catGridMobile) {
+        const mobileCard = createProductCard(p);
+        catGridMobile.appendChild(mobileCard);
+      }
+    });
+  }
+  
+  function createProductCard(p) {
+    const card = document.createElement('div');
+    card.className = 'product-card bg-white border border-gray-100 shadow-sm';
+    card.dataset.id = p.id;
+    
+    let badgeHtml = '';
+    if (p.soldOut) {
+      badgeHtml = '<div class="soldout-badge">Sold Out</div>';
+    } else if (p.onSale) {
+      badgeHtml = '<div class="sale-badge">ছাড়!</div>';
+    }
+    
+    let discountHtml = '';
+    if (p.oldPrice && p.price && p.oldPrice > p.price) {
+      const disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
+      if (disc > 0) {
+        discountHtml = `<div class="discount-badge">Save: ${p.oldPrice - p.price}ট (-${disc}%)</div>`;
+      }
+    }
+    
+    card.innerHTML = `
+      <div class="card-container">
+        ${discountHtml}${badgeHtml}
+        <div class="card-image-wrapper">
+          <img src="${p.img}" class="card-image" alt="${escapeHtml(p.name)}" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">${escapeHtml(p.name)}</h3>
+          <div class="card-price">
+            <span class="price-new">${p.price}ট</span>
+            ${p.oldPrice ? `<span class="price-old">${p.oldPrice}ট</span>` : ''}
+          </div>
+          <button data-id="${p.id}" class="cat-quick-add-btn quick-add-btn" ${p.soldOut ? 'disabled' : ''}>
+            🛒 Add To Cart
+          </button>
+        </div>
+      </div>
+    `;
+    
+    card.querySelector('.cat-quick-add-btn:not([disabled])')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      addToCart(p);
+    });
+    
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.quick-add-btn')) return;
+      showProductDetailPage(p.id);
+    });
+    
+    return card;
+  }
+  
+  // ===== PRODUCT DETAIL =====
+  function showProductDetailPage(productId) {
+    const product = products.find(p => p.id == productId);
     if (!product) return;
+    
     currentProduct = product;
+    window._ffhCurrentDetailProduct = product;
+    
     homePage.classList.add('hidden');
     detailPage.classList.add('active');
     detailPage.classList.remove('detail-page');
-    // অন্যান্য পেজ লুকান (login, register, category ইত্যাদি)
-    document.getElementById('loginPage')?.classList.remove('active');
-    document.getElementById('registerPage')?.classList.remove('active');
-    document.getElementById('categoryPage')?.classList.remove('active');
-    document.getElementById('dashboardPage')?.classList.remove('active');
-    // ফিল আপডেট
-    document.getElementById('detailPageImg').src = product.img;
-    document.getElementById('detailPageTitle').innerText = product.name;
-    document.getElementById('detailPagePrice').innerText = product.price;
-    document.getElementById('detailPageOldPrice').innerText = product.oldPrice;
-    document.getElementById('detailPageSaving').innerText = product.saving;
-    document.getElementById('detailPageDescription').innerText = product.description;
-    document.getElementById('detailPageQty').value = 1;
-    // থাম্বনেল গ্যালারি
-    const thumbStrip = document.getElementById('detailThumbStrip');
-    if (thumbStrip && product.images && product.images.length) {
-      thumbStrip.innerHTML = product.images.map((imgUrl, idx) => `
-        <div style="width:56px;height:56px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#f9fafb;border:2px solid ${idx===0?'#f97316':'#e5e7eb'};flex-shrink:0;">
-          <img src="${imgUrl}" style="width:100%;height:100%;object-fit:contain;" onclick="document.getElementById('detailPageImg').src='${imgUrl}'; this.parentNode.parentNode.querySelectorAll('div').forEach(d=>d.style.borderColor='#e5e7eb'); this.parentNode.style.borderColor='#f97316';">
-        </div>
-      `).join('');
-    }
+    
+    const lp = document.getElementById('loginPage');
+    const rp = document.getElementById('registerPage');
+    const cp = document.getElementById('categoryPage');
+    const acp = document.getElementById('allCategoriesPage');
+    const sbp = document.getElementById('signInBreadcrumbPage');
+    const dp = document.getElementById('dashboardPage');
+    if (lp) { lp.classList.remove('active'); lp.classList.add('detail-page'); }
+    if (rp) { rp.classList.remove('active'); rp.classList.add('detail-page'); }
+    if (cp) { cp.classList.remove('active'); cp.classList.add('detail-page'); }
+    if (acp) { acp.classList.remove('active'); acp.classList.add('detail-page'); }
+    if (sbp) { sbp.classList.remove('active'); sbp.classList.add('detail-page'); }
+    if (dp) { dp.classList.remove('active'); dp.classList.add('detail-page'); }
+    
+    const crs = document.getElementById('customerReviewSection');
+    if (crs) crs.style.display = 'none';
+    const mf = document.getElementById('mainFooter');
+    if (mf) mf.style.display = 'none';
+    const aps = document.getElementById('allProductsSection');
+    if (aps) aps.style.display = 'none';
+    const ocs = document.getElementById('ourCollectionSection');
+    if (ocs) ocs.style.display = 'none';
+    const ofs = document.getElementById('organicFeatureSection');
+    if (ofs) ofs.style.display = 'none';
+    
     window.scrollTo({ top: 0 });
+    
+    // Update detail page content
+    if (detailPageImg) detailPageImg.src = product.img;
+    if (detailPageTitle) detailPageTitle.innerText = product.name;
+    if (detailPagePrice) detailPagePrice.innerText = product.price;
+    if (detailPageOldPrice) detailPageOldPrice.innerText = product.oldPrice;
+    if (detailPageSaving) detailPageSaving.innerText = product.saving;
+    if (detailPageDescription) detailPageDescription.innerText = product.description;
+    if (detailPageQty) detailPageQty.value = 1;
+    
+    // Thumbnail strip
+    const thumbStrip = document.getElementById('detailThumbStrip');
+    if (thumbStrip) {
+      thumbStrip.innerHTML = '';
+      const imgList = (product.images && product.images.length > 0) ? product.images : [product.img];
+      imgList.forEach(function(imgUrl, idx) {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'width:56px;height:56px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#f9fafb;border:2px solid ' + (idx === 0 ? '#f97316' : '#e5e7eb') + ';flex-shrink:0;transition:border-color 0.2s;';
+        const tImg = document.createElement('img');
+        tImg.src = imgUrl;
+        tImg.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+        tImg.onerror = function() { this.src = 'https://placehold.co/56x56?text=No+Image'; };
+        wrap.appendChild(tImg);
+        wrap.addEventListener('click', function() {
+          if (detailPageImg) detailPageImg.src = imgUrl;
+          thumbStrip.querySelectorAll('div').forEach(function(d){ d.style.borderColor = '#e5e7eb'; });
+          wrap.style.borderColor = '#f97316';
+        });
+        thumbStrip.appendChild(wrap);
+      });
+    }
+    
+    // Save badge
+    const saveBadge = document.getElementById('detailSaveBadge');
+    if (saveBadge && product.oldPrice && product.price && product.oldPrice > product.price) {
+      const pct = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
+      saveBadge.innerText = pct > 0 ? `Save ${pct}%` : '';
+    }
+    
+    // Category breadcrumb
+    let catName = product.category || '';
+    if (detailCategory) detailCategory.innerText = catName;
+    if (detailNameBreadcrumb) detailNameBreadcrumb.innerText = product.name;
+    
+    if (detailCategory) {
+      detailCategory.onclick = () => {
+        currentCategory = product.category;
+        showCategoryPage(product.category);
+      };
+    }
+    
+    // Badges
+    if (detailPageBadge) {
+      detailPageBadge.innerHTML = '';
+      if (product.soldOut) {
+        detailPageBadge.innerHTML = '<div class="soldout-badge text-base">Sold Out</div>';
+      } else if (product.onSale) {
+        detailPageBadge.innerHTML = '<div class="sale-badge text-base">ছাড়!</div>';
+      }
+    }
+    
+    // Show/hide sections based on stock
+    if (product.soldOut) {
+      if (detailPageQtySection) detailPageQtySection.style.display = 'none';
+      if (detailPageActions) detailPageActions.style.display = 'none';
+      if (soldOutMessage) soldOutMessage.classList.remove('hidden');
+    } else {
+      if (detailPageQtySection) detailPageQtySection.style.display = 'flex';
+      if (detailPageActions) detailPageActions.style.display = 'flex';
+      if (soldOutMessage) soldOutMessage.classList.add('hidden');
+    }
+    
+    // WhatsApp share
+    if (whatsappShareBtn) {
+      const whatsappText = `আমি ${product.name} পণ্যটি কিনতে আগ্রহী। দাম: ${product.price} BDT।`;
+      whatsappShareBtn.href = `https://wa.me/?text=${encodeURIComponent(whatsappText)}`;
+    }
+    
+    // Related products
+    showRelatedProducts(product.category, product.id);
+    showBottomRelatedProducts(product.category, product.id);
+    
+    // Switch to description tab
+    switchDetailTab('desc');
   }
-
+  
+  function showRelatedProducts(category, currentId) {
+    const related = products.filter(p => p.category === category && p.id != currentId).slice(0, 8);
+    if (!relatedProductsGrid) return;
+    
+    relatedProductsGrid.innerHTML = '';
+    if (related.length === 0) {
+      relatedProductsGrid.innerHTML = '<p style="padding:16px;color:#9ca3af;font-size:13px;text-align:center;">কোনো পণ্য নেই</p>';
+      return;
+    }
+    
+    related.forEach(p => {
+      const item = document.createElement('div');
+      item.dataset.id = p.id;
+      item.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid #f3f4f6;background:white;transition:background 0.15s;';
+      item.onmouseover = () => item.style.background = '#fff7ed';
+      item.onmouseout = () => item.style.background = 'white';
+      item.innerHTML = `
+        <img src="${p.img}" style="width:52px;height:52px;object-fit:contain;background:#f9fafb;flex-shrink:0;border:1px solid #f3f4f6;" onerror="this.src='https://placehold.co/52x52?text=No+Image'">
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:12px;font-weight:600;color:#111827;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(p.name)}</div>
+          <div style="margin-top:3px;display:flex;align-items:baseline;gap:5px;">
+            <span style="font-size:13px;font-weight:700;color:#f97316;">৳${p.price}</span>
+            ${p.oldPrice ? `<span style="font-size:11px;color:#9ca3af;text-decoration:line-through;">৳${p.oldPrice}</span>` : ''}
+          </div>
+        </div>
+      `;
+      item.addEventListener('click', () => showProductDetailPage(p.id));
+      relatedProductsGrid.appendChild(item);
+    });
+  }
+  
+  function showBottomRelatedProducts(category, currentId) {
+    const grid = document.getElementById('detailRelatedGrid');
+    if (!grid) return;
+    const related = products.filter(p => p.id != currentId).slice(0, 8);
+    grid.innerHTML = '';
+    
+    related.forEach(p => {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:white;border:1px solid #e5e7eb;cursor:pointer;transition:box-shadow 0.2s;';
+      card.onmouseover = () => card.style.boxShadow = '0 4px 14px rgba(0,0,0,0.1)';
+      card.onmouseout = () => card.style.boxShadow = 'none';
+      
+      let savePct = (p.oldPrice && p.oldPrice > p.price) ? Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100) : 0;
+      
+      card.innerHTML = `
+        <div style="position:relative;">
+          ${savePct > 0 ? `<div style="position:absolute;top:8px;left:8px;background:#10b981;color:white;font-size:10px;font-weight:700;padding:3px 7px;">Save ${savePct}%</div>` : ''}
+          <div style="height:130px;display:flex;align-items:center;justify-content:center;background:#f9fafb;overflow:hidden;padding:8px;">
+            <img src="${p.img}" alt="${escapeHtml(p.name)}" style="max-width:100%;max-height:110px;object-fit:contain;transition:transform 0.3s;" onerror="this.src='https://placehold.co/110x110?text=No+Image'">
+          </div>
+        </div>
+        <div style="padding:10px 12px;">
+          <div style="font-size:13px;font-weight:600;color:#111827;line-height:1.35;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${escapeHtml(p.name)}</div>
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="font-size:15px;font-weight:700;color:#f97316;">৳${p.price}</span>
+            ${p.oldPrice ? `<span style="font-size:12px;color:#9ca3af;text-decoration:line-through;">৳${p.oldPrice}</span>` : ''}
+          </div>
+        </div>
+      `;
+      card.addEventListener('click', () => showProductDetailPage(p.id));
+      grid.appendChild(card);
+    });
+  }
+  
+  // ===== CART FUNCTIONS =====
   function addToCart(product, qty = 1) {
     const existing = cart.find(item => item.id === product.id);
-    if (existing) existing.qty += qty;
-    else cart.push({ ...product, qty });
+    if (existing) {
+      existing.qty += qty;
+    } else {
+      cart.push({ ...product, qty });
+    }
     updateCartUI();
     showCartPopup();
   }
-
+  
+  function removeFromCart(productId) {
+    cart = cart.filter(item => item.id != productId);
+    updateCartUI();
+  }
+  
+  function updateQty(productId, newQty) {
+    const item = cart.find(i => i.id == productId);
+    if (!item) return;
+    if (newQty <= 0) {
+      removeFromCart(productId);
+    } else {
+      item.qty = newQty;
+    }
+    updateCartUI();
+  }
+  
   function updateCartUI() {
-    const totalItems = cart.reduce((sum, i) => sum + i.qty, 0);
+    const totalItems = cart.reduce((acc, i) => acc + i.qty, 0);
     if (cartCountSpan) cartCountSpan.innerText = totalItems;
     if (cartCountMobile) cartCountMobile.innerText = totalItems;
-    const cartItemsContainer = document.getElementById('cartItemsContainer');
+    
+    const cartFooterContent = document.getElementById('cartFooterContent');
+    const youMayAlsoLikeSection = document.getElementById('youMayAlsoLikeSection');
+    
     if (cartItemsContainer) {
       if (cart.length === 0) {
-        cartItemsContainer.innerHTML = `<div class="flex flex-col items-center justify-center py-20"><p>No items in cart!</p></div>`;
-        document.getElementById('cartFooterContent')?.classList.add('hidden');
+        cartItemsContainer.innerHTML = `
+          <div class="flex flex-col items-center justify-center py-20 px-4 text-center">
+            <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="mb-6">
+              <path d="M25 55 Q28 35 45 30 L85 28 Q100 28 105 40 L108 55 Q108 65 98 68 L28 68 Q20 65 25 55Z" fill="#E8F4FD" stroke="#1E88E5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M45 30 L52 10 Q56 5 62 8 L85 28" fill="#1E88E5" opacity="0.1" stroke="#1E88E5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M35 30 Q40 15 60 15 Q80 15 85 30" fill="none" stroke="#1E88E5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="85" cy="35" r="12" fill="#1E88E5"/>
+              <path d="M80 30 L90 40" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M90 30 L80 40" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+              <circle cx="38" cy="75" r="7" fill="none" stroke="#1E88E5" stroke-width="2.5"/>
+              <circle cx="90" cy="75" r="7" fill="none" stroke="#1E88E5" stroke-width="2.5"/>
+            </svg>
+            <p class="text-gray-900 font-medium text-lg">No items in your cart!</p>
+          </div>
+        `;
+        if (cartFooterContent) cartFooterContent.classList.add('hidden');
+        if (youMayAlsoLikeSection) youMayAlsoLikeSection.classList.add('hidden');
       } else {
         let html = '';
         cart.forEach(item => {
-          html += `<div class="flex gap-3 p-3 border-b"><img src="${item.img}" class="w-16 h-16 object-cover"><div><p class="font-semibold">${item.name}</p><p>${item.price} BDT x ${item.qty} = ${item.price*item.qty} BDT</p></div><button class="removeItem text-red-500" data-id="${item.id}">✕</button></div>`;
+          html += `
+            <div class="bg-white border-2 border-gray-100 rounded-lg p-3 hover:shadow-lg transition" style="width: 360px; height: 80px; display: flex; gap: 12px;">
+              <div class="flex-shrink-0">
+                <img src="${item.img}" class="cart-item-img" alt="${escapeHtml(item.name)}" style="width: 60px; height: 60px;" onerror="this.src='https://placehold.co/60x60?text=No+Image'">
+              </div>
+              <div class="flex-1 flex flex-col justify-between min-w-0">
+                <a href="#" class="font-semibold text-gray-900 hover:text-orange-600 block text-xs line-clamp-1" data-id="${item.id}">${escapeHtml(item.name)}</a>
+                <div class="flex items-center justify-between text-xs">
+                  <div class="flex items-center gap-0.5">
+                    <button class="decQty text-gray-600 hover:text-red-600" data-id="${item.id}">-</button>
+                    <span class="font-bold mx-1">${item.qty}</span>
+                    <button class="incQty text-gray-600 hover:text-green-600" data-id="${item.id}">+</button>
+                    <span>×</span>
+                    <span class="font-semibold text-orange-600 ml-1">৳${item.price.toLocaleString()}</span>
+                  </div>
+                  <span class="font-bold text-orange-600">=৳${(item.price * item.qty).toLocaleString()}</span>
+                </div>
+              </div>
+              <button class="removeItem text-gray-400 hover:text-red-500 transition text-lg" data-id="${item.id}">✕</button>
+            </div>
+          `;
         });
         cartItemsContainer.innerHTML = html;
-        document.getElementById('cartFooterContent')?.classList.remove('hidden');
-        document.querySelectorAll('.removeItem').forEach(btn => {
+        
+        if (cartFooterContent) cartFooterContent.classList.remove('hidden');
+        if (youMayAlsoLikeSection) youMayAlsoLikeSection.classList.remove('hidden');
+        
+        loadRelatedProducts();
+        
+        // Add event listeners
+        cartItemsContainer.querySelectorAll('.incQty').forEach(btn => {
           btn.addEventListener('click', e => {
             const id = btn.dataset.id;
-            cart = cart.filter(i => i.id != id);
-            updateCartUI();
+            const item = cart.find(i => i.id == id);
+            if (item) updateQty(id, item.qty + 1);
+          });
+        });
+        cartItemsContainer.querySelectorAll('.decQty').forEach(btn => {
+          btn.addEventListener('click', e => {
+            const id = btn.dataset.id;
+            const item = cart.find(i => i.id == id);
+            if (item && item.qty > 1) updateQty(id, item.qty - 1);
+          });
+        });
+        cartItemsContainer.querySelectorAll('.removeItem').forEach(btn => {
+          btn.addEventListener('click', e => {
+            const id = btn.dataset.id;
+            removeFromCart(id);
+          });
+        });
+        cartItemsContainer.querySelectorAll('a[data-id]').forEach(link => {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const id = link.dataset.id;
+            showProductDetailPage(id);
+            hideCartPopup();
           });
         });
       }
     }
-    const total = cart.reduce((s,i) => s + i.price * i.qty, 0);
-    document.getElementById('cartTotalPrice').innerText = total;
+    
+    const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+    if (cartTotalSpan) cartTotalSpan.innerText = total.toLocaleString();
+    updateFinalTotal(total);
   }
-
+  
+  function loadRelatedProducts() {
+    if (cart.length === 0) return;
+    
+    const firstCartItem = cart[0];
+    const relatedProductsList = products.filter(p => 
+      p.category === firstCartItem.category && 
+      p.id != firstCartItem.id
+    ).slice(0, 4);
+    
+    const relatedProductsContainer = document.getElementById('relatedProductsContainer');
+    if (!relatedProductsContainer) return;
+    
+    if (relatedProductsList.length === 0) {
+      document.getElementById('youMayAlsoLikeSection')?.classList.add('hidden');
+      return;
+    }
+    
+    let html = '';
+    relatedProductsList.forEach(product => {
+      html += `
+        <div class="flex-shrink-0 bg-white rounded-lg border border-gray-200 p-3 hover:shadow-md transition" style="width: 281px; height: 97px; display: flex; gap: 10px;">
+          <img src="${product.img}" alt="${escapeHtml(product.name)}" class="w-16 h-16 object-contain flex-shrink-0" onerror="this.src='https://placehold.co/64x64?text=No+Image'">
+          <div class="flex-1 flex flex-col justify-between min-w-0">
+            <p class="font-semibold text-gray-900 text-xs line-clamp-2">${escapeHtml(product.name)}</p>
+            <p class="text-gray-600 text-xs">৳${product.price.toLocaleString()}</p>
+            <button class="addRelatedProduct bg-orange-500 hover:bg-orange-600 text-white font-semibold py-1 px-2 rounded text-xs transition w-fit flex items-center gap-0.5" data-id="${product.id}">
+              <span>+</span>
+              <span>Add</span>
+            </button>
+          </div>
+        </div>
+      `;
+    });
+    relatedProductsContainer.innerHTML = html;
+    
+    document.querySelectorAll('.addRelatedProduct').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = btn.dataset.id;
+        const product = products.find(p => p.id == id);
+        if (product) addToCart(product, 1);
+      });
+    });
+  }
+  
+  function updateOrderSummary() {
+    if (!orderSummaryItems) return;
+    if (cart.length === 0) {
+      orderSummaryItems.innerHTML = '<p class="text-gray-400">কোনো পণ্য নির্বাচন করা হয়নি</p>';
+    } else {
+      let html = '';
+      cart.forEach(item => {
+        html += `
+          <div class="flex items-center gap-3 border-b pb-2">
+            <img src="${item.img}" class="order-summary-img" alt="${escapeHtml(item.name)}" onerror="this.src='https://placehold.co/60x60?text=No+Image'">
+            <div class="flex-1">
+              <p class="font-medium">${escapeHtml(item.name)}</p>
+              <p class="text-sm">${item.price} BDT x ${item.qty} = ${item.price * item.qty} BDT</p>
+            </div>
+          </div>
+        `;
+      });
+      orderSummaryItems.innerHTML = html;
+    }
+    const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+    updateFinalTotal(total);
+  }
+  
+  function updateFinalTotal(subtotal) {
+    let delivery = 0;
+    const selectedRadio = document.querySelector('input[name="deliveryArea"]:checked');
+    if (selectedRadio) {
+      delivery = selectedRadio.value === 'dhaka' ? 80 : 130;
+    }
+    if (subtotal >= 1000) delivery = 0;
+    const final = subtotal + delivery;
+    if (finalTotalSpan) finalTotalSpan.innerText = '৳' + final;
+  }
+  
+  function showCartPopup() {
+    if (cartPopup) cartPopup.classList.remove('invisible', 'opacity-0');
+  }
+  
+  function hideCartPopup() {
+    if (cartPopup) cartPopup.classList.add('invisible', 'opacity-0');
+  }
+  
+  // ===== NAVIGATION FUNCTIONS =====
   function goToHome() {
     homePage.classList.remove('hidden');
     detailPage.classList.remove('active');
     detailPage.classList.add('detail-page');
-    document.getElementById('categoryPage')?.classList.remove('active');
-    document.getElementById('loginPage')?.classList.remove('active');
-    document.getElementById('registerPage')?.classList.remove('active');
-    document.getElementById('dashboardPage')?.classList.remove('active');
+    
+    const cp = document.getElementById('categoryPage');
+    if (cp) { cp.classList.remove('active'); cp.classList.add('detail-page'); }
+    
+    const ids = ['loginPage','registerPage','accountInfoPage','myOrdersPage','myReviewsPage','aboutUsPage','signInBreadcrumbPage','dashboardPage'];
+    ids.forEach(id => { const el = document.getElementById(id); if(el){el.classList.remove('active');el.classList.add('detail-page');} });
+    
+    const crs = document.getElementById('customerReviewSection');
+    if (crs) crs.style.display = '';
+    const mf = document.getElementById('mainFooter');
+    if (mf) mf.style.display = '';
+    const aps = document.getElementById('allProductsSection');
+    if (aps) aps.style.display = '';
+    const ocs = document.getElementById('ourCollectionSection');
+    if (ocs) ocs.style.display = '';
+    const ofs = document.getElementById('organicFeatureSection');
+    if (ofs) ofs.style.display = '';
+    
     window.scrollTo({ top: 0 });
   }
-
-  function filterByCategory(cat) {
-    currentCategory = cat;
-    if (cat === 'all') {
-      goToHome();
-      renderProductsByCategory('all', '');
+  
+  function switchDetailTab(tab) {
+    const descBtn = document.getElementById('tabDescBtn');
+    const reviewBtn = document.getElementById('tabReviewBtn');
+    const descContent = document.getElementById('tabDescContent');
+    const reviewContent = document.getElementById('tabReviewContent');
+    
+    if (!descBtn || !reviewBtn || !descContent || !reviewContent) return;
+    
+    if (tab === 'desc') {
+      descBtn.style.borderBottomColor = '#111827';
+      descBtn.style.color = '#374151';
+      reviewBtn.style.borderBottomColor = 'transparent';
+      reviewBtn.style.color = '#9ca3af';
+      descContent.style.display = 'block';
+      reviewContent.style.display = 'none';
     } else {
-      document.getElementById('categoryPage').classList.add('active');
-      document.getElementById('categoryPage').classList.remove('detail-page');
-      homePage.classList.add('hidden');
-      detailPage.classList.remove('active');
-      // ক্যাটাগরি পেজে প্রোডাক্ট দেখানো
-      const filtered = products.filter(p => p.category === cat);
-      const grid = document.getElementById('catProductGrid');
-      if (grid) renderCatGrid(filtered);
+      reviewBtn.style.borderBottomColor = '#111827';
+      reviewBtn.style.color = '#374151';
+      descBtn.style.borderBottomColor = 'transparent';
+      descBtn.style.color = '#9ca3af';
+      descContent.style.display = 'none';
+      reviewContent.style.display = 'block';
     }
   }
-
-  function renderCatGrid(list) {
-    const grid = document.getElementById('catProductGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-    list.forEach(p => {
-      const card = document.createElement('div');
-      card.className = 'product-card';
-      card.innerHTML = `<div class="card-container"><img src="${p.img}" class="card-image"><div class="card-content"><h3>${p.name}</h3><div class="card-price">${p.price}ট</div><button class="quick-add-btn" data-id="${p.id}">Add to Cart</button></div></div>`;
-      grid.appendChild(card);
+  
+  // ===== HELPER FUNCTIONS =====
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
     });
   }
-
-  // ========== SEARCH SUGGESTIONS ==========
-  function showSuggestions(term, inputEl) {
-    // বাস্তবায়ন সহজ রাখতে সরল করা হয়েছে – মূল কোডে ছিল, এখানে সংক্ষেপে দেওয়া
-    if (!term) return;
-    const matched = products.filter(p => p.name.toLowerCase().includes(term.toLowerCase()));
-    // suggestion box show logic (আপনার আগের কোড থেকে নিতে পারেন)
+  
+  // ===== EVENT LISTENERS =====
+  function setupEventListeners() {
+    if (cartIconBtn) cartIconBtn.addEventListener('click', showCartPopup);
+    if (cartIconBtnMobile) cartIconBtnMobile.addEventListener('click', showCartPopup);
+    if (closeCartBtn) closeCartBtn.addEventListener('click', hideCartPopup);
+    if (cartPopup) cartPopup.addEventListener('click', (e) => { if (e.target === cartPopup) hideCartPopup(); });
+    
+    if (closePaymentBtn) closePaymentBtn.addEventListener('click', () => paymentModal?.classList.add('invisible', 'opacity-0'));
+    
+    if (closeSuccessBtn) closeSuccessBtn.addEventListener('click', () => successPopup?.classList.add('invisible', 'opacity-0'));
+    if (closeErrorBtn) closeErrorBtn.addEventListener('click', () => errorPopup?.classList.add('invisible', 'opacity-0'));
+    if (errorPopup) errorPopup.addEventListener('click', (e) => { if (e.target === errorPopup) errorPopup.classList.add('invisible', 'opacity-0'); });
+    
+    deliveryRadios.forEach(radio => radio.addEventListener('change', () => {
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+      updateFinalTotal(subtotal);
+    }));
+    
+    if (paymentForm) {
+      paymentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // Payment submission logic here
+        paymentModal?.classList.add('invisible', 'opacity-0');
+        successPopup?.classList.remove('invisible', 'opacity-0');
+        cart = [];
+        updateCartUI();
+      });
+    }
+    
+    const viewCartBtn = document.getElementById('viewCartBtn');
+    if (viewCartBtn) {
+      viewCartBtn.addEventListener('click', () => {
+        hideCartPopup();
+        updateOrderSummary();
+        paymentModal?.classList.remove('invisible', 'opacity-0');
+      });
+    }
+    
+    if (goTopBtn) goTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+    
+    // Search event listeners
+    if (searchBtn) searchBtn.addEventListener('click', performSearch);
+    if (searchInput) {
+      searchInput.addEventListener('input', () => showSuggestions(searchInput.value.trim(), searchInput));
+      searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) showSuggestions(searchInput.value.trim(), searchInput); });
+      searchInput.addEventListener('blur', () => setTimeout(hideSuggestions, 180));
+      searchInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') performSearch();
+        if (e.key === 'Escape') hideSuggestions();
+      });
+    }
+    
+    if (mobileSearchBtn) mobileSearchBtn.addEventListener('click', performMobileSearch);
+    if (mobileSearchInput) {
+      mobileSearchInput.addEventListener('input', () => showSuggestions(mobileSearchInput.value.trim(), mobileSearchInput));
+      mobileSearchInput.addEventListener('focus', () => { if (mobileSearchInput.value.trim()) showSuggestions(mobileSearchInput.value.trim(), mobileSearchInput); });
+      mobileSearchInput.addEventListener('blur', () => setTimeout(hideSuggestions, 180));
+      mobileSearchInput.addEventListener('keyup', (e) => {
+        if (e.key === 'Enter') performMobileSearch();
+        if (e.key === 'Escape') hideSuggestions();
+      });
+    }
+    
+    // Detail page quantity buttons
+    if (detailPageIncQty) {
+      detailPageIncQty.addEventListener('click', () => {
+        if (detailPageQty) detailPageQty.value = parseInt(detailPageQty.value) + 1;
+      });
+    }
+    if (detailPageDecQty) {
+      detailPageDecQty.addEventListener('click', () => {
+        const val = parseInt(detailPageQty?.value || 1);
+        if (val > 1 && detailPageQty) detailPageQty.value = val - 1;
+      });
+    }
+    
+    if (detailPageAddToCart) {
+      detailPageAddToCart.addEventListener('click', () => {
+        if (currentProduct && !currentProduct.soldOut) {
+          const qty = parseInt(detailPageQty?.value || 1);
+          addToCart(currentProduct, qty);
+        }
+      });
+    }
+    
+    if (detailPageOrderNow) {
+      detailPageOrderNow.addEventListener('click', () => {
+        if (currentProduct && !currentProduct.soldOut) {
+          const qty = parseInt(detailPageQty?.value || 1);
+          addToCart(currentProduct, qty);
+          updateOrderSummary();
+          paymentModal?.classList.remove('invisible', 'opacity-0');
+        }
+      });
+    }
+    
+    if (homeBreadcrumb) homeBreadcrumb.addEventListener('click', (e) => { e.preventDefault(); goToHome(); });
+    if (homeLogo) homeLogo.addEventListener('click', (e) => { e.preventDefault(); goToHome(); });
+    
+    // Slider dots
+    window.currentSlide = function(index) {
+      const container = document.getElementById('sliderContainer');
+      if (container) container.style.transform = `translateX(-${index * 100}%)`;
+      document.querySelectorAll('.slider-dot').forEach((dot, i) => {
+        if (i === index) dot.classList.add('bg-green-600', 'w-8');
+        else dot.classList.remove('bg-green-600', 'w-8');
+      });
+    };
+    
+    // Auto slide
+    let autoSlideIndex = 0;
+    const totalSlides = 4;
+    setInterval(() => {
+      autoSlideIndex = (autoSlideIndex + 1) % totalSlides;
+      window.currentSlide(autoSlideIndex);
+    }, 4000);
+    
+    window.currentSlide(0);
   }
-
-  // ========== INIT ==========
+  
+  // ===== INITIALIZATION =====
   async function init() {
-    await fetchProducts();   // API থেকে পণ্য লোড
+    // Load products from API first
+    await loadProductsFromAPI();
+    
+    // If API fails or returns no products, use fallback products
+    if (products.length === 0) {
+      // Fallback products
+      products = [
+        { id:1, name:'নরম Baby Shoes - নীল রঙ', price:450, oldPrice:600, img:'https://images.unsplash.com/photo-1519457073994-14ae0a084e7f?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1519457073994-14ae0a084e7f?w=300&h=300&fit=crop&auto=format&q=80'], saving:150, description:'আরামদায়ক এবং নরম Baby Shoes। শিশুর পায়ের জন্য নিরাপদ উপকরণ দিয়ে তৈরি।', category:'baby-shoes', onSale:true, soldOut:false, stock:10 },
+        { id:2, name:'বেবি স্পোর্টস শু - লাল', price:520, oldPrice:700, img:'https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=300&h=300&fit=crop&auto=format&q=80'], saving:180, description:'খেলাধুলার জন্য বিশেষভাবে ডিজাইন করা বেবি শু।', category:'baby-shoes', onSale:true, soldOut:false, stock:5 },
+        { id:3, name:'বেবি ওয়াকিং শু - গোলাপী', price:380, oldPrice:500, img:'https://images.unsplash.com/photo-1494341990857-2b10bb626166?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1494341990857-2b10bb626166?w=300&h=300&fit=crop&auto=format&q=80'], saving:120, description:'শিশুর প্রথম ধাপের জন্য পারফেক্ট শু।', category:'baby-shoes', onSale:false, soldOut:false, stock:8 }
+      ];
+    }
+    
+    // Render products
     renderProductsByCategory('all', '');
     updateCartUI();
-    // search event listeners
-    searchInput?.addEventListener('input', () => showSuggestions(searchInput.value, searchInput));
-    searchInput?.addEventListener('keyup', e => { if (e.key === 'Enter') performSearch(); });
-    document.getElementById('searchBtn')?.addEventListener('click', performSearch);
-    mobileSearchInput?.addEventListener('keyup', e => { if (e.key === 'Enter') performSearch(); });
-    document.getElementById('mobileSearchBtn')?.addEventListener('click', performSearch);
-    // cart icon
-    document.getElementById('cartIconBtn')?.addEventListener('click', () => showCartPopup());
-    document.getElementById('cartIconBtnMobile')?.addEventListener('click', () => showCartPopup());
-    document.getElementById('closeCartBtn')?.addEventListener('click', () => hideCartPopup());
-    // home logo
-    document.getElementById('homeLogo')?.addEventListener('click', (e) => { e.preventDefault(); goToHome(); });
-    // other event listeners (you may keep existing ones)
+    setupEventListeners();
+    
+    // Restore session
+    if (ffhUser && ffhToken) {
+      isLoggedIn = true;
+      loggedInUser = { name: ffhUser.name, email: ffhUser.phone, phone: ffhUser.phone };
+      const signInLabel = document.getElementById('signInLabel');
+      if (signInLabel) signInLabel.textContent = ffhUser.name;
+      const signInBtn = document.getElementById('signInBtn');
+      if (signInBtn) {
+        const icon = signInBtn.querySelector('i');
+        if (icon) icon.className = 'fas fa-user-check text-lg text-orange-600';
+      }
+      updateMobileSignInUI();
+    }
   }
-
-  function showCartPopup() { document.getElementById('cartPopup')?.classList.remove('invisible', 'opacity-0'); }
-  function hideCartPopup() { document.getElementById('cartPopup')?.classList.add('invisible', 'opacity-0'); }
-
+  
+  function updateMobileSignInUI() {
+    const mobileIcon = document.getElementById('mobileSignInIcon');
+    const mobileLabel = document.getElementById('mobileSignInLabel');
+    if (!mobileIcon || !mobileLabel) return;
+    if (isLoggedIn) {
+      mobileIcon.className = 'fas fa-user-check text-lg text-orange-600';
+      mobileLabel.textContent = (loggedInUser.name || '').substring(0, 8);
+      mobileLabel.style.color = '#ea580c';
+    } else {
+      mobileIcon.className = 'fas fa-user text-lg text-gray-700';
+      mobileLabel.textContent = 'Sign In';
+      mobileLabel.style.color = '';
+    }
+    const sidebarName = document.getElementById('sidebarHelloName');
+    const sidebarSub = document.getElementById('sidebarHelloSub');
+    if (sidebarName && sidebarSub) {
+      if (isLoggedIn) {
+        sidebarName.textContent = loggedInUser.name || 'My Account';
+        sidebarSub.textContent = loggedInUser.email || '';
+      } else {
+        sidebarName.textContent = 'Hello there!';
+        sidebarSub.textContent = 'Signin';
+      }
+    }
+  }
+  
+  // Start the app
   init();
 })();
 </script>
