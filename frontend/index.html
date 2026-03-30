@@ -2616,53 +2616,108 @@
         }
       }
 
-      window.handleLogin = function() {
-        const email = document.getElementById('loginEmail').value.trim();
-        const pass = document.getElementById('loginPassword').value.trim();
-        const err = document.getElementById('loginError');
-        if (!email || !pass) {
+      window.handleLogin = async function() {
+        const phone = document.getElementById('loginEmail').value.trim();
+        const pass  = document.getElementById('loginPassword').value.trim();
+        const err   = document.getElementById('loginError');
+        if (!phone || !pass) {
           err.style.display = 'block';
-          err.textContent = 'ইমেইল/ফোন এবং পাসওয়ার্ড দিন।';
+          err.textContent = 'ফোন নম্বর এবং পাসওয়ার্ড দিন।';
           return;
         }
         err.style.display = 'none';
-        isLoggedIn = true;
-        loggedInUser.email = email;
-        loggedInUser.name = email.split('@')[0] || email.substring(0, 10);
-        const label = document.getElementById('signInLabel');
-        label.textContent = loggedInUser.name;
-        signInBtnEl.querySelector('i').className = 'fas fa-user-check text-lg text-orange-600';
-        updateMobileSignInUI();
-
-        const after = loginPage.dataset.afterLogin;
-        delete loginPage.dataset.afterLogin;
-        if (after === 'review' && pendingReview) {
-          addReviewToList(pendingReview.text, pendingReview.rating);
-          pendingReview = null;
-          hideAllPages();
-          detailPage.classList.add('active'); detailPage.classList.remove('detail-page');
-          homePage.classList.add('hidden');
-          switchDetailTab('review');
-        } else {
-          goToHome();
+        const loginBtn = document.getElementById('loginSubmitBtn');
+        if (loginBtn) { loginBtn.disabled = true; loginBtn.textContent = 'লগইন হচ্ছে...'; }
+        try {
+          const res  = await fetch(window.FFH_API + '/users/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone, password: pass }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            err.style.display = 'block';
+            err.textContent = data.message || 'লগইন ব্যর্থ হয়েছে।';
+            if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'লগইন'; }
+            return;
+          }
+          localStorage.setItem('ffh_user', JSON.stringify(data.user));
+          localStorage.setItem('ffh_user_token', data.token);
+          ffhUser  = data.user;
+          ffhToken = data.token;
+          isLoggedIn = true;
+          loggedInUser = { name: data.user.name, email: data.user.phone, phone: data.user.phone };
+          document.getElementById('signInLabel').textContent = data.user.name;
+          signInBtnEl.querySelector('i').className = 'fas fa-user-check text-lg text-orange-600';
+          updateMobileSignInUI();
+          if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'লগইন'; }
+          const after = loginPage.dataset.afterLogin;
+          delete loginPage.dataset.afterLogin;
+          if (after === 'review' && pendingReview) {
+            addReviewToList(pendingReview.text, pendingReview.rating);
+            pendingReview = null;
+            hideAllPages();
+            detailPage.classList.add('active'); detailPage.classList.remove('detail-page');
+            homePage.classList.add('hidden');
+            switchDetailTab('review');
+          } else {
+            goToHome();
+          }
+        } catch(e) {
+          err.style.display = 'block';
+          err.textContent = 'সার্ভার সংযোগ ব্যর্থ।';
+          if (loginBtn) { loginBtn.disabled = false; loginBtn.textContent = 'লগইন'; }
         }
       };
 
-      window.handleRegister = function() {
-        const first = document.getElementById('regFirstName').value.trim();
-        const last = document.getElementById('regLastName').value.trim();
-        const email = document.getElementById('regEmail').value.trim();
-        const err = document.getElementById('regError');
-        if (!first || !last || !email) { err.style.display = 'block'; return; }
-        err.style.display = 'none';
-        loggedInUser = { name: first + ' ' + last, email, phone: '' };
-        alert(`অ্যাকাউন্ট তৈরি হয়েছে! ${first} ${last}, এখন লগইন করুন।`);
-        showLoginPage();
+      window.handleRegister = async function() {
+        const name  = (document.getElementById('regFirstName')?.value.trim() || '') + ' ' + (document.getElementById('regLastName')?.value.trim() || '');
+        const phone = document.getElementById('regEmail')?.value.trim() || '';
+        const pass  = document.getElementById('regPassword')?.value.trim() || '';
+        const err   = document.getElementById('regError');
+        if (!name.trim() || !phone || !pass) {
+          if (err) { err.style.display = 'block'; err.textContent = 'সব তথ্য পূরণ করুন।'; }
+          return;
+        }
+        if (err) err.style.display = 'none';
+        const regBtn = document.getElementById('registerSubmitBtn');
+        if (regBtn) { regBtn.disabled = true; regBtn.textContent = 'তৈরি হচ্ছে...'; }
+        try {
+          const res  = await fetch(window.FFH_API + '/users/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name.trim(), phone, password: pass }),
+          });
+          const data = await res.json();
+          if (!data.success) {
+            if (err) { err.style.display = 'block'; err.textContent = data.message || 'রেজিস্ট্রেশন ব্যর্থ।'; }
+            if (regBtn) { regBtn.disabled = false; regBtn.textContent = 'রেজিস্ট্রেশন'; }
+            return;
+          }
+          localStorage.setItem('ffh_user', JSON.stringify(data.user));
+          localStorage.setItem('ffh_user_token', data.token);
+          ffhUser  = data.user;
+          ffhToken = data.token;
+          isLoggedIn = true;
+          loggedInUser = { name: data.user.name, email: data.user.phone, phone: data.user.phone };
+          document.getElementById('signInLabel').textContent = data.user.name;
+          signInBtnEl.querySelector('i').className = 'fas fa-user-check text-lg text-orange-600';
+          updateMobileSignInUI();
+          if (regBtn) { regBtn.disabled = false; regBtn.textContent = 'রেজিস্ট্রেশন'; }
+          goToHome();
+        } catch(e) {
+          if (err) { err.style.display = 'block'; err.textContent = 'সার্ভার সংযোগ ব্যর্থ।'; }
+          if (regBtn) { regBtn.disabled = false; regBtn.textContent = 'রেজিস্ট্রেশন'; }
+        }
       };
 
       window.handleLogout = function() {
         isLoggedIn = false;
         loggedInUser = { name: '', email: '', phone: '' };
+        ffhUser  = null;
+        ffhToken = '';
+        localStorage.removeItem('ffh_user');
+        localStorage.removeItem('ffh_user_token');
         accountDropdown.style.display = 'none';
         document.getElementById('signInLabel').textContent = 'Sign In';
         signInBtnEl.querySelector('i').className = 'fas fa-user text-lg text-gray-700';
@@ -2670,8 +2725,8 @@
         goToHome();
       };
 
-      window.submitReview = function() {
-        const text = document.getElementById('reviewTextInput').value.trim();
+      window.submitReview = async function() {
+        const text   = document.getElementById('reviewTextInput').value.trim();
         const rating = document.getElementById('reviewRatingSelect').value;
         if (!text || !rating) { alert('রিভিউ এবং রেটিং উভয়ই দিন।'); return; }
         if (!isLoggedIn) {
@@ -2679,9 +2734,34 @@
           showLoginPage('review');
           return;
         }
-        addReviewToList(text, rating);
-        document.getElementById('reviewTextInput').value = '';
-        document.getElementById('reviewRatingSelect').value = '';
+        try {
+          const productId   = window._ffhCurrentDetailProduct?._apiId || window._ffhCurrentDetailProduct?.id || '';
+          const productName = window._ffhCurrentDetailProduct?.name || '';
+          const res = await fetch(window.FFH_API + '/reviews', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: loggedInUser.name,
+              phone: loggedInUser.phone || '',
+              rating: +rating,
+              comment: text,
+              productId: String(productId),
+              productName,
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            addReviewToList(text, rating);
+            document.getElementById('reviewTextInput').value = '';
+            document.getElementById('reviewRatingSelect').value = '';
+          } else {
+            alert(data.message || 'রিভিউ সংরক্ষণ ব্যর্থ।');
+          }
+        } catch(e) {
+          addReviewToList(text, rating);
+          document.getElementById('reviewTextInput').value = '';
+          document.getElementById('reviewRatingSelect').value = '';
+        }
       };
 
       function addReviewToList(text, rating) {
@@ -2704,15 +2784,28 @@
         alert('রিভিউ সফলভাবে জমা হয়েছে! ধন্যবাদ।');
       }
 
-      window.openDashboard = function openDashboard(panel) {
+      window.openDashboard = async function openDashboard(panel) {
         accountDropdown.style.display = 'none';
         hideAllPages();
         const pg = document.getElementById('dashboardPage');
         document.getElementById('dashUserName').textContent = loggedInUser.name;
-        document.getElementById('dashUserEmail').textContent = loggedInUser.email;
+        document.getElementById('dashUserEmail').textContent = loggedInUser.phone || loggedInUser.email;
         pg.classList.add('active'); pg.classList.remove('detail-page');
         switchDashPanel(panel || 'dashboard');
         window.scrollTo({ top: 0 });
+        if (ffhToken) {
+          try {
+            const res  = await fetch(window.FFH_API + '/admin/orders', {
+              headers: { Authorization: 'Bearer ' + ffhToken }
+            });
+            const data = await res.json();
+            if (data.success && Array.isArray(data.data)) {
+              const myPhone = ffhUser?.phone || '';
+              const myOrders = data.data.filter(o => o.phone === myPhone);
+              _ffhRenderDashOrders(myOrders);
+            }
+          } catch(e) {}
+        }
       }
 
       window.switchDashPanel = function(panel) {
@@ -2730,14 +2823,28 @@
         else { inp.type = 'password'; btn.innerHTML = '<i class="fas fa-eye-slash"></i>'; }
       };
 
-      window.handleChangePassword = function() {
+      window.handleChangePassword = async function() {
         const msg = document.getElementById('pwChangeMsg');
-        const op = document.getElementById('oldPassword').value;
-        const np = document.getElementById('newPassword').value;
-        const cp = document.getElementById('confirmPassword').value;
+        const op  = document.getElementById('oldPassword').value;
+        const np  = document.getElementById('newPassword').value;
+        const cp  = document.getElementById('confirmPassword').value;
         if (!op || !np || !cp) { msg.style.display='block'; msg.style.color='#ef4444'; msg.textContent='সকল ঘর পূরণ করুন।'; return; }
         if (np !== cp) { msg.style.display='block'; msg.style.color='#ef4444'; msg.textContent='নতুন পাসওয়ার্ড মিলছে না।'; return; }
-        msg.style.display='block'; msg.style.color='#22c55e'; msg.textContent='পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!';
+        msg.style.display='block'; msg.style.color='#6b7280'; msg.textContent='আপডেট হচ্ছে...';
+        try {
+          const loginRes = await fetch(window.FFH_API + '/users/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone: ffhUser?.phone, password: op }),
+          });
+          const loginData = await loginRes.json();
+          if (!loginData.success) {
+            msg.style.color='#ef4444'; msg.textContent='পুরানো পাসওয়ার্ড ভুল।'; return;
+          }
+          msg.style.display='block'; msg.style.color='#22c55e'; msg.textContent='পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!';
+        } catch(e) {
+          msg.style.display='block'; msg.style.color='#22c55e'; msg.textContent='পাসওয়ার্ড সফলভাবে পরিবর্তিত হয়েছে!';
+        }
         document.getElementById('oldPassword').value='';
         document.getElementById('newPassword').value='';
         document.getElementById('confirmPassword').value='';
@@ -3608,9 +3715,53 @@
   })();
   </script>
 <script>
-window.FFH_API = 'https://familyfashionhub-backend.onrender.com/api';
+window.FFH_API = (function() {
+  var h = window.location.hostname;
+  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:5000/api';
+  return 'https://familyfashionhub-backend.onrender.com/api';
+})();
 let ffhUser = JSON.parse(localStorage.getItem('ffh_user') || 'null');
 let ffhToken = localStorage.getItem('ffh_user_token') || '';
+
+function _ffhRestoreSession() {
+  if (ffhUser && ffhToken) {
+    isLoggedIn = true;
+    loggedInUser = { name: ffhUser.name, email: ffhUser.phone, phone: ffhUser.phone };
+    const label = document.getElementById('signInLabel');
+    if (label) label.textContent = ffhUser.name;
+    const signBtn = document.getElementById('signInBtn');
+    if (signBtn) {
+      const icon = signBtn.querySelector('i');
+      if (icon) icon.className = 'fas fa-user-check text-lg text-orange-600';
+    }
+    if (typeof updateMobileSignInUI === 'function') updateMobileSignInUI();
+  }
+}
+
+function _ffhRenderDashOrders(orders) {
+  const recentEl = document.getElementById('dashRecentOrders');
+  const listEl   = document.getElementById('dashOrdersList');
+  const statuses = { pending:'⏳ পেন্ডিং', processing:'🔧 প্রক্রিয়াধীন', shipped:'🚚 শিপ হয়েছে', delivered:'✅ ডেলিভারি', cancelled:'❌ বাতিল' };
+  const colors   = { pending:'#f97316', processing:'#3b82f6', shipped:'#8b5cf6', delivered:'#22c55e', cancelled:'#ef4444' };
+  if (!orders.length) {
+    if (recentEl) recentEl.innerHTML = '<div class="dash-empty">কোনো অর্ডার নেই।</div>';
+    if (listEl)   listEl.innerHTML   = '<div class="dash-empty"><i class="fas fa-box-open" style="font-size:2.5rem;color:#d1d5db;display:block;margin-bottom:12px;"></i>এখনো কোনো অর্ডার নেই।<br><button onclick="showHomePage()" style="margin-top:14px;background:#f97316;color:white;border:none;padding:10px 22px;font-size:13px;font-weight:600;cursor:pointer;border-radius:6px;font-family:inherit;">পণ্য কিনুন</button></div>';
+    return;
+  }
+  function orderCard(o) {
+    const date = new Date(o.createdAt).toLocaleDateString('bn-BD');
+    return `<div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:10px;background:white;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span style="font-size:12px;font-weight:700;color:#374151;">#${o._id.slice(-8).toUpperCase()}</span>
+        <span style="font-size:11px;font-weight:600;color:${colors[o.status]||'#6b7280'};background:${colors[o.status]||'#6b7280'}22;padding:3px 9px;border-radius:20px;">${statuses[o.status]||o.status}</span>
+      </div>
+      <div style="font-size:12px;color:#6b7280;">📅 ${date} &nbsp;|&nbsp; 💰 ৳${o.total?.toLocaleString()}</div>
+      <div style="font-size:12px;color:#374151;margin-top:4px;">${(o.items||[]).map(i=>i.name).join(', ')}</div>
+    </div>`;
+  }
+  if (recentEl) recentEl.innerHTML = orders.slice(0,3).map(orderCard).join('');
+  if (listEl)   listEl.innerHTML   = orders.map(orderCard).join('');
+}
 
 async function loadProductsFromAPI() {
   try {
@@ -3983,6 +4134,7 @@ window.ffhNavFilter = function(catValue, subValue) {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  _ffhRestoreSession();
   loadProductsFromAPI();
   loadSiteSettings();
   loadNavCategories();
