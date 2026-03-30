@@ -6,12 +6,11 @@ const cloudinary = require('cloudinary').v2;
 const streamifier = require('streamifier');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 
-// ===== CORS CONFIG =====
-// Frontend ও Admin উভয় URL থেকে request গ্রহণ করবে
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   process.env.ADMIN_URL,
@@ -22,10 +21,9 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: function (origin, callback) {
-    // Postman বা server-to-server এর জন্য origin নাও থাকতে পারে
     if (!origin) return callback(null, true);
     if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('CORS policy: এই origin অনুমোদিত নয়: ' + origin));
+    return callback(new Error('CORS policy: this origin not allowed: ' + origin));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -35,20 +33,17 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ===== CLOUDINARY CONFIG =====
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key:    process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ===== MULTER — memory storage =====
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // max 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-// ===== CLOUDINARY UPLOAD HELPER =====
 function uploadToCloudinary(buffer, folder) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -66,22 +61,16 @@ async function uploadMultiple(files, folder) {
   return Promise.all(files.map(f => uploadToCloudinary(f.buffer, folder)));
 }
 
-// ===== MONGODB CONNECTION =====
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
     console.log('✅ MongoDB Connected');
-    // Bad unique index on orderId drop করো (যদি থাকে)
     try {
       await mongoose.connection.collection('orders').dropIndex('orderId_1');
       console.log('🔧 Bad orderId index dropped');
-    } catch(e) {
-      // index নেই — no problem
-    }
+    } catch(e) {}
     autoSetupAdmin();
   })
   .catch(err => console.error('❌ MongoDB Error:', err));
-
-// ===== SCHEMAS =====
 
 const productSchema = new mongoose.Schema({
   name:        { type: String, required: true },
@@ -96,21 +85,18 @@ const productSchema = new mongoose.Schema({
   onSale:      { type: Boolean, default: false },
   soldOut:     { type: Boolean, default: false },
   featured:    { type: Boolean, default: false },
-
-  // ===== বিস্তারিত পণ্য তথ্য =====
-  sizes:          [{ type: String }],                  // সাইজ যেমন: S, M, L, XL, 0-6M
-  colors:         [{ type: String }],                  // রঙ যেমন: লাল, নীল, সাদা
-  ageGroup:       { type: String, default: '' },        // বয়স: 0-6 মাস, 6-12 মাস ইত্যাদি
-  material:       { type: String, default: '' },        // কাপড়: Cotton, Fleece ইত্যাদি
-  stock:          { type: Number, default: 0 },         // স্টক সংখ্যা
-  sku:            { type: String, default: '' },         // স্টক কোড
-  weight:         { type: String, default: '' },         // ওজন/মাপ
-  deliveryInfo:   { type: String, default: '' },         // ডেলিভারি তথ্য
-  returnPolicy:   { type: String, default: '' },         // রিটার্ন নীতি
-  highlights:     [{ type: String }],                   // মূল বৈশিষ্ট্য তালিকা
-  careInstructions: { type: String, default: '' },      // পরিচর্যা নির্দেশনা
-  tags:           [{ type: String }],                   // সার্চ ট্যাগ
-
+  sizes:          [{ type: String }],
+  colors:         [{ type: String }],
+  ageGroup:       { type: String, default: '' },
+  material:       { type: String, default: '' },
+  stock:          { type: Number, default: 0 },
+  sku:            { type: String, default: '' },
+  weight:         { type: String, default: '' },
+  deliveryInfo:   { type: String, default: '' },
+  returnPolicy:   { type: String, default: '' },
+  highlights:     [{ type: String }],
+  careInstructions: { type: String, default: '' },
+  tags:           [{ type: String }],
   createdAt:   { type: Date, default: Date.now },
 });
 
@@ -163,24 +149,19 @@ const User     = mongoose.model('User',     userSchema);
 const Settings = mongoose.model('Settings', settingsSchema);
 const Order    = mongoose.model('Order',    orderSchema);
 
-// ===== AUTO ADMIN SETUP =====
-// .env-এর ADMIN_USERNAME ও ADMIN_PASSWORD দিয়ে স্বয়ংক্রিয়ভাবে admin তৈরি করবে
 async function autoSetupAdmin() {
   try {
-    const adminPhone = process.env.ADMIN_USERNAME; // username হিসেবে phone ব্যবহার
+    const adminPhone = process.env.ADMIN_USERNAME;
     const adminPass  = process.env.ADMIN_PASSWORD;
-
     if (!adminPhone || !adminPass) {
-      console.log('⚠️  ADMIN_USERNAME বা ADMIN_PASSWORD .env-এ নেই — auto setup স্কিপ');
+      console.log('⚠️  ADMIN_USERNAME or ADMIN_PASSWORD missing — skip auto setup');
       return;
     }
-
     const existing = await User.findOne({ phone: adminPhone, role: 'admin' });
     if (existing) {
-      console.log('ℹ️  Admin ইতিমধ্যে আছে:', adminPhone);
+      console.log('ℹ️  Admin already exists:', adminPhone);
       return;
     }
-
     const hashed = await bcrypt.hash(adminPass, 10);
     await User.create({
       name:     'Super Admin',
@@ -188,34 +169,31 @@ async function autoSetupAdmin() {
       password: hashed,
       role:     'admin',
     });
-    console.log('✅ Auto Admin তৈরি হয়েছে — Phone/Username:', adminPhone);
+    console.log('✅ Auto Admin created — Phone/Username:', adminPhone);
   } catch (err) {
     console.error('❌ Auto admin setup error:', err.message);
   }
 }
 
-// ===== AUTH HELPERS =====
 const JWT_SECRET = process.env.JWT_SECRET || 'ffh_secret_2024';
 
 function authMiddleware(req, res, next) {
   const token = (req.headers.authorization || '').split(' ')[1];
-  if (!token) return res.json({ success: false, message: 'Token নেই' });
+  if (!token) return res.json({ success: false, message: 'No token' });
   try { req.user = jwt.verify(token, JWT_SECRET); next(); }
   catch { res.json({ success: false, message: 'Invalid token' }); }
 }
 
 function adminMiddleware(req, res, next) {
   const token = (req.headers.authorization || '').split(' ')[1];
-  if (!token) return res.json({ success: false, message: 'Token নেই' });
+  if (!token) return res.json({ success: false, message: 'No token' });
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    if (decoded.role !== 'admin') return res.json({ success: false, message: 'Admin access প্রয়োজন' });
+    if (decoded.role !== 'admin') return res.json({ success: false, message: 'Admin access required' });
     req.user = decoded;
     next();
   } catch { res.json({ success: false, message: 'Invalid token' }); }
 }
-
-// ===== PRODUCT ROUTES =====
 
 app.get('/api/products', async (req, res) => {
   try {
@@ -238,7 +216,7 @@ app.get('/api/products', async (req, res) => {
 app.get('/api/products/:id', async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.json({ success: false, message: 'পণ্য পাওয়া যায়নি' });
+    if (!product) return res.json({ success: false, message: 'Product not found' });
     res.json({ success: true, data: product });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
@@ -256,7 +234,6 @@ app.post('/api/products', adminMiddleware, upload.array('images', 10), async (re
       images = results.map(r => ({ url: r.secure_url, public_id: r.public_id }));
     }
     const img = images.length > 0 ? images[0].url : '';
-    // Array field parse helper (comma-separated string অথবা array হতে পারে)
     const parseArr = v => {
       if (!v) return [];
       if (Array.isArray(v)) return v.map(x => x.trim()).filter(Boolean);
@@ -346,7 +323,7 @@ app.put('/api/products/:id', adminMiddleware, upload.array('images', 10), async 
 app.delete('/api/products/:id', adminMiddleware, async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    if (!product) return res.json({ success: false, message: 'পণ্য পাওয়া যায়নি' });
+    if (!product) return res.json({ success: false, message: 'Product not found' });
     if (product.images && product.images.length) {
       await Promise.all(
         product.images
@@ -355,11 +332,9 @@ app.delete('/api/products/:id', adminMiddleware, async (req, res) => {
       );
     }
     await Product.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'পণ্য মুছে ফেলা হয়েছে' });
+    res.json({ success: true, message: 'Product deleted' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
-
-// ===== REVIEW ROUTES =====
 
 app.get('/api/reviews', async (req, res) => {
   try {
@@ -383,7 +358,7 @@ app.post('/api/reviews', async (req, res) => {
   try {
     const { name, phone, rating, comment, productId, productName } = req.body;
     const review = await Review.create({ name, phone, rating: +rating, comment, productId, productName });
-    res.json({ success: true, data: review, message: 'রিভিউ সফলভাবে জমা হয়েছে' });
+    res.json({ success: true, data: review, message: 'Review submitted successfully' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
@@ -397,17 +372,15 @@ app.put('/api/reviews/:id', adminMiddleware, async (req, res) => {
 app.delete('/api/reviews/:id', adminMiddleware, async (req, res) => {
   try {
     await Review.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'রিভিউ মুছে ফেলা হয়েছে' });
+    res.json({ success: true, message: 'Review deleted' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
-
-// ===== USER ROUTES =====
 
 app.post('/api/users/register', async (req, res) => {
   try {
     const { name, phone, password } = req.body;
     const exists = await User.findOne({ phone });
-    if (exists) return res.json({ success: false, message: 'এই ফোন নম্বর ইতিমধ্যে নিবন্ধিত' });
+    if (exists) return res.json({ success: false, message: 'Phone already registered' });
     const hashed = await bcrypt.hash(password, 10);
     const user   = await User.create({ name, phone, password: hashed });
     const token  = jwt.sign({ id: user._id, phone: user.phone, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
@@ -419,28 +392,23 @@ app.post('/api/users/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
     const user = await User.findOne({ phone });
-    if (!user) return res.json({ success: false, message: 'ফোন নম্বর বা পাসওয়ার্ড ভুল' });
+    if (!user) return res.json({ success: false, message: 'Invalid phone or password' });
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.json({ success: false, message: 'ফোন নম্বর বা পাসওয়ার্ড ভুল' });
+    if (!match) return res.json({ success: false, message: 'Invalid phone or password' });
     const token = jwt.sign({ id: user._id, phone: user.phone, role: user.role }, JWT_SECRET, { expiresIn: '30d' });
     res.json({ success: true, user: { id: user._id, name: user.name, phone: user.phone, role: user.role }, token });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// Admin Login — phone অথবা ADMIN_USERNAME দিয়ে login করা যাবে
 app.post('/api/admin/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
-
-    // প্রথমে .env-এর ADMIN_USERNAME দিয়ে চেক করো
     if (
       phone === process.env.ADMIN_USERNAME &&
       password === process.env.ADMIN_PASSWORD
     ) {
-      // DB-তে এই admin খোঁজো
       let user = await User.findOne({ phone: process.env.ADMIN_USERNAME, role: 'admin' });
       if (!user) {
-        // না থাকলে এখনই তৈরি করো
         const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
         user = await User.create({
           name: 'Super Admin',
@@ -452,12 +420,10 @@ app.post('/api/admin/login', async (req, res) => {
       const token = jwt.sign({ id: user._id, phone: user.phone, role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
       return res.json({ success: true, user: { id: user._id, name: user.name, phone: user.phone, role: 'admin' }, token });
     }
-
-    // সাধারণ DB-based admin login
     const user = await User.findOne({ phone, role: 'admin' });
-    if (!user) return res.json({ success: false, message: 'Admin খুঁজে পাওয়া যায়নি' });
+    if (!user) return res.json({ success: false, message: 'Admin not found' });
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.json({ success: false, message: 'পাসওয়ার্ড ভুল' });
+    if (!match) return res.json({ success: false, message: 'Wrong password' });
     const token = jwt.sign({ id: user._id, phone: user.phone, role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
     res.json({ success: true, user: { id: user._id, name: user.name, phone: user.phone, role: 'admin' }, token });
   } catch (e) { res.json({ success: false, message: e.message }); }
@@ -474,7 +440,7 @@ app.post('/api/admin/users', adminMiddleware, async (req, res) => {
   try {
     const { name, phone, password, role } = req.body;
     const exists = await User.findOne({ phone });
-    if (exists) return res.json({ success: false, message: 'এই ফোন নম্বর ইতিমধ্যে আছে' });
+    if (exists) return res.json({ success: false, message: 'Phone already exists' });
     const hashed = await bcrypt.hash(password, 10);
     const user   = await User.create({ name, phone, password: hashed, role: role || 'user' });
     res.json({ success: true, data: { id: user._id, name: user.name, phone: user.phone, role: user.role } });
@@ -484,13 +450,10 @@ app.post('/api/admin/users', adminMiddleware, async (req, res) => {
 app.delete('/api/admin/users/:id', adminMiddleware, async (req, res) => {
   try {
     await User.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'ব্যবহারকারী মুছে ফেলা হয়েছে' });
+    res.json({ success: true, message: 'User deleted' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== ORDER ROUTES =====
-
-// ===== ORDER DEBUG (temporary — frontend কী পাঠাচ্ছে দেখার জন্য) =====
 app.post('/api/orders/debug', (req, res) => {
   console.log('ORDER DEBUG body:', JSON.stringify(req.body, null, 2));
   res.json({ success: true, received: req.body });
@@ -499,33 +462,23 @@ app.post('/api/orders/debug', (req, res) => {
 app.post('/api/orders', async (req, res) => {
   try {
     const b = req.body;
-
-    // ফ্রন্টএন্ড যেকোনো field name দিয়ে পাঠাক — সব handle করা হচ্ছে
     const customerName =
       b.customerName || b.customer_name || b.name || b.fullName ||
       b.full_name || b.userName || b.user_name || b.buyerName || '';
-
     const phone =
       b.phone || b.mobile || b.phoneNumber || b.phone_number ||
       b.mobileNumber || b.mobile_number || b.contact || b.number || '';
-
     const address =
       b.address || b.shippingAddress || b.shipping_address ||
       b.deliveryAddress || b.delivery_address || b.location || '';
-
     const note =
       b.note || b.notes || b.message || b.orderNote || b.order_note || '';
-
-    // items — array or JSON string
     let items = b.items || b.cartItems || b.cart || b.products || [];
     if (typeof items === 'string') {
       try { items = JSON.parse(items); } catch { items = []; }
     }
-
-    // total — calculate from items if not provided
     let total = parseFloat(b.total || b.totalPrice || b.total_price ||
       b.amount || b.grandTotal || b.grand_total || 0);
-
     if (!total && items.length) {
       total = items.reduce((sum, item) => {
         const price = parseFloat(item.price || item.unitPrice || 0);
@@ -533,19 +486,14 @@ app.post('/api/orders', async (req, res) => {
         return sum + price * qty;
       }, 0);
     }
-
-    // Validation — বাংলায় error দাও
     const errors = [];
-    if (!customerName) errors.push('গ্রাহকের নাম দিন');
-    if (!phone)        errors.push('ফোন নম্বর দিন');
-    if (!address)      errors.push('ঠিকানা দিন');
-    if (!total)        errors.push('মোট মূল্য পাওয়া যায়নি');
-
+    if (!customerName) errors.push('Customer name required');
+    if (!phone)        errors.push('Phone number required');
+    if (!address)      errors.push('Address required');
+    if (!total)        errors.push('Total amount not found');
     if (errors.length) {
       return res.json({ success: false, message: errors.join(', ') });
     }
-
-    // items normalize
     const normalizedItems = items.map(item => ({
       productId: item.productId || item.product_id || item._id || item.id || '',
       name:      item.name || item.productName || item.product_name || item.title || '',
@@ -553,7 +501,6 @@ app.post('/api/orders', async (req, res) => {
       quantity:  parseInt(item.quantity || item.qty || 1, 10),
       img:       item.img || item.image || item.thumbnail || item.photo || '',
     }));
-
     const order = await Order.create({
       customerName,
       phone,
@@ -563,11 +510,10 @@ app.post('/api/orders', async (req, res) => {
       note,
       status: 'pending',
     });
-
     res.json({
       success: true,
       data: order,
-      message: 'অর্ডার সফলভাবে দেওয়া হয়েছে! আমরা শীঘ্রই যোগাযোগ করব।',
+      message: 'Order placed successfully! We will contact you soon.',
       orderId: order._id,
     });
   } catch (e) {
@@ -594,19 +540,16 @@ app.put('/api/admin/orders/:id', adminMiddleware, async (req, res) => {
 app.delete('/api/admin/orders/:id', adminMiddleware, async (req, res) => {
   try {
     await Order.findByIdAndDelete(req.params.id);
-    res.json({ success: true, message: 'অর্ডার মুছে ফেলা হয়েছে' });
+    res.json({ success: true, message: 'Order deleted' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== CATEGORIES API =====
-// Frontend এই route থেকে categories ও subcategories পাবে
 app.get('/api/categories', async (req, res) => {
   try {
     const setting = await Settings.findOne({ key: 'categories' });
     if (setting && Array.isArray(setting.value) && setting.value.length) {
       return res.json({ success: true, data: setting.value });
     }
-    // Default fallback — Baby Products full structure
     res.json({
       success: true,
       data: [
@@ -651,113 +594,97 @@ app.get('/api/categories', async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== CATEGORIES CRUD (Admin) =====
-
-// GET — সব categories
-// (already handled by /api/categories above)
-
-// POST — নতুন main category যোগ
 app.post('/api/admin/categories', adminMiddleware, async (req, res) => {
   try {
     const { value, label } = req.body;
-    if (!value || !label) return res.json({ success: false, message: 'value ও label আবশ্যিক' });
+    if (!value || !label) return res.json({ success: false, message: 'value and label required' });
     const slug = value.trim().toLowerCase().replace(/\s+/g, '_');
     const setting = await Settings.findOne({ key: 'categories' });
     let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
-    if (cats.find(c => c.value === slug)) return res.json({ success: false, message: 'এই ক্যাটাগরি ইতিমধ্যে আছে' });
+    if (cats.find(c => c.value === slug)) return res.json({ success: false, message: 'Category already exists' });
     cats.push({ value: slug, label: label.trim(), subcategories: [] });
     await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, data: cats, message: 'ক্যাটাগরি যোগ হয়েছে' });
+    res.json({ success: true, data: cats, message: 'Category added' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// PUT — main category আপডেট (rename label)
 app.put('/api/admin/categories/:value', adminMiddleware, async (req, res) => {
   try {
     const { label } = req.body;
-    if (!label) return res.json({ success: false, message: 'label আবশ্যিক' });
+    if (!label) return res.json({ success: false, message: 'label required' });
     const setting = await Settings.findOne({ key: 'categories' });
     let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
     const idx = cats.findIndex(c => c.value === req.params.value);
-    if (idx === -1) return res.json({ success: false, message: 'ক্যাটাগরি পাওয়া যায়নি' });
+    if (idx === -1) return res.json({ success: false, message: 'Category not found' });
     cats[idx].label = label.trim();
     await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, data: cats, message: 'ক্যাটাগরি আপডেট হয়েছে' });
+    res.json({ success: true, data: cats, message: 'Category updated' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// DELETE — main category মুছো
 app.delete('/api/admin/categories/:value', adminMiddleware, async (req, res) => {
   try {
     const setting = await Settings.findOne({ key: 'categories' });
     let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
     cats = cats.filter(c => c.value !== req.params.value);
     await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, data: cats, message: 'ক্যাটাগরি মুছে ফেলা হয়েছে' });
+    res.json({ success: true, data: cats, message: 'Category deleted' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// POST — subcategory যোগ
 app.post('/api/admin/categories/:catValue/subcategories', adminMiddleware, async (req, res) => {
   try {
     const { value, label } = req.body;
-    if (!value || !label) return res.json({ success: false, message: 'value ও label আবশ্যিক' });
+    if (!value || !label) return res.json({ success: false, message: 'value and label required' });
     const slug = value.trim().toLowerCase().replace(/\s+/g, '_');
     const setting = await Settings.findOne({ key: 'categories' });
     let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
     const cat = cats.find(c => c.value === req.params.catValue);
-    if (!cat) return res.json({ success: false, message: 'ক্যাটাগরি পাওয়া যায়নি' });
+    if (!cat) return res.json({ success: false, message: 'Category not found' });
     if (!cat.subcategories) cat.subcategories = [];
-    if (cat.subcategories.find(s => s.value === slug)) return res.json({ success: false, message: 'এই সাব-ক্যাটাগরি ইতিমধ্যে আছে' });
+    if (cat.subcategories.find(s => s.value === slug)) return res.json({ success: false, message: 'Subcategory already exists' });
     cat.subcategories.push({ value: slug, label: label.trim() });
     await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, data: cats, message: 'সাব-ক্যাটাগরি যোগ হয়েছে' });
+    res.json({ success: true, data: cats, message: 'Subcategory added' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// PUT — subcategory আপডেট
 app.put('/api/admin/categories/:catValue/subcategories/:subValue', adminMiddleware, async (req, res) => {
   try {
     const { label } = req.body;
-    if (!label) return res.json({ success: false, message: 'label আবশ্যিক' });
+    if (!label) return res.json({ success: false, message: 'label required' });
     const setting = await Settings.findOne({ key: 'categories' });
     let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
     const cat = cats.find(c => c.value === req.params.catValue);
-    if (!cat) return res.json({ success: false, message: 'ক্যাটাগরি পাওয়া যায়নি' });
+    if (!cat) return res.json({ success: false, message: 'Category not found' });
     const sub = (cat.subcategories || []).find(s => s.value === req.params.subValue);
-    if (!sub) return res.json({ success: false, message: 'সাব-ক্যাটাগরি পাওয়া যায়নি' });
+    if (!sub) return res.json({ success: false, message: 'Subcategory not found' });
     sub.label = label.trim();
     await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, data: cats, message: 'সাব-ক্যাটাগরি আপডেট হয়েছে' });
+    res.json({ success: true, data: cats, message: 'Subcategory updated' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// DELETE — subcategory মুছো
 app.delete('/api/admin/categories/:catValue/subcategories/:subValue', adminMiddleware, async (req, res) => {
   try {
     const setting = await Settings.findOne({ key: 'categories' });
     let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
     const cat = cats.find(c => c.value === req.params.catValue);
-    if (!cat) return res.json({ success: false, message: 'ক্যাটাগরি পাওয়া যায়নি' });
+    if (!cat) return res.json({ success: false, message: 'Category not found' });
     cat.subcategories = (cat.subcategories || []).filter(s => s.value !== req.params.subValue);
     await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
-    res.json({ success: true, data: cats, message: 'সাব-ক্যাটাগরি মুছে ফেলা হয়েছে' });
+    res.json({ success: true, data: cats, message: 'Subcategory deleted' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// POST — সম্পূর্ণ categories replace (bulk save)
 app.post('/api/admin/categories/bulk', adminMiddleware, async (req, res) => {
   try {
     const { categories } = req.body;
-    if (!Array.isArray(categories)) return res.json({ success: false, message: 'categories array আবশ্যিক' });
+    if (!Array.isArray(categories)) return res.json({ success: false, message: 'categories array required' });
     await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: categories }, { upsert: true });
-    res.json({ success: true, data: categories, message: 'Categories সেভ হয়েছে' });
+    res.json({ success: true, data: categories, message: 'Categories saved' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
-
-// ===== PUBLIC CATEGORIES API (উপরে /api/categories route-এ already handled) =====
-
-// ===== SETTINGS ROUTES =====
 
 app.get('/api/settings', async (req, res) => {
   try {
@@ -774,11 +701,10 @@ app.post('/api/settings', adminMiddleware, async (req, res) => {
     for (const [key, value] of entries) {
       await Settings.findOneAndUpdate({ key }, { key, value }, { upsert: true });
     }
-    res.json({ success: true, message: 'সেটিংস আপডেট হয়েছে' });
+    res.json({ success: true, message: 'Settings updated' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== STATS =====
 app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
   try {
     const [products, orders, users, reviews] = await Promise.all([
@@ -799,54 +725,48 @@ app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== STANDALONE UPLOAD =====
 app.post('/api/upload', adminMiddleware, upload.single('image'), async (req, res) => {
   try {
-    if (!req.file) return res.json({ success: false, message: 'কোনো ছবি নেই' });
+    if (!req.file) return res.json({ success: false, message: 'No image' });
     const result = await uploadToCloudinary(req.file.buffer);
     res.json({ success: true, url: result.secure_url, public_id: result.public_id });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== MANUAL SETUP ADMIN (fallback) =====
 app.post('/api/setup-admin', async (req, res) => {
   try {
     const count = await User.countDocuments({ role: 'admin' });
-    if (count > 0) return res.json({ success: false, message: 'Admin ইতিমধ্যে আছে' });
+    if (count > 0) return res.json({ success: false, message: 'Admin already exists' });
     const { name, phone, password } = req.body;
-    if (!name || !phone || !password) return res.json({ success: false, message: 'সব তথ্য দিন' });
+    if (!name || !phone || !password) return res.json({ success: false, message: 'All fields required' });
     const hashed = await bcrypt.hash(password, 10);
     const user   = await User.create({ name, phone, password: hashed, role: 'admin' });
-    res.json({ success: true, message: 'Admin তৈরি হয়েছে', user: { name: user.name, phone: user.phone } });
+    res.json({ success: true, message: 'Admin created', user: { name: user.name, phone: user.phone } });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== ENV HEALTH CHECK (admin only) =====
 app.get('/api/admin/health', adminMiddleware, (req, res) => {
   res.json({
     success: true,
     env: {
       PORT:                 process.env.PORT,
-      MONGODB_URI:          process.env.MONGODB_URI ? '✅ সেট আছে' : '❌ নেই',
-      CLOUDINARY_CLOUD:     process.env.CLOUDINARY_CLOUD_NAME ? '✅ সেট আছে' : '❌ নেই',
-      CLOUDINARY_API_KEY:   process.env.CLOUDINARY_API_KEY ? '✅ সেট আছে' : '❌ নেই',
-      CLOUDINARY_API_SECRET:process.env.CLOUDINARY_API_SECRET ? '✅ সেট আছে' : '❌ নেই',
-      JWT_SECRET:           process.env.JWT_SECRET ? '✅ সেট আছে' : '❌ নেই',
-      ADMIN_USERNAME:       process.env.ADMIN_USERNAME || '❌ নেই',
-      FRONTEND_URL:         process.env.FRONTEND_URL || '❌ নেই',
-      ADMIN_URL:            process.env.ADMIN_URL || '❌ নেই',
+      MONGODB_URI:          process.env.MONGODB_URI ? '✅ set' : '❌ missing',
+      CLOUDINARY_CLOUD:     process.env.CLOUDINARY_CLOUD_NAME ? '✅ set' : '❌ missing',
+      CLOUDINARY_API_KEY:   process.env.CLOUDINARY_API_KEY ? '✅ set' : '❌ missing',
+      CLOUDINARY_API_SECRET:process.env.CLOUDINARY_API_SECRET ? '✅ set' : '❌ missing',
+      JWT_SECRET:           process.env.JWT_SECRET ? '✅ set' : '❌ missing',
+      ADMIN_USERNAME:       process.env.ADMIN_USERNAME || '❌ missing',
+      FRONTEND_URL:         process.env.FRONTEND_URL || '❌ missing',
+      ADMIN_URL:            process.env.ADMIN_URL || '❌ missing',
     }
   });
 });
 
-
-// ===== SEED DEFAULT CATEGORIES (admin only) =====
-// প্রথমবার রান করলে MongoDB-তে default baby categories সেট হবে
 app.post('/api/admin/seed-categories', adminMiddleware, async (req, res) => {
   try {
     const existing = await Settings.findOne({ key: 'categories' });
     if (existing && Array.isArray(existing.value) && existing.value.length) {
-      return res.json({ success: false, message: 'Categories ইতিমধ্যে সেট আছে। Reset করতে force=true পাঠান।' });
+      return res.json({ success: false, message: 'Categories already exist. Send force=true to reset.' });
     }
     const defaultCategories = [
       { value: 'baby_dress', label: '🧸 Baby Dress', subcategories: [
@@ -891,31 +811,24 @@ app.post('/api/admin/seed-categories', adminMiddleware, async (req, res) => {
       { key: 'categories', value: defaultCategories },
       { upsert: true }
     );
-    res.json({ success: true, message: 'Default baby categories সেট হয়েছে!', data: defaultCategories });
+    res.json({ success: true, message: 'Default baby categories seeded!', data: defaultCategories });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== PRODUCT PAGE LAYOUT SETTINGS =====
-
-// GET — পণ্য পেজের লেআউট সেটিংস (Public — Frontend এর জন্য)
 app.get('/api/product-layout', async (req, res) => {
   try {
     const setting = await Settings.findOne({ key: 'productLayout' });
     const defaultLayout = {
-      // বাটন দৃশ্যমানতা
       showAddToCart:   true,
       showBuyNow:      true,
       showWhatsApp:    true,
       showCallOrder:   true,
-      // বাটনের টেক্সট
       addToCartText:   'ADD TO CART',
       buyNowText:      'BUY NOW',
       whatsappText:    'Order On WhatsApp',
       callOrderText:   'Call For Order',
-      // WhatsApp ও Call নম্বর
       whatsappNumber:  '',
       callNumber:      '',
-      // তিন কলাম লেআউট সেকশন দৃশ্যমানতা
       showPriceSection:       true,
       showSavingBadge:        true,
       showQuantitySelector:   true,
@@ -931,11 +844,8 @@ app.get('/api/product-layout', async (req, res) => {
       showCareInstructions:   true,
       showStockStatus:        true,
       showMoreProducts:       true,
-      // ডান কলাম "More Products" শিরোনাম
       moreProductsTitle:      'More Products',
-      // ব্র্যান্ড লেবেল টেক্সট
       brandLabel:             'Family Fashion Hub',
-      // Customer Reviews ট্যাব দেখাবে কিনা
       showReviewsTab:         true,
     };
     const layout = (setting && setting.value) ? { ...defaultLayout, ...setting.value } : defaultLayout;
@@ -943,7 +853,6 @@ app.get('/api/product-layout', async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// POST — পণ্য পেজের লেআউট সেটিংস আপডেট (Admin only)
 app.post('/api/admin/product-layout', adminMiddleware, async (req, res) => {
   try {
     const layout = req.body;
@@ -952,19 +861,16 @@ app.post('/api/admin/product-layout', adminMiddleware, async (req, res) => {
       { key: 'productLayout', value: layout },
       { upsert: true }
     );
-    res.json({ success: true, message: 'পণ্য পেজ লেআউট সেভ হয়েছে', data: layout });
+    res.json({ success: true, message: 'Product layout saved', data: layout });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== ROOT =====
-app.get('/', (req, res) => res.json({
-  success: true,
-  message: '👗 Family Fashion Hub API চলছে',
-  version: '2.0.0',
-  frontend: process.env.FRONTEND_URL,
-  admin: process.env.ADMIN_URL,
-}));
+app.use(express.static(path.join(__dirname, 'frontend')));
+app.use('/admin', express.static(path.join(__dirname, 'admin_panel')));
 
-// ===== START =====
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'index.html')));
+
+app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin_panel', 'index.html')));
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
