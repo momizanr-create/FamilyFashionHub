@@ -1,4 +1,3 @@
-<!-- frontend/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -447,19 +446,13 @@
     .dash-form-group .eye-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9ca3af; }
     .dash-submit-btn { width: 100%; background: #1f2937; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
     .dash-submit-btn:hover { background: #374151; }
-    .dash-banner { height: 90px; background: linear-gradient(120deg,#60a5fa 0%,#818cf8 40%,#c084fc 70%,#e879f9 100%); border-radius: 10px 10px 0 0; margin: 0; }
     @media (max-width: 640px) {
       .dash-wrap { flex-direction: column; padding: 12px 8px; }
       .dash-sidebar { width: 100%; min-width: unset; border-radius: 8px; margin-bottom: 12px; }
       .dash-content { margin-left: 0; }
       .dash-stats-grid { grid-template-columns: repeat(2,1fr); }
     }
-    @media (max-width: 767px) {
-      #allCatGrid { grid-template-columns: repeat(2, 1fr) !important; }
-    }
-    @media (min-width: 768px) {
-      #allCatGrid { grid-template-columns: repeat(4, 1fr) !important; }
-    }
+    .dash-banner { height: 90px; background: linear-gradient(120deg,#60a5fa 0%,#818cf8 40%,#c084fc 70%,#e879f9 100%); border-radius: 10px 10px 0 0; margin: -0px; }
     @media (max-width: 768px) {
       .review-slide { min-width: 100% !important; }
     }
@@ -1741,33 +1734,7 @@
 
   <script>
     (function() {
-      const products = [
-        { id:1, name:'নরম Baby Shoes - নীল রঙ', price:450, oldPrice:600, img:'https://images.unsplash.com/photo-1519457073994-14ae0a084e7f?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1519457073994-14ae0a084e7f?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1494341990857-2b10bb626166?w=300&h=300&fit=crop&auto=format&q=80'], saving:150, description:'আরামদায়ক এবং নরম Baby Shoes। শিশুর পায়ের জন্য নিরাপদ উপকরণ দিয়ে তৈরি। সহজে পরা যায় এবং খুলে যায় না।', category:'baby-shoes', onSale:true, soldOut:false },
-        { id:2, name:'বেবি স্পোর্টস শু - লাল', price:520, oldPrice:700, img:'https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1525966222134-fcb0b60dbf60?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1519457073994-14ae0a084e7f?w=300&h=300&fit=crop&auto=format&q=80'], saving:180, description:'খেলাধুলার জন্য বিশেষভাবে ডিজাইন করা বেবি শু। হালকা ওজনের এবং ট্রেন্ডি ডিজাইন।', category:'baby-shoes', onSale:true, soldOut:false },
-        { id:3, name:'বেবি ওয়াকিং শু - গোলাপী', price:380, oldPrice:500, img:'https://images.unsplash.com/photo-1494341990857-2b10bb626166?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1494341990857-2b10bb626166?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1519457073994-14ae0a084e7f?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=300&h=300&fit=crop&auto=format&q=80'], saving:120, description:'শিশুর প্রথম ধাপের জন্য পারফেক্ট শু। নরম সোল এবং উচ্চমানের ম্যাটেরিয়াল।', category:'baby-shoes', onSale:false, soldOut:false },
-        { id:4, name:'বেবি ক্লোজড টু সু - সাদা', price:400, oldPrice:550, img:'https://images.unsplash.com/photo-1525966222134-fcb0b60dbf60?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1525966222134-fcb0b60dbf60?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1494341990857-2b10bb626166?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=300&h=300&fit=crop&auto=format&q=80'], saving:150, description:'মসৃণ এবং টেকসই Baby Shoes। ঘরের বাইরে খেলার জন্য আদর্শ।', category:'baby-shoes', onSale:false, soldOut:true },
-        { id:5, name:'রেইনবো ডেনসিটি চেইন', price:350, oldPrice:500, img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1577720643272-265f434885cb?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1585314662646-f8c7d9e5f5b5?w=300&h=300&fit=crop&auto=format&q=80'], saving:150, description:'রঙিন এবং মজাদার Baby Toys। শিশুর দক্ষতা বৃদ্ধিতে সহায়ক।', category:'baby-toys', onSale:true, soldOut:false },
-        { id:6, name:'সফট বেবি রেটল', price:280, oldPrice:400, img:'https://images.unsplash.com/photo-1577720643272-265f434885cb?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1577720643272-265f434885cb?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1585314662646-f8c7d9e5f5b5?w=300&h=300&fit=crop&auto=format&q=80'], saving:120, description:'মসৃণ এবং নিরাপদ বেবি রেটল। শব্দ এবং অনুভূতি সৃষ্টি করে।', category:'baby-toys', onSale:true, soldOut:false },
-        { id:7, name:'টিথিং রিং Toys', price:250, oldPrice:350, img:'https://images.unsplash.com/photo-1585314662646-f8c7d9e5f5b5?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1585314662646-f8c7d9e5f5b5?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1577720643272-265f434885cb?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format&q=80'], saving:100, description:'দাঁত উঠার সময়ের জন্য বিশেষ Toys। নিরাপদ এবং রাসায়নিকমুক্ত।', category:'baby-toys', onSale:false, soldOut:false },
-        { id:8, name:'মাল্টি কালার বিলড ব্লক', price:420, oldPrice:600, img:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1585314662646-f8c7d9e5f5b5?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1577720643272-265f434885cb?w=300&h=300&fit=crop&auto=format&q=80'], saving:180, description:'শিশুর সৃজনশীলতা বৃদ্ধির জন্য ব্লক সেট। বিভিন্ন আকার এবং রঙের ব্লক।', category:'baby-toys', onSale:false, soldOut:true },
-        { id:9, name:'ন্যাচারাল লিপস্টিক - রেড', price:380, oldPrice:500, img:'https://images.unsplash.com/photo-1506925925274-1a9fa7a7bcfd?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1506925925274-1a9fa7a7bcfd?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1604654894610-df63bc536371?w=300&h=300&fit=crop&auto=format&q=80'], saving:120, description:'প্রাকৃতিক উপাদান দিয়ে তৈরি লিপস্টিক। দীর্ঘস্থায়ী এবং সুন্দর রঙ।', category:'women-cosmetics', onSale:true, soldOut:false },
-        { id:10, name:'বিউটি ফেসপ্যাক সেট', price:650, oldPrice:850, img:'https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1596050112169-971882deef3d?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1506925925274-1a9fa7a7bcfd?w=300&h=300&fit=crop&auto=format&q=80'], saving:200, description:'সম্পূর্ণ ত্বকের যত্ন কসমেটিক সেট। সব ধরনের ত্বকের জন্য উপযুক্ত।', category:'women-cosmetics', onSale:true, soldOut:false },
-        { id:11, name:'এয়ে শ্যাডো প্যালেট', price:520, oldPrice:700, img:'https://images.unsplash.com/photo-1596050112169-971882deef3d?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1596050112169-971882deef3d?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1604654894610-df63bc536371?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1556228578-8c89e6adf883?w=300&h=300&fit=crop&auto=format&q=80'], saving:180, description:'সুন্দর রঙের কালেকশন। পেশাদার ফলাফলের জন্য।', category:'women-cosmetics', onSale:false, soldOut:false },
-        { id:12, name:'নেইল পলিশ কালেকশন - ৫ রঙ', price:450, oldPrice:600, img:'https://images.unsplash.com/photo-1604654894610-df63bc536371?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1604654894610-df63bc536371?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1506925925274-1a9fa7a7bcfd?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1596050112169-971882deef3d?w=300&h=300&fit=crop&auto=format&q=80'], saving:150, description:'বৈচিত্র্যময় রঙের নেইল পলিশ সেট। দীর্ঘস্থায়ী ফলাফল।', category:'women-cosmetics', onSale:false, soldOut:true },
-        { id:13, name:'গোল্ড প্লেটেড ব্রেসলেট', price:850, oldPrice:1200, img:'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=300&h=300&fit=crop&auto=format&q=80'], saving:350, description:'মার্জিত গোল্ড প্লেটেড ব্রেসলেট। বিশেষ অনুষ্ঠানের জন্য আদর্শ।', category:'gold-plate', onSale:true, soldOut:false },
-        { id:14, name:'গোল্ড প্লেটেড নেকলেস', price:1200, oldPrice:1600, img:'https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=300&h=300&fit=crop&auto=format&q=80'], saving:400, description:'শানদার গোল্ড প্লেটেড নেকলেস। ঐতিহ্যবাহী ডিজাইন।', category:'gold-plate', onSale:true, soldOut:false },
-        { id:15, name:'গোল্ড প্লেটেড রিং সেট', price:680, oldPrice:900, img:'https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=300&h=300&fit=crop&auto=format&q=80'], saving:220, description:'সুন্দর রিং সেট। বিভিন্ন ডিজাইন অন্তর্ভুক্ত।', category:'gold-plate', onSale:false, soldOut:false },
-        { id:16, name:'গোল্ড প্লেটেড ইয়ারিংস', price:520, oldPrice:700, img:'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1611591437281-460bfbe1220a?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1535632066927-ab7c9ab60908?w=300&h=300&fit=crop&auto=format&q=80'], saving:180, description:'মার্জিত ইয়ারিংস সেট। সব আকার উপলব্ধ।', category:'gold-plate', onSale:false, soldOut:true },
-        { id:17, name:'অর্কিড গাছ (পাত্রসহ)', price:1200, oldPrice:1500, img:'https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80'], saving:300, description:'সুন্দর অর্কিড ফুল গাছ। ঘরকে সাজায় এবং বায়ু বিশুদ্ধ করে।', category:'indoor-plants', onSale:true, soldOut:false },
-        { id:18, name:'স্পাইডার প্ল্যান্ট', price:350, oldPrice:500, img:'https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80'], saving:150, description:'সহজে যত্নযোগ্য ইনডোর গাছ। বায়ু পরিশোধনে দারুণ।', category:'indoor-plants', onSale:true, soldOut:false },
-        { id:19, name:'পটস সহ পটহোস গাছ', price:280, oldPrice:400, img:'https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80'], saving:120, description:'সুন্দর ঝুলন্ত গাছ। পরিবারের সকলের জন্য নিরাপদ।', category:'indoor-plants', onSale:false, soldOut:false },
-        { id:20, name:'মানি প্ল্যান্ট সেট', price:420, oldPrice:600, img:'https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80'], saving:180, description:'সৌভাগ্যের প্রতীক মানি প্ল্যান্ট। সুন্দর পাত্রে।', category:'indoor-plants', onSale:false, soldOut:true },
-        { id:21, name:'সিল্ক রোজ বুকে', price:650, oldPrice:900, img:'https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80'], saving:250, description:'সুন্দর কৃত্রিম ফুলের তোড়া। কখনো ঝরে না।', category:'artificial-flowers', onSale:true, soldOut:false },
-        { id:22, name:'Artificial Flowers ভেস সেট', price:780, oldPrice:1100, img:'https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80'], saving:320, description:'সুন্দর ফুলের ভেস সেট। ঘর সাজানোর জন্য আদর্শ।', category:'artificial-flowers', onSale:true, soldOut:false },
-        { id:23, name:'মিক্স ফ্লাওয়ার অ্যারেঞ্জমেন্ট', price:520, oldPrice:700, img:'https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1585989707200-3df0dff3ca9d?w=300&h=300&fit=crop&auto=format&q=80'], saving:180, description:'বৈচিত্র্যময় কৃত্রিম ফুলের সাজসজ্জা। যেকোনো কক্ষের জন্য।', category:'artificial-flowers', onSale:false, soldOut:false },
-        { id:24, name:'সিল্ক ফ্লাওয়ার গ্যারল্যান্ড', price:450, oldPrice:600, img:'https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80', images:['https://images.unsplash.com/photo-1447579985742-f48e0ef120d5?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1563241528-3cfc2d00c663?w=300&h=300&fit=crop&auto=format&q=80','https://images.unsplash.com/photo-1569528169394-de4eeeffc2aa?w=300&h=300&fit=crop&auto=format&q=80'], saving:150, description:'অনুষ্ঠান সাজানোর জন্য ফুলের মালা। সম্পূর্ণ প্লাস্টিক মুক্ত।', category:'artificial-flowers', onSale:false, soldOut:true }
-      ];
-
+      let products = [];
       let cart = [];
       let currentCategory = 'all';
       let currentProduct = null;
@@ -1899,9 +1866,12 @@
         goToHome();
       });
 
-      mobileSearchIcon.addEventListener('click', () => {
-        mobileSearchBar.classList.toggle('hidden');
-      });
+      const mobileSearchIcon = document.getElementById('mobileSearchIcon');
+      if (mobileSearchIcon) {
+        mobileSearchIcon.addEventListener('click', () => {
+          mobileSearchBar.classList.toggle('hidden');
+        });
+      }
 
       const categoryPage = document.getElementById('categoryPage');
       let catCurrentProducts = [];
@@ -2969,7 +2939,13 @@
       function performSearch() {
         const term = searchInput.value.trim();
         hideSuggestions();
-        renderProductsByCategory(currentCategory, term);
+        if (window._ffhApiProducts && window._ffhApiProducts.length) {
+          const filtered = window._ffhApiProducts.filter(p => p.name.toLowerCase().includes(term.toLowerCase()));
+          renderProductGrid(filtered);
+          if (categoryTitle) categoryTitle.innerText = term ? `🔍 Search: "${term}"` : '🌿 All Products';
+        } else {
+          renderProductsByCategory(currentCategory, term);
+        }
         goToHome();
       }
 
@@ -3021,7 +2997,8 @@
         activeInput = inputEl;
         if (!term || term.length < 1) { hideSuggestions(); return; }
         const lower = term.toLowerCase();
-        const matched = products.filter(p => p.name.toLowerCase().includes(lower));
+        const productSource = (window._ffhApiProducts && window._ffhApiProducts.length) ? window._ffhApiProducts : products;
+        const matched = productSource.filter(p => p.name.toLowerCase().includes(lower));
         suggestBox.innerHTML = '';
         if (matched.length === 0) {
           suggestBox.innerHTML = '<div style="padding:14px 16px;color:#9ca3af;font-size:13px;text-align:center;">No products found</div>';
@@ -3067,7 +3044,13 @@
       mobileSearchBtn.addEventListener('click', () => {
         const term = mobileSearchInput.value.trim();
         hideSuggestions();
-        renderProductsByCategory(currentCategory, term);
+        if (window._ffhApiProducts && window._ffhApiProducts.length) {
+          const filtered = window._ffhApiProducts.filter(p => p.name.toLowerCase().includes(term.toLowerCase()));
+          renderProductGrid(filtered);
+          if (categoryTitle) categoryTitle.innerText = term ? `🔍 Search: "${term}"` : '🌿 All Products';
+        } else {
+          renderProductsByCategory(currentCategory, term);
+        }
         mobileSearchBar.classList.add('hidden');
         goToHome();
       });
@@ -3076,7 +3059,13 @@
         if (e.key === 'Enter') {
           const term = mobileSearchInput.value.trim();
           hideSuggestions();
-          renderProductsByCategory(currentCategory, term);
+          if (window._ffhApiProducts && window._ffhApiProducts.length) {
+            const filtered = window._ffhApiProducts.filter(p => p.name.toLowerCase().includes(term.toLowerCase()));
+            renderProductGrid(filtered);
+            if (categoryTitle) categoryTitle.innerText = term ? `🔍 Search: "${term}"` : '🌿 All Products';
+          } else {
+            renderProductsByCategory(currentCategory, term);
+          }
           mobileSearchBar.classList.add('hidden');
           goToHome();
         }
@@ -3085,7 +3074,12 @@
 
       searchInput.addEventListener('input', function() {
         if (this.value.trim() === '') {
-          renderProductsByCategory(currentCategory, '');
+          if (window._ffhApiProducts && window._ffhApiProducts.length) {
+            renderProductGrid(window._ffhApiProducts);
+            if (categoryTitle) categoryTitle.innerText = '🌿 All Products';
+          } else {
+            renderProductsByCategory(currentCategory, '');
+          }
         }
       });
 
@@ -3124,7 +3118,7 @@
         updateCartUI();
         showCartPopup();
       }
-window.addToCart = addToCart;
+      window.addToCart = addToCart;
       function removeFromCart(productId) {
         cart = cart.filter(item => item.id !== productId);
         updateCartUI();
@@ -3239,7 +3233,8 @@ window.addToCart = addToCart;
         if (cart.length === 0) return;
 
         const firstCartItem = cart[0];
-        const relatedProducts = products.filter(p => 
+        const productSource = (window._ffhApiProducts && window._ffhApiProducts.length) ? window._ffhApiProducts : products;
+        const relatedProducts = productSource.filter(p => 
           p.category === firstCartItem.category && 
           p.id !== firstCartItem.id
         ).slice(0, 4);
@@ -3271,7 +3266,7 @@ window.addToCart = addToCart;
         document.querySelectorAll('.addRelatedProduct').forEach(btn => {
           btn.addEventListener('click', (e) => {
             const id = parseInt(e.target.dataset.id);
-            const product = products.find(p => p.id === id);
+            const product = productSource.find(p => p.id === id);
             if (product) addToCart(product, 1);
           });
         });
@@ -3385,7 +3380,6 @@ window.addToCart = addToCart;
           const phoneVal = document.getElementById('orderPhone')?.value?.trim() || '';
           const addressVal = document.getElementById('orderAddress')?.value?.trim() || '';
           const deliveryAreaRaw = document.querySelector('input[name="deliveryArea"]:checked')?.value || 'dhaka';
-          // server-এর enum: 'inside' = ঢাকার ভেতর, 'outside' = বাইরে
           const deliveryArea = deliveryAreaRaw === 'outside' ? 'outside' : 'inside';
           const subtotal = cart.reduce((s,i) => s + i.price * (i.qty || i.quantity || 1), 0);
           const deliveryCharge = deliveryAreaRaw === 'outside' ? 130 : 80;
@@ -3435,7 +3429,6 @@ window.addToCart = addToCart;
               if (sbox) { sbox.style.transform = 'scale(0.85)'; setTimeout(() => { sbox.style.transform = 'scale(1)'; sbox.style.transition = 'transform 0.3s ease'; }, 10); }
               cart = [];
               updateCartUI();
-              // form reset করো
               paymentForm.reset();
             } else {
               showErrorPopup(data.message || 'অজানা সার্ভার ত্রুটি। আবার চেষ্টা করুন।');
@@ -3444,7 +3437,6 @@ window.addToCart = addToCart;
             console.error('Order error:', err);
             showErrorPopup('সার্ভারের সাথে সংযোগ হচ্ছে না। ইন্টারনেট চেক করে আবার চেষ্টা করুন।');
           } finally {
-            // সবসময় button re-enable হবে — error হলেও
             if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Confirm Order'; }
           }
         });
@@ -3492,9 +3484,13 @@ window.addToCart = addToCart;
         currentSlide(autoSlideIndex);
       }, 4000);
 
-      renderProductsByCategory('all', '');
-      updateCartUI();
-      setupEventListeners();
+      function init() {
+        const dummy = [];
+        renderProductsByCategory('all', '');
+        updateCartUI();
+        setupEventListeners();
+      }
+      init();
     })();
   </script>
   <script>
@@ -3886,10 +3882,8 @@ function _ffhRenderHomeGrid(productList, gridEl) {
     });
     card.addEventListener('click', function(e) {
       if (e.target.closest('.quick-add-btn')) return;
-      if (typeof showProductDetailPage === 'function') {
-        window._ffhCurrentDetailProduct = p;
-        _ffhShowApiDetail(p);
-      }
+      window._ffhCurrentDetailProduct = p;
+      _ffhShowApiDetail(p);
     });
     gridEl.appendChild(card);
   });
