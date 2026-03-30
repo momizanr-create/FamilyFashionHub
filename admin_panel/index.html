@@ -452,6 +452,22 @@ tr:hover td { background: var(--bg); }
               <button class="btn btn-info btn-block" onclick="seedDefaultCategories()">
                 <i class="fas fa-database"></i> Default Categories লোড
               </button>
+              <button class="btn btn-warning btn-block" onclick="seedDefaultCategoriesForce()" style="margin-top:8px;">
+                <i class="fas fa-redo"></i> Force Reset (সব মুছে নতুন করুন)
+              </button>
+            </div>
+          </div>
+
+          <!-- Frontend Navbar Preview -->
+          <div class="card" style="margin-top:16px;">
+            <div class="card-header"><h3><i class="fas fa-eye" style="color:var(--success)"></i> Frontend Navbar প্রিভিউ</h3></div>
+            <div class="card-body" style="padding:12px;">
+              <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">Admin-এ save করা categories ফ্রন্টএন্ডে ঠিক এভাবে দেখাবে:</p>
+              <div id="navPreviewBox" style="background:#111827;border-radius:8px;padding:10px 14px;overflow-x:auto;">
+                <div id="navPreviewItems" style="display:flex;gap:14px;align-items:center;flex-wrap:nowrap;min-width:max-content;">
+                  <span style="color:rgba(255,255,255,0.3);font-size:12px;">লোড হচ্ছে...</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1376,6 +1392,7 @@ async function loadCategoriesPage() {
   } catch {}
   refreshCategoryDropdowns();
   renderCategoryPage(); renderCatStats();
+  renderNavPreview(); // ← ফ্রন্টএন্ড preview আপডেট
 }
 
 function renderCatStats() {
@@ -1448,7 +1465,7 @@ async function addCategoryAPI() {
     allCategories = data.data; saveCategoriesToLocal();
     document.getElementById('newCatValue').value = '';
     document.getElementById('newCatLabel').value = '';
-    toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCatStats(); renderCategoryManager();
+    toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCatStats(); renderCategoryManager(); renderNavPreview();
   } else toast(data.message || 'সমস্যা', 'error');
 }
 
@@ -1456,7 +1473,7 @@ function editCategoryLabel(val, cur) {
   const nl = window.prompt('নতুন লেবেল:', cur);
   if (!nl || nl.trim() === cur) return;
   api('/admin/categories/' + val, 'PUT', { label: nl.trim() }).then(data => {
-    if (data.success) { allCategories = data.data; saveCategoriesToLocal(); toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCatStats(); renderCategoryManager(); }
+    if (data.success) { allCategories = data.data; saveCategoriesToLocal(); toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCatStats(); renderCategoryManager(); renderNavPreview(); }
     else toast(data.message || 'সমস্যা', 'error');
   });
 }
@@ -1464,7 +1481,7 @@ function editCategoryLabel(val, cur) {
 function deleteCategoryAPI(val, label) {
   confirm(`"${label}" ক্যাটাগরি ও সব সাব-ক্যাটাগরি মুছে ফেলবেন?`, async () => {
     const data = await api('/admin/categories/' + val, 'DELETE');
-    if (data.success) { allCategories = data.data; saveCategoriesToLocal(); toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCatStats(); renderCategoryManager(); }
+    if (data.success) { allCategories = data.data; saveCategoriesToLocal(); toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCatStats(); renderCategoryManager(); renderNavPreview(); }
     else toast(data.message || 'সমস্যা', 'error');
   });
 }
@@ -1478,7 +1495,7 @@ async function addSubAPI(catVal) {
     allCategories = data.data; saveCategoriesToLocal();
     document.getElementById('subVal_' + catVal).value = '';
     document.getElementById('subLbl_' + catVal).value = '';
-    toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCategoryManager();
+    toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCategoryManager(); renderNavPreview();
   } else toast(data.message || 'সমস্যা', 'error');
 }
 
@@ -1486,7 +1503,7 @@ function editSubAPI(catVal, subVal, cur) {
   const nl = window.prompt('নতুন লেবেল:', cur);
   if (!nl || nl.trim() === cur) return;
   api('/admin/categories/' + catVal + '/subcategories/' + subVal, 'PUT', { label: nl.trim() }).then(data => {
-    if (data.success) { allCategories = data.data; saveCategoriesToLocal(); toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCategoryManager(); }
+    if (data.success) { allCategories = data.data; saveCategoriesToLocal(); toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCategoryManager(); renderNavPreview(); }
     else toast(data.message || 'সমস্যা', 'error');
   });
 }
@@ -1494,7 +1511,7 @@ function editSubAPI(catVal, subVal, cur) {
 function deleteSubAPI(catVal, subVal, label) {
   confirm(`"${label}" সাব-ক্যাটাগরি মুছে ফেলবেন?`, async () => {
     const data = await api('/admin/categories/' + catVal + '/subcategories/' + subVal, 'DELETE');
-    if (data.success) { allCategories = data.data; saveCategoriesToLocal(); toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCategoryManager(); }
+    if (data.success) { allCategories = data.data; saveCategoriesToLocal(); toast(data.message); refreshCategoryDropdowns(); renderCategoryPage(); renderCategoryManager(); renderNavPreview(); }
     else toast(data.message || 'সমস্যা', 'error');
   });
 }
@@ -1672,6 +1689,98 @@ async function seedDefaultCategories() {
   }
   await loadCategoriesFromServer();
   renderCategoryPage(); renderCatStats(); renderCategoryManager();
+  renderNavPreview();
+}
+
+// ===== FORCE RESET DEFAULT CATEGORIES =====
+async function seedDefaultCategoriesForce() {
+  if (!confirm('সব বিদ্যমান categories মুছে default Baby categories দিয়ে নতুন করবেন?')) return;
+  // bulk replace with default
+  const defaultCategories = [
+    { value:'baby_dress',   label:'Baby Dress', subcategories:[
+      {value:'newborn_set',    label:'Newborn Set (0-6 Months)'},
+      {value:'cotton_dress',   label:'Cotton Dress (Summer Comfort)'},
+      {value:'winter_dress',   label:'Winter Dress'},
+      {value:'frocks_tshirts', label:'Frocks, T-Shirts & Pants'},
+    ]},
+    { value:'toys', label:'Toys', subcategories:[
+      {value:'soft_toys',        label:'Soft Toys (Dolls)'},
+      {value:'sound_toys',       label:'সাউন্ড টয় (Musical Toys)'},
+      {value:'educational_toys', label:'Educational Toys (ABC/Numbers)'},
+      {value:'baby_rattle',      label:'Baby Rattle'},
+    ]},
+    { value:'feeding', label:'Feeding Items', subcategories:[
+      {value:'feeding_bottle', label:'Feeding Bottle'},
+      {value:'feeding_bowl',   label:'Baby Feeding Bowl + Spoon'},
+      {value:'sipper_cup',     label:'Sipper Cup'},
+      {value:'feeding_chair',  label:'Baby Feeding Chair'},
+    ]},
+    { value:'baby_care', label:'Baby Care', subcategories:[
+      {value:'soap_shampoo', label:'Baby Soap & Shampoo'},
+      {value:'lotion_oil',   label:'Baby Lotion / Oil'},
+      {value:'wet_tissue',   label:'Wet Tissue'},
+      {value:'diaper',       label:'Diaper'},
+    ]},
+    { value:'baby_bedding', label:'Essentials', subcategories:[
+      {value:'mosquito_net', label:'Baby Mosquito Net'},
+      {value:'baby_bed',     label:'Baby Bed / Nest'},
+      {value:'blanket',      label:'Baby Blanket'},
+      {value:'towel',        label:'Baby Towel'},
+    ]},
+    { value:'trending', label:'Trending', subcategories:[
+      {value:'baby_carrier',  label:'Baby Carrier'},
+      {value:'baby_walker',   label:'Baby Walker'},
+      {value:'nail_cutter',   label:'Baby Nail Cutter Set'},
+      {value:'thermometer',   label:'Baby Thermometer'},
+    ]},
+  ];
+  const data = await api('/admin/categories/bulk', 'POST', { categories: defaultCategories });
+  if (data.success) {
+    allCategories = data.data; saveCategoriesToLocal();
+    toast('Categories রিসেট হয়েছে!');
+    renderCategoryPage(); renderCatStats(); renderCategoryManager();
+    renderNavPreview();
+  } else {
+    toast(data.message || 'সমস্যা হয়েছে', 'error');
+  }
+}
+
+// ===== FRONTEND NAVBAR PREVIEW =====
+// Admin-এ save করা categories ফ্রন্টএন্ডের মতো preview দেখাবে
+function renderNavPreview() {
+  const el = document.getElementById('navPreviewItems');
+  if (!el) return;
+  const cats = allCategories || [];
+  if (!cats.length) {
+    el.innerHTML = '<span style="color:rgba(255,255,255,0.3);font-size:12px;">কোনো ক্যাটাগরি নেই</span>';
+    return;
+  }
+  el.innerHTML = cats.map(cat => `
+    <div style="position:relative;" class="nav-prev-group">
+      <button style="background:none;border:none;color:white;font-size:12px;font-weight:500;display:flex;align-items:center;gap:4px;padding:5px 0;cursor:pointer;white-space:nowrap;font-family:'Hind Siliguri','Poppins',sans-serif;" onmouseover="this.style.color='#fb923c'" onmouseout="this.style.color='white'">
+        ${cat.label} <i class="fas fa-chevron-down" style="font-size:9px;"></i>
+      </button>
+      <div class="nav-prev-dd" style="display:none;position:absolute;top:100%;left:0;min-width:200px;background:white;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,0.15);z-index:999;overflow:hidden;">
+        ${(cat.subcategories||[]).length > 0
+          ? (cat.subcategories||[]).map(s => `<div style="padding:9px 14px;font-size:12px;color:#374151;border-bottom:1px solid #f3f4f6;font-family:'Hind Siliguri','Poppins',sans-serif;">${s.label}</div>`).join('')
+          : '<div style="padding:9px 14px;font-size:11px;color:#9ca3af;">কোনো সাব-ক্যাটাগরি নেই</div>'
+        }
+      </div>
+    </div>`).join('');
+
+  // Hover show/hide for preview dropdowns
+  el.querySelectorAll('.nav-prev-group').forEach(g => {
+    const dd = g.querySelector('.nav-prev-dd');
+    g.addEventListener('mouseenter', () => { if(dd) dd.style.display='block'; });
+    g.addEventListener('mouseleave', () => { if(dd) dd.style.display='none'; });
+  });
+}
+
+// ===== HOOK: renderNavPreview after category changes =====
+// Category load হলে preview আপডেট করো
+const _origLoadCatPage = window.loadCategoriesPage;
+if (typeof loadCategoriesPage === 'function') {
+  window._ffhNavPreviewHooked = true;
 }
 
 // Close modals on overlay click

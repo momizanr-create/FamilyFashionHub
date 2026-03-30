@@ -697,6 +697,16 @@ app.post('/api/admin/categories/bulk', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
+// ===== PUBLIC CATEGORIES API (Frontend-এর জন্য — Auth ছাড়া) =====
+// ফ্রন্টএন্ড Navigation Bar এই route থেকে categories লোড করবে
+app.get('/api/categories', async (req, res) => {
+  try {
+    const setting = await Settings.findOne({ key: 'categories' });
+    const categories = (setting && Array.isArray(setting.value)) ? setting.value : [];
+    res.json({ success: true, data: categories });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
 // ===== SETTINGS ROUTES =====
 
 app.get('/api/settings', async (req, res) => {

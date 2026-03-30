@@ -1149,97 +1149,26 @@
         </div>
       </div>
 
-      <!-- Bottom Section: Categories Menu with Dropdowns -->
+      <!-- Bottom Section: Categories Menu with Dropdowns — Dynamic (Admin API Connected) -->
       <div id="bottomNavBar" class="bg-gray-900 text-white hidden md:block" style="width:100vw;margin-left:calc(-50vw + 50%);position:sticky;top:0;z-index:35;overflow:visible;">
-        <div class="mx-auto px-6 flex gap-5 py-3 text-sm" style="max-width:1200px;flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;padding-right:3rem;">
-          
-          <!-- Baby Dress with Dropdown -->
-          <div class="group relative">
-            <button class="hover:text-orange-400 transition py-2 flex items-center gap-1 whitespace-nowrap">
-              Baby Dress
-              <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div class="">
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Newborn Set (0-6 Months)</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Cotton Dress (Summer Comfort)</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Winter Dress</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Frocks, T-Shirts &amp; Pants</a>
-            </div>
-          </div>
-          
-          <!-- Toys with Dropdown -->
-          <div class="group relative">
-            <button class="hover:text-orange-400 transition py-2 flex items-center gap-1 whitespace-nowrap">
-              Toys
-              <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div class="">
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Soft Toys (Dolls)</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">সাউন্ড টয় (মিউজিক্যাল Toys)</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Educational Toys (ABC/Numbers)</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Rattle</a>
-            </div>
-          </div>
-          
-          <!-- Feeding Items with Dropdown -->
-          <div class="group relative">
-            <button class="hover:text-orange-400 transition py-2 flex items-center gap-1 whitespace-nowrap">
-              Feeding Items
-              <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div class="">
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Feeding Bottle</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Feeding Bowl + Spoon</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Sipper Cup</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Feeding Chair</a>
-            </div>
-          </div>
-          
-          <!-- Baby Care with Dropdown -->
-          <div class="group relative">
-            <button class="hover:text-orange-400 transition py-2 flex items-center gap-1 whitespace-nowrap">
-              Baby Care
-              <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div class="">
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Soap &amp; Shampoo</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Lotion / Oil</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Wet Tissue</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Diaper</a>
-            </div>
-          </div>
-          
-          <!-- বেবি Essentials with Dropdown -->
-          <div class="group relative">
-            <button class="hover:text-orange-400 transition py-2 flex items-center gap-1 whitespace-nowrap">
-              Essentials
-              <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div class="">
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Mosquito Net</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Bed / Nest</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Blanket</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Towel</a>
-            </div>
-          </div>
-          
-          <!-- Trending প্রোডাক্ট with Dropdown -->
-          <div class="group relative">
-            <button class="hover:text-orange-400 transition py-2 flex items-center gap-1 whitespace-nowrap">
-              Trending
-              <i class="fas fa-chevron-down text-xs"></i>
-            </button>
-            <div class="">
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Carrier</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Walker</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Nail Cutter Set</a>
-              <a href="#" class="block px-4 py-2 hover:bg-gray-100">Baby Thermometer</a>
-            </div>
+        <div class="mx-auto px-6 flex gap-5 py-3 text-sm" id="bottomNavInner" style="max-width:1200px;flex-wrap:nowrap;overflow-x:auto;overflow-y:visible;padding-right:3rem;">
+
+          <!-- Loading skeleton — API লোড হওয়া পর্যন্ত দেখাবে -->
+          <div id="navSkeletonBar" style="display:flex;gap:24px;align-items:center;flex:1;">
+            <div style="height:13px;width:80px;background:rgba(255,255,255,0.13);border-radius:4px;animation:ffhNavPulse 1.2s infinite;"></div>
+            <div style="height:13px;width:55px;background:rgba(255,255,255,0.13);border-radius:4px;animation:ffhNavPulse 1.2s infinite 0.15s;"></div>
+            <div style="height:13px;width:95px;background:rgba(255,255,255,0.13);border-radius:4px;animation:ffhNavPulse 1.2s infinite 0.3s;"></div>
+            <div style="height:13px;width:70px;background:rgba(255,255,255,0.13);border-radius:4px;animation:ffhNavPulse 1.2s infinite 0.45s;"></div>
+            <div style="height:13px;width:65px;background:rgba(255,255,255,0.13);border-radius:4px;animation:ffhNavPulse 1.2s infinite 0.6s;"></div>
+            <div style="height:13px;width:78px;background:rgba(255,255,255,0.13);border-radius:4px;animation:ffhNavPulse 1.2s infinite 0.75s;"></div>
           </div>
 
-          <!-- CTA Phone Button (Desktop) — ডান দিকে push করতে ml-auto -->
-          <div class="ml-auto flex-shrink-0">
-            <a href="tel:+8801316380515"
+          <!-- Dynamic categories এখানে inject হবে — id="navCatItems" -->
+          <div id="navCatItems" style="display:contents;"></div>
+
+          <!-- CTA Phone Button — সবসময় ডানে থাকবে -->
+          <div class="ml-auto flex-shrink-0" id="navPhoneWrap" style="display:none;">
+            <a id="navPhoneLink" href="tel:+8801316380515"
                style="display:inline-flex;align-items:center;gap:8px;
                       background:linear-gradient(135deg,#f97316 0%,#ea580c 100%);
                       color:white;font-weight:700;font-size:13px;
@@ -1250,12 +1179,17 @@
                onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 4px 14px rgba(249,115,22,0.45)';"
                onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 2px 8px rgba(249,115,22,0.35)';">
               <i class="fas fa-phone-alt" style="font-size:12px;"></i>
-              +880 1316-380515
+              <span id="navPhoneText">+880 1316-380515</span>
             </a>
           </div>
-          
+
         </div>
       </div>
+      <style>
+        @keyframes ffhNavPulse {
+          0%,100%{opacity:.35} 50%{opacity:.85}
+        }
+      </style>
     </nav>
 
     <!-- ======= মোবাইল সাইডবার মেনু (হ্যামবার্গার) ======= -->
@@ -1321,118 +1255,28 @@
 
       </div>
 
-      <!-- Category Accordion List -->
+      <!-- Category Accordion List — Dynamic (Admin API থেকে লোড হবে) -->
       <div id="mobAccordionList">
-
-        <!-- ===== Baby Dress ===== -->
-        <div class="mob-acc-item">
-          <button class="mob-acc-btn" onclick="mobAccToggle('mob-acc-baby-dress', this)">
-            <div class="btn-left">
-              <span class="cat-label">Baby Dress</span>
-            </div>
-            <div class="btn-right">
-              <span class="mob-acc-toggle" id="mob-acc-baby-dress-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="plus-icon"><path d="M8 2V14M2 8H14" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></span>
-              
-            </div>
-          </button>
-          <div class="mob-acc-sub" id="mob-acc-baby-dress">
-            <a href="#" onclick="closeMobMenuAndFilter('baby-dress')"><span class="sub-dot"></span>Newborn Set (0-6 Months)</a>
-            <a href="#" onclick="closeMobMenuAndFilter('baby-dress')"><span class="sub-dot"></span>Cotton Dress (Summer Comfort)</a>
-            <a href="#" onclick="closeMobMenuAndFilter('baby-dress')"><span class="sub-dot"></span>Winter Dress</a>
-            <a href="#" onclick="closeMobMenuAndFilter('baby-dress')"><span class="sub-dot"></span>Frocks, T-Shirts &amp; Pants</a>
+        <!-- API লোড হওয়ার আগে skeleton দেখাবে -->
+        <div id="mobAccSkeleton">
+          <div style="padding:15px 20px;border-bottom:1px solid #e9e9e9;display:flex;align-items:center;justify-content:space-between;" class="mob-acc-skeleton-item">
+            <div style="height:14px;width:100px;background:#f3f4f6;border-radius:4px;animation:ffhNavPulse 1.2s infinite;"></div>
+            <div style="height:18px;width:18px;background:#f3f4f6;border-radius:50%;animation:ffhNavPulse 1.2s infinite;"></div>
+          </div>
+          <div style="padding:15px 20px;border-bottom:1px solid #e9e9e9;display:flex;align-items:center;justify-content:space-between;" class="mob-acc-skeleton-item">
+            <div style="height:14px;width:70px;background:#f3f4f6;border-radius:4px;animation:ffhNavPulse 1.2s infinite 0.1s;"></div>
+            <div style="height:18px;width:18px;background:#f3f4f6;border-radius:50%;animation:ffhNavPulse 1.2s infinite 0.1s;"></div>
+          </div>
+          <div style="padding:15px 20px;border-bottom:1px solid #e9e9e9;display:flex;align-items:center;justify-content:space-between;" class="mob-acc-skeleton-item">
+            <div style="height:14px;width:115px;background:#f3f4f6;border-radius:4px;animation:ffhNavPulse 1.2s infinite 0.2s;"></div>
+            <div style="height:18px;width:18px;background:#f3f4f6;border-radius:50%;animation:ffhNavPulse 1.2s infinite 0.2s;"></div>
+          </div>
+          <div style="padding:15px 20px;border-bottom:1px solid #e9e9e9;display:flex;align-items:center;justify-content:space-between;" class="mob-acc-skeleton-item">
+            <div style="height:14px;width:85px;background:#f3f4f6;border-radius:4px;animation:ffhNavPulse 1.2s infinite 0.3s;"></div>
+            <div style="height:18px;width:18px;background:#f3f4f6;border-radius:50%;animation:ffhNavPulse 1.2s infinite 0.3s;"></div>
           </div>
         </div>
-
-        <!-- ===== Toys ===== -->
-        <div class="mob-acc-item">
-          <button class="mob-acc-btn" onclick="mobAccToggle('mob-acc-toys', this)">
-            <div class="btn-left">
-              <span class="cat-label">Toys</span>
-            </div>
-            <div class="btn-right">
-              <span class="mob-acc-toggle" id="mob-acc-toys-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="plus-icon"><path d="M8 2V14M2 8H14" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></span>
-            </div>
-          </button>
-          <div class="mob-acc-sub" id="mob-acc-toys">
-            <a href="#" onclick="closeMobMenuAndFilter('baby-toys')"><span class="sub-dot"></span>Soft Toys (Dolls)</a>
-            <a href="#" onclick="closeMobMenuAndFilter('baby-toys')"><span class="sub-dot"></span>সাউন্ড টয় (মিউজিক্যাল Toys)</a>
-            <a href="#" onclick="closeMobMenuAndFilter('baby-toys')"><span class="sub-dot"></span>Educational Toys (ABC/Numbers)</a>
-            <a href="#" onclick="closeMobMenuAndFilter('baby-toys')"><span class="sub-dot"></span>Baby Rattle</a>
-          </div>
-        </div>
-
-        <!-- ===== Feeding Items ===== -->
-        <div class="mob-acc-item">
-          <button class="mob-acc-btn" onclick="mobAccToggle('mob-acc-feeding', this)">
-            <div class="btn-left">
-              <span class="cat-label">Feeding Items</span>
-            </div>
-            <div class="btn-right">
-              <span class="mob-acc-toggle" id="mob-acc-feeding-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="plus-icon"><path d="M8 2V14M2 8H14" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></span>
-            </div>
-          </button>
-          <div class="mob-acc-sub" id="mob-acc-feeding">
-            <a href="#" onclick="closeMobMenuAndFilter('feeding-bottles')"><span class="sub-dot"></span>Feeding Bottle</a>
-            <a href="#" onclick="closeMobMenuAndFilter('feeding-bottles')"><span class="sub-dot"></span>Baby Feeding Bowl + Spoon</a>
-            <a href="#" onclick="closeMobMenuAndFilter('feeding-bottles')"><span class="sub-dot"></span>Sipper Cup</a>
-            <a href="#" onclick="closeMobMenuAndFilter('feeding-bottles')"><span class="sub-dot"></span>Baby Feeding Chair</a>
-          </div>
-        </div>
-
-        <!-- ===== Baby Care ===== -->
-        <div class="mob-acc-item">
-          <button class="mob-acc-btn" onclick="mobAccToggle('mob-acc-care', this)">
-            <div class="btn-left">
-              <span class="cat-label">Baby Care</span>
-            </div>
-            <div class="btn-right">
-              <span class="mob-acc-toggle" id="mob-acc-care-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="plus-icon"><path d="M8 2V14M2 8H14" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></span>
-            </div>
-          </button>
-          <div class="mob-acc-sub" id="mob-acc-care">
-            <a href="#" onclick="closeMobMenuAndFilter('daily-care')"><span class="sub-dot"></span>Baby Soap &amp; Shampoo</a>
-            <a href="#" onclick="closeMobMenuAndFilter('daily-care')"><span class="sub-dot"></span>Baby Lotion / Oil</a>
-            <a href="#" onclick="closeMobMenuAndFilter('daily-care')"><span class="sub-dot"></span>Wet Tissue</a>
-            <a href="#" onclick="closeMobMenuAndFilter('daily-care')"><span class="sub-dot"></span>Diaper</a>
-          </div>
-        </div>
-
-        <!-- ===== Essentials ===== -->
-        <div class="mob-acc-item">
-          <button class="mob-acc-btn" onclick="mobAccToggle('mob-acc-essentials', this)">
-            <div class="btn-left">
-              <span class="cat-label">Essentials</span>
-            </div>
-            <div class="btn-right">
-              <span class="mob-acc-toggle" id="mob-acc-essentials-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="plus-icon"><path d="M8 2V14M2 8H14" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></span>
-            </div>
-          </button>
-          <div class="mob-acc-sub" id="mob-acc-essentials">
-            <a href="#" onclick="closeMobMenuAndFilter('baby-essentials')"><span class="sub-dot"></span>Baby Mosquito Net</a>
-            <a href="#" onclick="closeMobMenuAndFilter('baby-essentials')"><span class="sub-dot"></span>Baby Bed / Nest</a>
-            <a href="#" onclick="closeMobMenuAndFilter('baby-essentials')"><span class="sub-dot"></span>Baby Blanket</a>
-            <a href="#" onclick="closeMobMenuAndFilter('baby-essentials')"><span class="sub-dot"></span>Baby Towel</a>
-          </div>
-        </div>
-
-        <!-- ===== Trending ===== -->
-        <div class="mob-acc-item">
-          <button class="mob-acc-btn" onclick="mobAccToggle('mob-acc-trending', this)">
-            <div class="btn-left">
-              <span class="cat-label">Trending</span>
-            </div>
-            <div class="btn-right">
-              <span class="mob-acc-toggle" id="mob-acc-trending-icon"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" class="plus-icon"><path d="M8 2V14M2 8H14" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg></span>
-            </div>
-          </button>
-          <div class="mob-acc-sub" id="mob-acc-trending">
-            <a href="#" onclick="closeMobMenuAndFilter('trending')"><span class="sub-dot"></span>Baby Carrier</a>
-            <a href="#" onclick="closeMobMenuAndFilter('trending')"><span class="sub-dot"></span>Baby Walker</a>
-            <a href="#" onclick="closeMobMenuAndFilter('trending')"><span class="sub-dot"></span>Baby Nail Cutter Set</a>
-            <a href="#" onclick="closeMobMenuAndFilter('trending')"><span class="sub-dot"></span>Baby Thermometer</a>
-          </div>
-        </div>
-
+        <!-- Dynamic items এখানে inject হবে -->
       </div><!-- end accordion -->
 
       <!-- Quick Links -->
@@ -5060,9 +4904,142 @@ async function loadSiteSettings() {
         const el = document.querySelector('.announcement-bar, [data-announcement]');
         if (el) el.textContent = data.data.announcement;
       }
+      // Phone নম্বর update
+      if (data.data.phone) {
+        const phoneText = document.getElementById('navPhoneText');
+        const phoneLink = document.getElementById('navPhoneLink');
+        if (phoneText) phoneText.textContent = '+88' + data.data.phone;
+        if (phoneLink) phoneLink.href = 'tel:+88' + data.data.phone;
+      }
     }
   } catch(e) {}
 }
+
+// ====== LOAD & RENDER NAV CATEGORIES (Desktop + Mobile) ======
+// Admin Panel-এ categories যোগ/মুছলে এখানে auto reflect হবে
+
+var FFH_DEFAULT_CATS = [
+  { value:'baby_dress',  label:'Baby Dress', subcategories:[
+    {value:'newborn_set',label:'Newborn Set (0-6 Months)'},
+    {value:'cotton_dress',label:'Cotton Dress (Summer Comfort)'},
+    {value:'winter_dress',label:'Winter Dress'},
+    {value:'frocks_tshirts',label:'Frocks, T-Shirts & Pants'}
+  ]},
+  { value:'toys', label:'Toys', subcategories:[
+    {value:'soft_toys',label:'Soft Toys (Dolls)'},
+    {value:'sound_toys',label:'সাউন্ড টয় (Musical Toys)'},
+    {value:'educational_toys',label:'Educational Toys (ABC/Numbers)'},
+    {value:'baby_rattle',label:'Baby Rattle'}
+  ]},
+  { value:'feeding', label:'Feeding Items', subcategories:[
+    {value:'feeding_bottle',label:'Feeding Bottle'},
+    {value:'feeding_bowl',label:'Baby Feeding Bowl + Spoon'},
+    {value:'sipper_cup',label:'Sipper Cup'},
+    {value:'feeding_chair',label:'Baby Feeding Chair'}
+  ]},
+  { value:'baby_care', label:'Baby Care', subcategories:[
+    {value:'soap_shampoo',label:'Baby Soap & Shampoo'},
+    {value:'lotion_oil',label:'Baby Lotion / Oil'},
+    {value:'wet_tissue',label:'Wet Tissue'},
+    {value:'diaper',label:'Diaper'}
+  ]},
+  { value:'baby_bedding', label:'Essentials', subcategories:[
+    {value:'mosquito_net',label:'Baby Mosquito Net'},
+    {value:'baby_bed',label:'Baby Bed / Nest'},
+    {value:'blanket',label:'Baby Blanket'},
+    {value:'towel',label:'Baby Towel'}
+  ]},
+  { value:'trending', label:'Trending', subcategories:[
+    {value:'baby_carrier',label:'Baby Carrier'},
+    {value:'baby_walker',label:'Baby Walker'},
+    {value:'nail_cutter',label:'Baby Nail Cutter Set'},
+    {value:'thermometer',label:'Baby Thermometer'}
+  ]}
+];
+
+async function loadNavCategories() {
+  var cats = FFH_DEFAULT_CATS;
+  try {
+    var res  = await fetch(window.FFH_API + '/categories');
+    var json = await res.json();
+    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+      cats = json.data;
+    }
+  } catch(e) { /* fallback to default */ }
+
+  renderDesktopNav(cats);
+  renderMobileAccordion(cats);
+}
+
+// ---- Desktop Navbar Render ----
+function renderDesktopNav(cats) {
+  var skeleton = document.getElementById('navSkeletonBar');
+  var container = document.getElementById('navCatItems');
+  var phoneWrap = document.getElementById('navPhoneWrap');
+  if (skeleton)   skeleton.style.display = 'none';
+  if (phoneWrap)  phoneWrap.style.display = '';
+  if (!container) return;
+
+  container.innerHTML = cats.map(function(cat) {
+    var subs = (cat.subcategories || []);
+    var subHTML = subs.length > 0
+      ? subs.map(function(s) {
+          return '<a href="#" onclick="event.preventDefault();ffhNavFilter(\'' + cat.value + '\',\'' + s.value + '\')"'
+               + ' class="block px-4 py-2 hover:bg-gray-100">' + s.label + '</a>';
+        }).join('')
+      : '<span style="display:block;padding:10px 16px;font-size:12px;color:#9ca3af;">কোনো সাব-ক্যাটাগরি নেই</span>';
+
+    return '<div class="group relative">'
+         +   '<button class="hover:text-orange-400 transition py-2 flex items-center gap-1 whitespace-nowrap"'
+         +   ' onclick="ffhNavFilter(\'' + cat.value + '\',\'\')">'
+         +   cat.label
+         +   ' <i class="fas fa-chevron-down text-xs"></i>'
+         +   '</button>'
+         +   '<div class="">' + subHTML + '</div>'
+         + '</div>';
+  }).join('');
+}
+
+// ---- Mobile Accordion Render ----
+var PLUS_SVG_DYN  = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2V14M2 8H14" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg>';
+var MINUS_SVG_DYN = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8H14" stroke="#374151" stroke-width="2" stroke-linecap="round"/></svg>';
+
+function renderMobileAccordion(cats) {
+  var listEl = document.getElementById('mobAccordionList');
+  if (!listEl) return;
+
+  var html = cats.map(function(cat, idx) {
+    var accId  = 'mob-acc-dyn-' + idx;
+    var iconId = accId + '-icon';
+    var subs   = (cat.subcategories || []);
+    var subLinks = subs.length > 0
+      ? subs.map(function(s) {
+          return '<a href="#" onclick="event.preventDefault();closeMobMenuAndFilter(\'' + cat.value + '\')">'
+               + '<span class="sub-dot"></span>' + s.label + '</a>';
+        }).join('')
+      : '<span style="padding:10px 20px 10px 52px;font-size:12px;color:#9ca3af;display:block;">কোনো সাব-ক্যাটাগরি নেই</span>';
+
+    return '<div class="mob-acc-item">'
+         +   '<button class="mob-acc-btn" onclick="mobAccToggle(\'' + accId + '\',this)">'
+         +     '<div class="btn-left"><span class="cat-label">' + cat.label + '</span></div>'
+         +     '<div class="btn-right">'
+         +       '<span class="mob-acc-toggle" id="' + iconId + '">' + PLUS_SVG_DYN + '</span>'
+         +     '</div>'
+         +   '</button>'
+         +   '<div class="mob-acc-sub" id="' + accId + '">' + subLinks + '</div>'
+         + '</div>';
+  }).join('');
+
+  listEl.innerHTML = html;
+}
+
+// ---- Nav Filter Handler ----
+// Category বা Subcategory ক্লিক করলে এই function call হবে
+window.ffhNavFilter = function(catValue, subValue) {
+  if (typeof filterByCategory === 'function') {
+    filterByCategory(catValue);
+  }
+};
 
 // ====== USER LOGIN API ======
 async function loginUserAPI(phone, password) {
@@ -5139,6 +5116,7 @@ async function loadReviewsFromAPI() {
 document.addEventListener('DOMContentLoaded', () => {
   loadProductsFromAPI();
   loadSiteSettings();
+  loadNavCategories();   // ← Desktop navbar + Mobile accordion দুটোই লোড করবে
 });
 </script>
 </body>
