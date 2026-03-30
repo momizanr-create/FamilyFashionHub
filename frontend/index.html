@@ -2291,19 +2291,15 @@
       };
 
       function renderProductsByCategory(cat, searchTerm = '') {
-        let filtered = products;
-        
-        if (cat !== 'all') {
-          filtered = filtered.filter(p => p.category === cat);
-        }
-        
-        if (searchTerm) {
-          filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-        }
-        
-        renderProductGrid(filtered);
-      }
-
+  let filtered = appProducts;   // API ডেটা ব্যবহার
+  if (cat !== 'all') {
+    filtered = filtered.filter(p => p.category === cat);
+  }
+  if (searchTerm) {
+    filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  }
+  renderProductGrid(filtered);
+}
       function renderProductGrid(filteredProducts) {
         productGrid.innerHTML = '';
         if (filteredProducts.length === 0) {
@@ -2966,39 +2962,13 @@
         });
       });
 
-      async function performSearch() {
-  const term = searchInput.value.trim();
-  hideSuggestions();
-  
-  if (!term) {
-    // সার্চ টার্ম খালি থাকলে সব পণ্য দেখাও (ক্যাশ বা API থেকে)
-    renderProductsByCategory(currentCategory, '');
-    goToHome();
-    return;
-  }
-
-  // API থেকে সরাসরি সার্চ রেজাল্ট আনা
-  try {
-    const url = `${window.FFH_API}/products?search=${encodeURIComponent(term)}&limit=100`;
-    const res = await fetch(url);
-    const data = await res.json();
-    
-    if (data.success && data.data) {
-      // হোম পেজের গ্রিড আপডেট করা
-      const homeGrid = document.getElementById('productGrid');
-      if (homeGrid) {
-        _ffhRenderHomeGrid(data.data, homeGrid);
+      function performSearch() {
+        const term = searchInput.value.trim();
+        hideSuggestions();
+        renderProductsByCategory(currentCategory, term);
+        goToHome();
       }
-      // ক্যাটেগরি পেজ খোলা থাকলে সেটাও আপডেট করতে পারেন (ঐচ্ছিক)
-      goToHome(); // হোম পেজে দেখাবে
-    } else {
-      renderProductsByCategory(currentCategory, term);
-    }
-  } catch (err) {
-    console.error('Search API error:', err);
-    renderProductsByCategory(currentCategory, term);
-  }
-}
+
       const suggestBox = document.createElement('div');
       suggestBox.id = 'searchSuggestions';
       suggestBox.style.cssText = `
@@ -3090,33 +3060,14 @@
         if (e.key === 'Escape') hideSuggestions();
       });
       
-      mobileSearchBtn.addEventListener('click', async () => {
-  const term = mobileSearchInput.value.trim();
-  hideSuggestions();
-  
-  if (!term) {
-    renderProductsByCategory(currentCategory, '');
-    mobileSearchBar.classList.add('hidden');
-    goToHome();
-    return;
-  }
-
-  try {
-    const url = `${window.FFH_API}/products?search=${encodeURIComponent(term)}&limit=100`;
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.success && data.data) {
-      const homeGrid = document.getElementById('productGrid');
-      if (homeGrid) _ffhRenderHomeGrid(data.data, homeGrid);
-      goToHome();
-    } else {
-      renderProductsByCategory(currentCategory, term);
-    }
-  } catch (err) {
-    renderProductsByCategory(currentCategory, term);
-  }
-  mobileSearchBar.classList.add('hidden');
-});
+      mobileSearchBtn.addEventListener('click', () => {
+        const term = mobileSearchInput.value.trim();
+        hideSuggestions();
+        renderProductsByCategory(currentCategory, term);
+        mobileSearchBar.classList.add('hidden');
+        goToHome();
+      });
+      
       mobileSearchInput.addEventListener('keyup', (e) => {
         if (e.key === 'Enter') {
           const term = mobileSearchInput.value.trim();
@@ -4187,22 +4138,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSiteSettings();
   loadNavCategories();
 });
-
-setInterval(async () => {
-  try {
-    const res = await fetch(`${window.FFH_API}/products?limit=200`);
-    const data = await res.json();
-    if (data.success && data.data) {
-      window._ffhApiProducts = data.data;
-      window.apiProducts = data.data;
-      // বর্তমানে হোম পেজ খোলা থাকলে গ্রিড রিফ্রেশ করো
-      if (!document.getElementById('homePage').classList.contains('hidden')) {
-        const homeGrid = document.getElementById('productGrid');
-        if (homeGrid) _ffhRenderHomeGrid(data.data, homeGrid);
-      }
-    }
-  } catch(e) {}
-}, 30000); // ৩০ সেকেন্ড
 </script>
 </body>
 </html>
