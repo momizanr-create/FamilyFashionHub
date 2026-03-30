@@ -516,6 +516,9 @@ app.post('/api/orders', async (req, res) => {
     const note =
       b.note || b.notes || b.message || b.orderNote || b.order_note || '';
 
+    // deliveryArea — 'dhaka'/'inside' = ঢাকার ভেতর, 'outside' = বাইরে
+    const deliveryArea = (b.deliveryArea || b.delivery_area || b.area || 'inside') === 'outside' ? 'outside' : 'inside';
+
     // items — array or JSON string
     let items = b.items || b.cartItems || b.cart || b.products || [];
     if (typeof items === 'string') {
@@ -560,6 +563,7 @@ app.post('/api/orders', async (req, res) => {
       address,
       items: normalizedItems,
       total,
+      deliveryArea,
       note,
       status: 'pending',
     });
