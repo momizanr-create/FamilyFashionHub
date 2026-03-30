@@ -865,12 +865,22 @@ app.post('/api/admin/product-layout', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-app.use(express.static(path.join(__dirname, 'frontend')));
-app.use('/admin', express.static(path.join(__dirname, 'admin_panel')));
+// =====================================================================
+// ✅ FIXED: Static file paths — এখন backend এর parent folder থেকে
+//    frontend ও admin_panel খুঁজবে (Render structure অনুযায়ী)
+// =====================================================================
+app.use(express.static(path.join(__dirname, '..', 'frontend')));
+app.use('/admin', express.static(path.join(__dirname, '..', 'admin_panel')));
 
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'frontend', 'index.html')));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
+});
 
-app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'admin_panel', 'index.html')));
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'admin_panel', 'index.html'));
+});
+
+// =====================================================================
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
