@@ -10,30 +10,23 @@ require('dotenv').config();
 
 const app = express();
 
-// ===== CORS CONFIG =====
-// Frontend ও Admin উভয় URL থেকে request গ্রহণ করবে
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  process.env.ADMIN_URL,
-  'http://localhost:3000',
-  'http://localhost:5173',
-  'http://localhost:5174',
-];
-
+// ====================================================
+// ===== CORS CONFIG — সব origin থেকে সংযোগ allow =====
+// ====================================================
 app.use(cors({
   origin: function (origin, callback) {
-    // Postman বা server-to-server এর জন্য origin নাও থাকতে পারে
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('CORS policy: এই origin অনুমোদিত নয়: ' + origin));
+    return callback(null, true); // সব origin allow
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200,
 }));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.options('*', cors()); // Preflight handle
+
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // ===== CLOUDINARY CONFIG =====
 cloudinary.config({
@@ -42,13 +35,13 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// ===== MULTER — memory storage =====
+// ===== MULTER =====
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // max 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
 });
 
-// ===== CLOUDINARY UPLOAD HELPER =====
+// ===== CLOUDINARY UPLOAD HELPERS =====
 function uploadToCloudinary(buffer, folder) {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
@@ -66,17 +59,14 @@ async function uploadMultiple(files, folder) {
   return Promise.all(files.map(f => uploadToCloudinary(f.buffer, folder)));
 }
 
-// ===== MONGODB CONNECTION =====
+// ===== MONGODB =====
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
     console.log('✅ MongoDB Connected');
-    // Bad unique index on orderId drop করো (যদি থাকে)
     try {
       await mongoose.connection.collection('orders').dropIndex('orderId_1');
       console.log('🔧 Bad orderId index dropped');
-    } catch(e) {
-      // index নেই — no problem
-    }
+    } catch(e) {}
     autoSetupAdmin();
   })
   .catch(err => console.error('❌ MongoDB Error:', err));
@@ -84,34 +74,31 @@ mongoose.connect(process.env.MONGODB_URI)
 // ===== SCHEMAS =====
 
 const productSchema = new mongoose.Schema({
-  name:        { type: String, required: true },
-  description: { type: String, default: '' },
-  price:       { type: Number, required: true },
-  oldPrice:    { type: Number, default: 0 },
-  saving:      { type: Number, default: 0 },
-  img:         { type: String, default: '' },
-  images:      [{ url: String, public_id: String }],
-  category:    { type: String, required: true },
-  subcategory: { type: String, default: '' },
-  onSale:      { type: Boolean, default: false },
-  soldOut:     { type: Boolean, default: false },
-  featured:    { type: Boolean, default: false },
-
-  // ===== বিস্তারিত পণ্য তথ্য =====
-  sizes:          [{ type: String }],                  // সাইজ যেমন: S, M, L, XL, 0-6M
-  colors:         [{ type: String }],                  // রঙ যেমন: লাল, নীল, সাদা
-  ageGroup:       { type: String, default: '' },        // বয়স: 0-6 মাস, 6-12 মাস ইত্যাদি
-  material:       { type: String, default: '' },        // কাপড়: Cotton, Fleece ইত্যাদি
-  stock:          { type: Number, default: 0 },         // স্টক সংখ্যা
-  sku:            { type: String, default: '' },         // স্টক কোড
-  weight:         { type: String, default: '' },         // ওজন/মাপ
-  deliveryInfo:   { type: String, default: '' },         // ডেলিভারি তথ্য
-  returnPolicy:   { type: String, default: '' },         // রিটার্ন নীতি
-  highlights:     [{ type: String }],                   // মূল বৈশিষ্ট্য তালিকা
-  careInstructions: { type: String, default: '' },      // পরিচর্যা নির্দেশনা
-  tags:           [{ type: String }],                   // সার্চ ট্যাগ
-
-  createdAt:   { type: Date, default: Date.now },
+  name:             { type: String, required: true },
+  description:      { type: String, default: '' },
+  price:            { type: Number, required: true },
+  oldPrice:         { type: Number, default: 0 },
+  saving:           { type: Number, default: 0 },
+  img:              { type: String, default: '' },
+  images:           [{ url: String, public_id: String }],
+  category:         { type: String, required: true },
+  subcategory:      { type: String, default: '' },
+  onSale:           { type: Boolean, default: false },
+  soldOut:          { type: Boolean, default: false },
+  featured:         { type: Boolean, default: false },
+  sizes:            [{ type: String }],
+  colors:           [{ type: String }],
+  ageGroup:         { type: String, default: '' },
+  material:         { type: String, default: '' },
+  stock:            { type: Number, default: 0 },
+  sku:              { type: String, default: '' },
+  weight:           { type: String, default: '' },
+  deliveryInfo:     { type: String, default: '' },
+  returnPolicy:     { type: String, default: '' },
+  highlights:       [{ type: String }],
+  careInstructions: { type: String, default: '' },
+  tags:             [{ type: String }],
+  createdAt:        { type: Date, default: Date.now },
 });
 
 const reviewSchema = new mongoose.Schema({
@@ -164,39 +151,28 @@ const Settings = mongoose.model('Settings', settingsSchema);
 const Order    = mongoose.model('Order',    orderSchema);
 
 // ===== AUTO ADMIN SETUP =====
-// .env-এর ADMIN_USERNAME ও ADMIN_PASSWORD দিয়ে স্বয়ংক্রিয়ভাবে admin তৈরি করবে
 async function autoSetupAdmin() {
   try {
-    const adminPhone = process.env.ADMIN_USERNAME; // username হিসেবে phone ব্যবহার
+    const adminPhone = process.env.ADMIN_USERNAME;
     const adminPass  = process.env.ADMIN_PASSWORD;
-
     if (!adminPhone || !adminPass) {
-      console.log('⚠️  ADMIN_USERNAME বা ADMIN_PASSWORD .env-এ নেই — auto setup স্কিপ');
+      console.log('⚠️  ADMIN_USERNAME বা ADMIN_PASSWORD নেই');
       return;
     }
-
     const existing = await User.findOne({ phone: adminPhone, role: 'admin' });
-    if (existing) {
-      console.log('ℹ️  Admin ইতিমধ্যে আছে:', adminPhone);
-      return;
-    }
-
+    if (existing) { console.log('ℹ️  Admin আছে:', adminPhone); return; }
     const hashed = await bcrypt.hash(adminPass, 10);
-    await User.create({
-      name:     'Super Admin',
-      phone:    adminPhone,
-      password: hashed,
-      role:     'admin',
-    });
-    console.log('✅ Auto Admin তৈরি হয়েছে — Phone/Username:', adminPhone);
+    await User.create({ name: 'Super Admin', phone: adminPhone, password: hashed, role: 'admin' });
+    console.log('✅ Auto Admin তৈরি:', adminPhone);
   } catch (err) {
-    console.error('❌ Auto admin setup error:', err.message);
+    console.error('❌ Auto admin error:', err.message);
   }
 }
 
-// ===== AUTH HELPERS =====
+// ===== JWT SECRET =====
 const JWT_SECRET = process.env.JWT_SECRET || 'ffh_secret_2024';
 
+// ===== MIDDLEWARE =====
 function authMiddleware(req, res, next) {
   const token = (req.headers.authorization || '').split(' ')[1];
   if (!token) return res.json({ success: false, message: 'Token নেই' });
@@ -215,7 +191,29 @@ function adminMiddleware(req, res, next) {
   } catch { res.json({ success: false, message: 'Invalid token' }); }
 }
 
+// ====================================================
+// ===== ROOT — Admin Panel checkApiStatus() এর জন্য =====
+// ====================================================
+app.get('/', (req, res) => {
+  res.json({
+    success:  true,
+    message:  '👗 Family Fashion Hub API চলছে ✅',
+    version:  '2.1.0',
+    status:   'online',
+    time:     new Date().toISOString(),
+    frontend: process.env.FRONTEND_URL || '',
+    admin:    process.env.ADMIN_URL    || '',
+  });
+});
+
+// ===== PING — সংযোগ পরীক্ষার জন্য =====
+app.get('/api/ping', (req, res) => {
+  res.json({ success: true, message: 'সার্ভার চলছে ✅', status: 'online', time: new Date().toISOString() });
+});
+
+// ====================================================
 // ===== PRODUCT ROUTES =====
+// ====================================================
 
 app.get('/api/products', async (req, res) => {
   try {
@@ -256,7 +254,6 @@ app.post('/api/products', adminMiddleware, upload.array('images', 10), async (re
       images = results.map(r => ({ url: r.secure_url, public_id: r.public_id }));
     }
     const img = images.length > 0 ? images[0].url : '';
-    // Array field parse helper (comma-separated string অথবা array হতে পারে)
     const parseArr = v => {
       if (!v) return [];
       if (Array.isArray(v)) return v.map(x => x.trim()).filter(Boolean);
@@ -264,27 +261,14 @@ app.post('/api/products', adminMiddleware, upload.array('images', 10), async (re
     };
     const product = await Product.create({
       name, description,
-      price:       +price,
-      oldPrice:    +(oldPrice || 0),
-      saving:      +(saving   || 0),
-      category,
-      subcategory: subcategory || '',
-      img, images,
-      onSale:   onSale   === 'true',
-      soldOut:  soldOut  === 'true',
-      featured: featured === 'true',
-      ageGroup:         ageGroup || '',
-      material:         material || '',
-      stock:            +(stock  || 0),
-      sku:              sku || '',
-      weight:           weight || '',
-      deliveryInfo:     deliveryInfo || '',
-      returnPolicy:     returnPolicy || '',
-      careInstructions: careInstructions || '',
-      sizes:      parseArr(sizes),
-      colors:     parseArr(colors),
-      highlights: parseArr(highlights),
-      tags:       parseArr(tags),
+      price: +price, oldPrice: +(oldPrice || 0), saving: +(saving || 0),
+      category, subcategory: subcategory || '', img, images,
+      onSale: onSale === 'true', soldOut: soldOut === 'true', featured: featured === 'true',
+      ageGroup: ageGroup || '', material: material || '', stock: +(stock || 0),
+      sku: sku || '', weight: weight || '', deliveryInfo: deliveryInfo || '',
+      returnPolicy: returnPolicy || '', careInstructions: careInstructions || '',
+      sizes: parseArr(sizes), colors: parseArr(colors),
+      highlights: parseArr(highlights), tags: parseArr(tags),
     });
     res.json({ success: true, data: product });
   } catch (e) { res.json({ success: false, message: e.message }); }
@@ -304,35 +288,19 @@ app.put('/api/products/:id', adminMiddleware, upload.array('images', 10), async 
     };
     const update = {
       name, description,
-      price:       +price,
-      oldPrice:    +(oldPrice || 0),
-      saving:      +(saving   || 0),
-      category,
-      subcategory: subcategory || '',
-      onSale:   onSale   === 'true',
-      soldOut:  soldOut  === 'true',
-      featured: featured === 'true',
-      ageGroup:         ageGroup || '',
-      material:         material || '',
-      stock:            +(stock  || 0),
-      sku:              sku || '',
-      weight:           weight || '',
-      deliveryInfo:     deliveryInfo || '',
-      returnPolicy:     returnPolicy || '',
-      careInstructions: careInstructions || '',
-      sizes:      parseArr(sizes),
-      colors:     parseArr(colors),
-      highlights: parseArr(highlights),
-      tags:       parseArr(tags),
+      price: +price, oldPrice: +(oldPrice || 0), saving: +(saving || 0),
+      category, subcategory: subcategory || '',
+      onSale: onSale === 'true', soldOut: soldOut === 'true', featured: featured === 'true',
+      ageGroup: ageGroup || '', material: material || '', stock: +(stock || 0),
+      sku: sku || '', weight: weight || '', deliveryInfo: deliveryInfo || '',
+      returnPolicy: returnPolicy || '', careInstructions: careInstructions || '',
+      sizes: parseArr(sizes), colors: parseArr(colors),
+      highlights: parseArr(highlights), tags: parseArr(tags),
     };
     if (req.files && req.files.length > 0) {
       const old = await Product.findById(req.params.id);
       if (old && old.images && old.images.length) {
-        await Promise.all(
-          old.images
-            .filter(img => img.public_id)
-            .map(img => cloudinary.uploader.destroy(img.public_id).catch(() => {}))
-        );
+        await Promise.all(old.images.filter(i => i.public_id).map(i => cloudinary.uploader.destroy(i.public_id).catch(() => {})));
       }
       const results = await uploadMultiple(req.files);
       update.images = results.map(r => ({ url: r.secure_url, public_id: r.public_id }));
@@ -348,18 +316,16 @@ app.delete('/api/products/:id', adminMiddleware, async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.json({ success: false, message: 'পণ্য পাওয়া যায়নি' });
     if (product.images && product.images.length) {
-      await Promise.all(
-        product.images
-          .filter(img => img.public_id)
-          .map(img => cloudinary.uploader.destroy(img.public_id).catch(() => {}))
-      );
+      await Promise.all(product.images.filter(i => i.public_id).map(i => cloudinary.uploader.destroy(i.public_id).catch(() => {})));
     }
     await Product.findByIdAndDelete(req.params.id);
     res.json({ success: true, message: 'পণ্য মুছে ফেলা হয়েছে' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
+// ====================================================
 // ===== REVIEW ROUTES =====
+// ====================================================
 
 app.get('/api/reviews', async (req, res) => {
   try {
@@ -401,7 +367,9 @@ app.delete('/api/reviews/:id', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
+// ====================================================
 // ===== USER ROUTES =====
+// ====================================================
 
 app.post('/api/users/register', async (req, res) => {
   try {
@@ -427,33 +395,23 @@ app.post('/api/users/login', async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// Admin Login — phone অথবা ADMIN_USERNAME দিয়ে login করা যাবে
+// ===== ADMIN LOGIN =====
 app.post('/api/admin/login', async (req, res) => {
   try {
     const { phone, password } = req.body;
 
-    // প্রথমে .env-এর ADMIN_USERNAME দিয়ে চেক করো
-    if (
-      phone === process.env.ADMIN_USERNAME &&
-      password === process.env.ADMIN_PASSWORD
-    ) {
-      // DB-তে এই admin খোঁজো
+    // .env ADMIN_USERNAME দিয়ে চেক
+    if (phone === process.env.ADMIN_USERNAME && password === process.env.ADMIN_PASSWORD) {
       let user = await User.findOne({ phone: process.env.ADMIN_USERNAME, role: 'admin' });
       if (!user) {
-        // না থাকলে এখনই তৈরি করো
         const hashed = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
-        user = await User.create({
-          name: 'Super Admin',
-          phone: process.env.ADMIN_USERNAME,
-          password: hashed,
-          role: 'admin',
-        });
+        user = await User.create({ name: 'Super Admin', phone: process.env.ADMIN_USERNAME, password: hashed, role: 'admin' });
       }
       const token = jwt.sign({ id: user._id, phone: user.phone, role: 'admin' }, JWT_SECRET, { expiresIn: '7d' });
       return res.json({ success: true, user: { id: user._id, name: user.name, phone: user.phone, role: 'admin' }, token });
     }
 
-    // সাধারণ DB-based admin login
+    // DB admin login
     const user = await User.findOne({ phone, role: 'admin' });
     if (!user) return res.json({ success: false, message: 'Admin খুঁজে পাওয়া যায়নি' });
     const match = await bcrypt.compare(password, user.password);
@@ -488,91 +446,53 @@ app.delete('/api/admin/users/:id', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
+// ====================================================
 // ===== ORDER ROUTES =====
+// ====================================================
 
-// ===== ORDER DEBUG (temporary — frontend কী পাঠাচ্ছে দেখার জন্য) =====
 app.post('/api/orders/debug', (req, res) => {
-  console.log('ORDER DEBUG body:', JSON.stringify(req.body, null, 2));
+  console.log('ORDER DEBUG:', JSON.stringify(req.body, null, 2));
   res.json({ success: true, received: req.body });
 });
 
 app.post('/api/orders', async (req, res) => {
   try {
     const b = req.body;
+    const customerName = b.customerName || b.customer_name || b.name || b.fullName || b.full_name || b.userName || b.buyerName || '';
+    const phone        = b.phone || b.mobile || b.phoneNumber || b.phone_number || b.mobileNumber || b.contact || b.number || '';
+    const address      = b.address || b.shippingAddress || b.shipping_address || b.deliveryAddress || b.delivery_address || b.location || '';
+    const note         = b.note || b.notes || b.message || b.orderNote || b.order_note || '';
 
-    // ফ্রন্টএন্ড যেকোনো field name দিয়ে পাঠাক — সব handle করা হচ্ছে
-    const customerName =
-      b.customerName || b.customer_name || b.name || b.fullName ||
-      b.full_name || b.userName || b.user_name || b.buyerName || '';
-
-    const phone =
-      b.phone || b.mobile || b.phoneNumber || b.phone_number ||
-      b.mobileNumber || b.mobile_number || b.contact || b.number || '';
-
-    const address =
-      b.address || b.shippingAddress || b.shipping_address ||
-      b.deliveryAddress || b.delivery_address || b.location || '';
-
-    const note =
-      b.note || b.notes || b.message || b.orderNote || b.order_note || '';
-
-    // items — array or JSON string
     let items = b.items || b.cartItems || b.cart || b.products || [];
-    if (typeof items === 'string') {
-      try { items = JSON.parse(items); } catch { items = []; }
-    }
+    if (typeof items === 'string') { try { items = JSON.parse(items); } catch { items = []; } }
 
-    // total — calculate from items if not provided
-    let total = parseFloat(b.total || b.totalPrice || b.total_price ||
-      b.amount || b.grandTotal || b.grand_total || 0);
-
+    let total = parseFloat(b.total || b.totalPrice || b.total_price || b.amount || b.grandTotal || b.grand_total || 0);
     if (!total && items.length) {
-      total = items.reduce((sum, item) => {
-        const price = parseFloat(item.price || item.unitPrice || 0);
-        const qty   = parseInt(item.quantity || item.qty || 1, 10);
-        return sum + price * qty;
-      }, 0);
+      total = items.reduce((sum, item) => sum + parseFloat(item.price || 0) * parseInt(item.quantity || item.qty || 1, 10), 0);
     }
 
-    // Validation — বাংলায় error দাও
     const errors = [];
     if (!customerName) errors.push('গ্রাহকের নাম দিন');
     if (!phone)        errors.push('ফোন নম্বর দিন');
     if (!address)      errors.push('ঠিকানা দিন');
     if (!total)        errors.push('মোট মূল্য পাওয়া যায়নি');
+    if (errors.length) return res.json({ success: false, message: errors.join(', ') });
 
-    if (errors.length) {
-      return res.json({ success: false, message: errors.join(', ') });
-    }
-
-    // items normalize
     const normalizedItems = items.map(item => ({
       productId: item.productId || item.product_id || item._id || item.id || '',
-      name:      item.name || item.productName || item.product_name || item.title || '',
+      name:      item.name || item.productName || item.title || '',
       price:     parseFloat(item.price || item.unitPrice || 0),
       quantity:  parseInt(item.quantity || item.qty || 1, 10),
       img:       item.img || item.image || item.thumbnail || item.photo || '',
     }));
 
     const order = await Order.create({
-      customerName,
-      phone,
-      address,
-      items: normalizedItems,
-      total,
-      note,
-      status: 'pending',
+      customerName, phone, address, items: normalizedItems, total, note,
+      deliveryArea: b.deliveryArea || 'inside', status: 'pending',
     });
 
-    res.json({
-      success: true,
-      data: order,
-      message: 'অর্ডার সফলভাবে দেওয়া হয়েছে! আমরা শীঘ্রই যোগাযোগ করব।',
-      orderId: order._id,
-    });
-  } catch (e) {
-    res.json({ success: false, message: e.message });
-  }
+    res.json({ success: true, data: order, message: 'অর্ডার সফলভাবে দেওয়া হয়েছে!', orderId: order._id });
+  } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
 app.get('/api/admin/orders', adminMiddleware, async (req, res) => {
@@ -598,72 +518,66 @@ app.delete('/api/admin/orders/:id', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== CATEGORIES API =====
-// Frontend এই route থেকে categories ও subcategories পাবে
+// ====================================================
+// ===== CATEGORIES ROUTES =====
+// ====================================================
+
+const DEFAULT_CATEGORIES = [
+  { value: 'baby_dress', label: 'বেবি পোশাক', subcategories: [
+      { value: 'newborn_set', label: 'Baby Dress Newborn Set (0-6 Months)' },
+      { value: 'cotton_dress', label: 'Cotton Dress (Summer Comfort)' },
+      { value: 'winter_dress', label: 'Winter Dress' },
+      { value: 'frocks_tshirts', label: 'Frocks, T-Shirts & Pants' },
+  ]},
+  { value: 'toys', label: 'খেলনা', subcategories: [
+      { value: 'soft_toys', label: 'Soft Toys (Dolls)' },
+      { value: 'sound_toys', label: 'সাউন্ড টয় (Musical Toys)' },
+      { value: 'educational_toys', label: 'Educational Toys (ABC/Numbers)' },
+      { value: 'baby_rattle', label: 'Baby Rattle' },
+  ]},
+  { value: 'feeding', label: 'ফিডিং আইটেম', subcategories: [
+      { value: 'feeding_bottle', label: 'Feeding Bottle' },
+      { value: 'feeding_bowl', label: 'Baby Feeding Bowl + Spoon' },
+      { value: 'sipper_cup', label: 'Sipper Cup' },
+      { value: 'feeding_chair', label: 'Baby Feeding Chair' },
+  ]},
+  { value: 'baby_care', label: 'বেবি কেয়ার', subcategories: [
+      { value: 'soap_shampoo', label: 'Baby Soap & Shampoo' },
+      { value: 'lotion_oil', label: 'Baby Lotion / Oil' },
+      { value: 'wet_tissue', label: 'Wet Tissue' },
+      { value: 'diaper', label: 'Diaper Essentials' },
+  ]},
+  { value: 'baby_bedding', label: 'বেবি বেডিং', subcategories: [
+      { value: 'mosquito_net', label: 'Baby Mosquito Net' },
+      { value: 'baby_bed', label: 'Baby Bed / Nest' },
+      { value: 'blanket', label: 'Baby Blanket' },
+      { value: 'towel', label: 'Baby Towel' },
+  ]},
+  { value: 'trending', label: 'ট্রেন্ডিং', subcategories: [
+      { value: 'baby_carrier', label: 'Baby Carrier' },
+      { value: 'baby_walker', label: 'Baby Walker' },
+      { value: 'nail_cutter', label: 'Baby Nail Cutter Set' },
+      { value: 'thermometer', label: 'Baby Thermometer' },
+  ]},
+];
+
+// Public
 app.get('/api/categories', async (req, res) => {
   try {
     const setting = await Settings.findOne({ key: 'categories' });
-    if (setting && Array.isArray(setting.value) && setting.value.length) {
-      return res.json({ success: true, data: setting.value });
-    }
-    // Default fallback — Baby Products full structure
-    res.json({
-      success: true,
-      data: [
-        { value: 'baby_dress', label: 'বেবি পোশাক', subcategories: [
-            { value: 'newborn_set',    label: 'Baby Dress Newborn Set (0-6 Months)' },
-            { value: 'cotton_dress',   label: 'Cotton Dress (Summer Comfort)' },
-            { value: 'winter_dress',   label: 'Winter Dress' },
-            { value: 'frocks_tshirts', label: 'Frocks, T-Shirts & Pants' },
-        ]},
-        { value: 'toys', label: 'খেলনা', subcategories: [
-            { value: 'soft_toys',        label: 'Soft Toys (Dolls)' },
-            { value: 'sound_toys',       label: 'সাউন্ড টয় (Musical Toys)' },
-            { value: 'educational_toys', label: 'Educational Toys (ABC/Numbers)' },
-            { value: 'baby_rattle',      label: 'Baby Rattle' },
-        ]},
-        { value: 'feeding', label: 'ফিডিং আইটেম', subcategories: [
-            { value: 'feeding_bottle', label: 'Feeding Bottle' },
-            { value: 'feeding_bowl',   label: 'Baby Feeding Bowl + Spoon' },
-            { value: 'sipper_cup',     label: 'Sipper Cup' },
-            { value: 'feeding_chair',  label: 'Baby Feeding Chair' },
-        ]},
-        { value: 'baby_care', label: 'বেবি কেয়ার', subcategories: [
-            { value: 'soap_shampoo', label: 'Baby Soap & Shampoo' },
-            { value: 'lotion_oil',   label: 'Baby Lotion / Oil' },
-            { value: 'wet_tissue',   label: 'Wet Tissue' },
-            { value: 'diaper',       label: 'Diaper Essentials' },
-        ]},
-        { value: 'baby_bedding', label: 'বেবি বেডিং', subcategories: [
-            { value: 'mosquito_net', label: 'Baby Mosquito Net' },
-            { value: 'baby_bed',     label: 'Baby Bed / Nest' },
-            { value: 'blanket',      label: 'Baby Blanket' },
-            { value: 'towel',        label: 'Baby Towel' },
-        ]},
-        { value: 'trending', label: 'ট্রেন্ডিং', subcategories: [
-            { value: 'baby_carrier',   label: 'Baby Carrier' },
-            { value: 'baby_walker',    label: 'Baby Walker' },
-            { value: 'nail_cutter',    label: 'Baby Nail Cutter Set' },
-            { value: 'thermometer',    label: 'Baby Thermometer' },
-        ]},
-      ]
-    });
+    const cats = (setting && Array.isArray(setting.value) && setting.value.length) ? setting.value : DEFAULT_CATEGORIES;
+    res.json({ success: true, data: cats });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== CATEGORIES CRUD (Admin) =====
-
-// GET — সব categories
-// (already handled by /api/categories above)
-
-// POST — নতুন main category যোগ
+// Admin CRUD
 app.post('/api/admin/categories', adminMiddleware, async (req, res) => {
   try {
     const { value, label } = req.body;
     if (!value || !label) return res.json({ success: false, message: 'value ও label আবশ্যিক' });
     const slug = value.trim().toLowerCase().replace(/\s+/g, '_');
     const setting = await Settings.findOne({ key: 'categories' });
-    let cats = (setting && Array.isArray(setting.value)) ? setting.value : [];
+    let cats = (setting && Array.isArray(setting.value)) ? setting.value : [...DEFAULT_CATEGORIES];
     if (cats.find(c => c.value === slug)) return res.json({ success: false, message: 'এই ক্যাটাগরি ইতিমধ্যে আছে' });
     cats.push({ value: slug, label: label.trim(), subcategories: [] });
     await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
@@ -671,7 +585,6 @@ app.post('/api/admin/categories', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// PUT — main category আপডেট (rename label)
 app.put('/api/admin/categories/:value', adminMiddleware, async (req, res) => {
   try {
     const { label } = req.body;
@@ -686,7 +599,6 @@ app.put('/api/admin/categories/:value', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// DELETE — main category মুছো
 app.delete('/api/admin/categories/:value', adminMiddleware, async (req, res) => {
   try {
     const setting = await Settings.findOne({ key: 'categories' });
@@ -697,7 +609,6 @@ app.delete('/api/admin/categories/:value', adminMiddleware, async (req, res) => 
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// POST — subcategory যোগ
 app.post('/api/admin/categories/:catValue/subcategories', adminMiddleware, async (req, res) => {
   try {
     const { value, label } = req.body;
@@ -708,14 +619,13 @@ app.post('/api/admin/categories/:catValue/subcategories', adminMiddleware, async
     const cat = cats.find(c => c.value === req.params.catValue);
     if (!cat) return res.json({ success: false, message: 'ক্যাটাগরি পাওয়া যায়নি' });
     if (!cat.subcategories) cat.subcategories = [];
-    if (cat.subcategories.find(s => s.value === slug)) return res.json({ success: false, message: 'এই সাব-ক্যাটাগরি ইতিমধ্যে আছে' });
+    if (cat.subcategories.find(s => s.value === slug)) return res.json({ success: false, message: 'সাব-ক্যাটাগরি ইতিমধ্যে আছে' });
     cat.subcategories.push({ value: slug, label: label.trim() });
     await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: cats }, { upsert: true });
     res.json({ success: true, data: cats, message: 'সাব-ক্যাটাগরি যোগ হয়েছে' });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// PUT — subcategory আপডেট
 app.put('/api/admin/categories/:catValue/subcategories/:subValue', adminMiddleware, async (req, res) => {
   try {
     const { label } = req.body;
@@ -732,7 +642,6 @@ app.put('/api/admin/categories/:catValue/subcategories/:subValue', adminMiddlewa
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// DELETE — subcategory মুছো
 app.delete('/api/admin/categories/:catValue/subcategories/:subValue', adminMiddleware, async (req, res) => {
   try {
     const setting = await Settings.findOne({ key: 'categories' });
@@ -745,7 +654,6 @@ app.delete('/api/admin/categories/:catValue/subcategories/:subValue', adminMiddl
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// POST — সম্পূর্ণ categories replace (bulk save)
 app.post('/api/admin/categories/bulk', adminMiddleware, async (req, res) => {
   try {
     const { categories } = req.body;
@@ -755,17 +663,20 @@ app.post('/api/admin/categories/bulk', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== PUBLIC CATEGORIES API (Frontend-এর জন্য — Auth ছাড়া) =====
-// ফ্রন্টএন্ড Navigation Bar এই route থেকে categories লোড করবে
-app.get('/api/categories', async (req, res) => {
+app.post('/api/admin/seed-categories', adminMiddleware, async (req, res) => {
   try {
-    const setting = await Settings.findOne({ key: 'categories' });
-    const categories = (setting && Array.isArray(setting.value)) ? setting.value : [];
-    res.json({ success: true, data: categories });
+    const existing = await Settings.findOne({ key: 'categories' });
+    if (existing && Array.isArray(existing.value) && existing.value.length) {
+      return res.json({ success: false, message: 'Categories ইতিমধ্যে সেট আছে।' });
+    }
+    await Settings.findOneAndUpdate({ key: 'categories' }, { key: 'categories', value: DEFAULT_CATEGORIES }, { upsert: true });
+    res.json({ success: true, message: 'Default categories সেট হয়েছে!', data: DEFAULT_CATEGORIES });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
+// ====================================================
 // ===== SETTINGS ROUTES =====
+// ====================================================
 
 app.get('/api/settings', async (req, res) => {
   try {
@@ -786,7 +697,10 @@ app.post('/api/settings', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
+// ====================================================
 // ===== STATS =====
+// ====================================================
+
 app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
   try {
     const [products, orders, users, reviews] = await Promise.all([
@@ -800,14 +714,14 @@ app.get('/api/admin/stats', adminMiddleware, async (req, res) => {
       { $group: { _id: null, total: { $sum: '$total' } } },
     ]);
     const pendingOrders = await Order.countDocuments({ status: 'pending' });
-    res.json({
-      success: true,
-      data: { products, orders, users, reviews, revenue: revenue[0]?.total || 0, pendingOrders },
-    });
+    res.json({ success: true, data: { products, orders, users, reviews, revenue: revenue[0]?.total || 0, pendingOrders } });
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== STANDALONE UPLOAD =====
+// ====================================================
+// ===== UPLOAD =====
+// ====================================================
+
 app.post('/api/upload', adminMiddleware, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) return res.json({ success: false, message: 'কোনো ছবি নেই' });
@@ -816,7 +730,63 @@ app.post('/api/upload', adminMiddleware, upload.single('image'), async (req, res
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== MANUAL SETUP ADMIN (fallback) =====
+// ====================================================
+// ===== PRODUCT PAGE LAYOUT =====
+// ====================================================
+
+app.get('/api/product-layout', async (req, res) => {
+  try {
+    const setting = await Settings.findOne({ key: 'productLayout' });
+    const defaultLayout = {
+      showAddToCart: true, showBuyNow: true, showWhatsApp: true, showCallOrder: true,
+      addToCartText: 'ADD TO CART', buyNowText: 'BUY NOW',
+      whatsappText: 'Order On WhatsApp', callOrderText: 'Call For Order',
+      whatsappNumber: '', callNumber: '',
+      showPriceSection: true, showSavingBadge: true, showQuantitySelector: true,
+      showSizeSelector: true, showColorSelector: true, showBrandLabel: true,
+      showHighlights: true, showDescription: true, showMaterial: true,
+      showAgeGroup: true, showDeliveryInfo: true, showReturnPolicy: true,
+      showCareInstructions: true, showStockStatus: true, showMoreProducts: true,
+      moreProductsTitle: 'More Products', brandLabel: 'Family Fashion Hub',
+      showReviewsTab: true,
+    };
+    const layout = (setting && setting.value) ? { ...defaultLayout, ...setting.value } : defaultLayout;
+    res.json({ success: true, data: layout });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+app.post('/api/admin/product-layout', adminMiddleware, async (req, res) => {
+  try {
+    await Settings.findOneAndUpdate({ key: 'productLayout' }, { key: 'productLayout', value: req.body }, { upsert: true });
+    res.json({ success: true, message: 'লেআউট সেভ হয়েছে', data: req.body });
+  } catch (e) { res.json({ success: false, message: e.message }); }
+});
+
+// ====================================================
+// ===== ADMIN HEALTH CHECK =====
+// ====================================================
+
+app.get('/api/admin/health', adminMiddleware, (req, res) => {
+  res.json({
+    success: true,
+    env: {
+      PORT:                  process.env.PORT || '5000',
+      MONGODB_URI:           process.env.MONGODB_URI           ? '✅ সেট আছে' : '❌ নেই',
+      CLOUDINARY_CLOUD:      process.env.CLOUDINARY_CLOUD_NAME ? '✅ সেট আছে' : '❌ নেই',
+      CLOUDINARY_API_KEY:    process.env.CLOUDINARY_API_KEY    ? '✅ সেট আছে' : '❌ নেই',
+      CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET ? '✅ সেট আছে' : '❌ নেই',
+      JWT_SECRET:            process.env.JWT_SECRET            ? '✅ সেট আছে' : '❌ নেই',
+      ADMIN_USERNAME:        process.env.ADMIN_USERNAME        || '❌ নেই',
+      FRONTEND_URL:          process.env.FRONTEND_URL          || '❌ নেই',
+      ADMIN_URL:             process.env.ADMIN_URL             || '❌ নেই',
+    }
+  });
+});
+
+// ====================================================
+// ===== SETUP ADMIN (Fallback) =====
+// ====================================================
+
 app.post('/api/setup-admin', async (req, res) => {
   try {
     const count = await User.countDocuments({ role: 'admin' });
@@ -829,150 +799,10 @@ app.post('/api/setup-admin', async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== ENV HEALTH CHECK (admin only) =====
-app.get('/api/admin/health', adminMiddleware, (req, res) => {
-  res.json({
-    success: true,
-    env: {
-      PORT:                 process.env.PORT,
-      MONGODB_URI:          process.env.MONGODB_URI ? '✅ সেট আছে' : '❌ নেই',
-      CLOUDINARY_CLOUD:     process.env.CLOUDINARY_CLOUD_NAME ? '✅ সেট আছে' : '❌ নেই',
-      CLOUDINARY_API_KEY:   process.env.CLOUDINARY_API_KEY ? '✅ সেট আছে' : '❌ নেই',
-      CLOUDINARY_API_SECRET:process.env.CLOUDINARY_API_SECRET ? '✅ সেট আছে' : '❌ নেই',
-      JWT_SECRET:           process.env.JWT_SECRET ? '✅ সেট আছে' : '❌ নেই',
-      ADMIN_USERNAME:       process.env.ADMIN_USERNAME || '❌ নেই',
-      FRONTEND_URL:         process.env.FRONTEND_URL || '❌ নেই',
-      ADMIN_URL:            process.env.ADMIN_URL || '❌ নেই',
-    }
-  });
-});
-
-
-// ===== SEED DEFAULT CATEGORIES (admin only) =====
-// প্রথমবার রান করলে MongoDB-তে default baby categories সেট হবে
-app.post('/api/admin/seed-categories', adminMiddleware, async (req, res) => {
-  try {
-    const existing = await Settings.findOne({ key: 'categories' });
-    if (existing && Array.isArray(existing.value) && existing.value.length) {
-      return res.json({ success: false, message: 'Categories ইতিমধ্যে সেট আছে। Reset করতে force=true পাঠান।' });
-    }
-    const defaultCategories = [
-      { value: 'baby_dress', label: 'বেবি পোশাক', subcategories: [
-          { value: 'newborn_set',    label: 'Baby Dress Newborn Set (0-6 Months)' },
-          { value: 'cotton_dress',   label: 'Cotton Dress (Summer Comfort)' },
-          { value: 'winter_dress',   label: 'Winter Dress' },
-          { value: 'frocks_tshirts', label: 'Frocks, T-Shirts & Pants' },
-      ]},
-      { value: 'toys', label: 'খেলনা', subcategories: [
-          { value: 'soft_toys',        label: 'Soft Toys (Dolls)' },
-          { value: 'sound_toys',       label: 'সাউন্ড টয় (Musical Toys)' },
-          { value: 'educational_toys', label: 'Educational Toys (ABC/Numbers)' },
-          { value: 'baby_rattle',      label: 'Baby Rattle' },
-      ]},
-      { value: 'feeding', label: 'ফিডিং আইটেম', subcategories: [
-          { value: 'feeding_bottle', label: 'Feeding Bottle' },
-          { value: 'feeding_bowl',   label: 'Baby Feeding Bowl + Spoon' },
-          { value: 'sipper_cup',     label: 'Sipper Cup' },
-          { value: 'feeding_chair',  label: 'Baby Feeding Chair' },
-      ]},
-      { value: 'baby_care', label: 'বেবি কেয়ার', subcategories: [
-          { value: 'soap_shampoo', label: 'Baby Soap & Shampoo' },
-          { value: 'lotion_oil',   label: 'Baby Lotion / Oil' },
-          { value: 'wet_tissue',   label: 'Wet Tissue' },
-          { value: 'diaper',       label: 'Diaper Essentials' },
-      ]},
-      { value: 'baby_bedding', label: 'বেবি বেডিং', subcategories: [
-          { value: 'mosquito_net', label: 'Baby Mosquito Net' },
-          { value: 'baby_bed',     label: 'Baby Bed / Nest' },
-          { value: 'blanket',      label: 'Baby Blanket' },
-          { value: 'towel',        label: 'Baby Towel' },
-      ]},
-      { value: 'trending', label: 'ট্রেন্ডিং', subcategories: [
-          { value: 'baby_carrier',   label: 'Baby Carrier' },
-          { value: 'baby_walker',    label: 'Baby Walker' },
-          { value: 'nail_cutter',    label: 'Baby Nail Cutter Set' },
-          { value: 'thermometer',    label: 'Baby Thermometer' },
-      ]},
-    ];
-    await Settings.findOneAndUpdate(
-      { key: 'categories' },
-      { key: 'categories', value: defaultCategories },
-      { upsert: true }
-    );
-    res.json({ success: true, message: 'Default baby categories সেট হয়েছে!', data: defaultCategories });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
-
-// ===== PRODUCT PAGE LAYOUT SETTINGS =====
-
-// GET — পণ্য পেজের লেআউট সেটিংস (Public — Frontend এর জন্য)
-app.get('/api/product-layout', async (req, res) => {
-  try {
-    const setting = await Settings.findOne({ key: 'productLayout' });
-    const defaultLayout = {
-      // বাটন দৃশ্যমানতা
-      showAddToCart:   true,
-      showBuyNow:      true,
-      showWhatsApp:    true,
-      showCallOrder:   true,
-      // বাটনের টেক্সট
-      addToCartText:   'ADD TO CART',
-      buyNowText:      'BUY NOW',
-      whatsappText:    'Order On WhatsApp',
-      callOrderText:   'Call For Order',
-      // WhatsApp ও Call নম্বর
-      whatsappNumber:  '',
-      callNumber:      '',
-      // তিন কলাম লেআউট সেকশন দৃশ্যমানতা
-      showPriceSection:       true,
-      showSavingBadge:        true,
-      showQuantitySelector:   true,
-      showSizeSelector:       true,
-      showColorSelector:      true,
-      showBrandLabel:         true,
-      showHighlights:         true,
-      showDescription:        true,
-      showMaterial:           true,
-      showAgeGroup:           true,
-      showDeliveryInfo:       true,
-      showReturnPolicy:       true,
-      showCareInstructions:   true,
-      showStockStatus:        true,
-      showMoreProducts:       true,
-      // ডান কলাম "More Products" শিরোনাম
-      moreProductsTitle:      'More Products',
-      // ব্র্যান্ড লেবেল টেক্সট
-      brandLabel:             'Family Fashion Hub',
-      // Customer Reviews ট্যাব দেখাবে কিনা
-      showReviewsTab:         true,
-    };
-    const layout = (setting && setting.value) ? { ...defaultLayout, ...setting.value } : defaultLayout;
-    res.json({ success: true, data: layout });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
-
-// POST — পণ্য পেজের লেআউট সেটিংস আপডেট (Admin only)
-app.post('/api/admin/product-layout', adminMiddleware, async (req, res) => {
-  try {
-    const layout = req.body;
-    await Settings.findOneAndUpdate(
-      { key: 'productLayout' },
-      { key: 'productLayout', value: layout },
-      { upsert: true }
-    );
-    res.json({ success: true, message: 'পণ্য পেজ লেআউট সেভ হয়েছে', data: layout });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
-
-// ===== ROOT =====
-app.get('/', (req, res) => res.json({
-  success: true,
-  message: '👗 Family Fashion Hub API চলছে',
-  version: '2.0.0',
-  frontend: process.env.FRONTEND_URL,
-  admin: process.env.ADMIN_URL,
-}));
-
+// ====================================================
 // ===== START =====
+// ====================================================
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+module.exports = app; // Vercel serverless এর জন্য
