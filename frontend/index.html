@@ -4,11 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
   <title>Family Fashion Hub | Your Family's Fashion Store</title>
-  <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Font Awesome (icons) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -446,13 +443,19 @@
     .dash-form-group .eye-btn { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #9ca3af; }
     .dash-submit-btn { width: 100%; background: #1f2937; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
     .dash-submit-btn:hover { background: #374151; }
+    .dash-banner { height: 90px; background: linear-gradient(120deg,#60a5fa 0%,#818cf8 40%,#c084fc 70%,#e879f9 100%); border-radius: 10px 10px 0 0; margin: 0; }
     @media (max-width: 640px) {
       .dash-wrap { flex-direction: column; padding: 12px 8px; }
       .dash-sidebar { width: 100%; min-width: unset; border-radius: 8px; margin-bottom: 12px; }
       .dash-content { margin-left: 0; }
       .dash-stats-grid { grid-template-columns: repeat(2,1fr); }
     }
-    .dash-banner { height: 90px; background: linear-gradient(120deg,#60a5fa 0%,#818cf8 40%,#c084fc 70%,#e879f9 100%); border-radius: 10px 10px 0 0; margin: -0px; }
+    @media (max-width: 767px) {
+      #allCatGrid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+    @media (min-width: 768px) {
+      #allCatGrid { grid-template-columns: repeat(4, 1fr) !important; }
+    }
     @media (max-width: 768px) {
       .review-slide { min-width: 100% !important; }
     }
@@ -1611,42 +1614,6 @@
       .rev-dot.active { width: 28px !important; border-radius: 4px !important; background: #f97316 !important; }
     </style>
 
-    <script>
-      (function() {
-        const track = document.getElementById('reviewSliderTrack');
-        const dots = document.querySelectorAll('.rev-dot');
-        let totalSlides = 3;
-        let currentRevSlide = 0;
-        let revTimer;
-        function isMobile() { return window.innerWidth <= 768; }
-        function isTablet() { return window.innerWidth > 768 && window.innerWidth <= 1024; }
-        function getSlidesPerView() { if (isMobile()) return 1; if (isTablet()) return 2; return 3; }
-        function getTotalSlides() { const perView = getSlidesPerView(); return 5 - perView + 1; }
-        window.goToReviewSlide = function(idx) {
-          const max = getTotalSlides();
-          currentRevSlide = Math.max(0, Math.min(idx, max - 1));
-          const perView = getSlidesPerView();
-          const slideWidth = 100 / perView;
-          track.style.transform = `translateX(-${currentRevSlide * slideWidth}%)`;
-          dots.forEach((d, i) => {
-            d.classList.toggle('active', i === currentRevSlide);
-            d.style.width = i === currentRevSlide ? '28px' : '8px';
-            d.style.borderRadius = i === currentRevSlide ? '4px' : '50%';
-            d.style.background = i === currentRevSlide ? '#f97316' : '#d1d5db';
-          });
-        };
-        function startAutoSlide() {
-          revTimer = setInterval(() => {
-            const max = getTotalSlides();
-            currentRevSlide = (currentRevSlide + 1) % max;
-            goToReviewSlide(currentRevSlide);
-          }, 3500);
-        }
-        startAutoSlide();
-        window.addEventListener('resize', () => { goToReviewSlide(0); });
-      })();
-    </script>
-
     <footer id="mainFooter" class="bg-gray-900 text-white mt-16 py-10" style="width:100%;">
       <div class="mx-auto px-4 md:px-6" style="max-width:1200px;">
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8 text-sm">
@@ -1866,13 +1833,6 @@
         goToHome();
       });
 
-      const mobileSearchIcon = document.getElementById('mobileSearchIcon');
-      if (mobileSearchIcon) {
-        mobileSearchIcon.addEventListener('click', () => {
-          mobileSearchBar.classList.toggle('hidden');
-        });
-      }
-
       const categoryPage = document.getElementById('categoryPage');
       let catCurrentProducts = [];
       let catPriceMin = 0;
@@ -2058,7 +2018,7 @@
           setMobileNavActive('menu');
         }
 
-        const meta = { title: cat, icon: '📦', desc: '' };
+        const meta = categoryMeta[cat] || { title: cat, icon: '📦', desc: '' };
 
         document.getElementById('catPageName').innerText = meta.title;
         document.getElementById('catPageIcon').innerText = meta.icon;
@@ -2148,7 +2108,7 @@
         grid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
           btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            const product = products.find(pp => pp.id === parseInt(btn.dataset.id));
+            const product = products.find(pp => pp.id == btn.dataset.id);
             if (product) addToCart(product);
           });
         });
@@ -2164,7 +2124,7 @@
           mGrid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
             btn.addEventListener('click', (e) => {
               e.stopPropagation();
-              const product = products.find(pp => pp.id === parseInt(btn.dataset.id));
+              const product = products.find(pp => pp.id == btn.dataset.id);
               if (product) addToCart(product);
             });
           });
@@ -2939,13 +2899,7 @@
       function performSearch() {
         const term = searchInput.value.trim();
         hideSuggestions();
-        if (window._ffhApiProducts && window._ffhApiProducts.length) {
-          const filtered = window._ffhApiProducts.filter(p => p.name.toLowerCase().includes(term.toLowerCase()));
-          renderProductGrid(filtered);
-          if (categoryTitle) categoryTitle.innerText = term ? `🔍 Search: "${term}"` : '🌿 All Products';
-        } else {
-          renderProductsByCategory(currentCategory, term);
-        }
+        renderProductsByCategory(currentCategory, term);
         goToHome();
       }
 
@@ -2997,8 +2951,7 @@
         activeInput = inputEl;
         if (!term || term.length < 1) { hideSuggestions(); return; }
         const lower = term.toLowerCase();
-        const productSource = (window._ffhApiProducts && window._ffhApiProducts.length) ? window._ffhApiProducts : products;
-        const matched = productSource.filter(p => p.name.toLowerCase().includes(lower));
+        const matched = products.filter(p => p.name.toLowerCase().includes(lower));
         suggestBox.innerHTML = '';
         if (matched.length === 0) {
           suggestBox.innerHTML = '<div style="padding:14px 16px;color:#9ca3af;font-size:13px;text-align:center;">No products found</div>';
@@ -3044,13 +2997,7 @@
       mobileSearchBtn.addEventListener('click', () => {
         const term = mobileSearchInput.value.trim();
         hideSuggestions();
-        if (window._ffhApiProducts && window._ffhApiProducts.length) {
-          const filtered = window._ffhApiProducts.filter(p => p.name.toLowerCase().includes(term.toLowerCase()));
-          renderProductGrid(filtered);
-          if (categoryTitle) categoryTitle.innerText = term ? `🔍 Search: "${term}"` : '🌿 All Products';
-        } else {
-          renderProductsByCategory(currentCategory, term);
-        }
+        renderProductsByCategory(currentCategory, term);
         mobileSearchBar.classList.add('hidden');
         goToHome();
       });
@@ -3059,13 +3006,7 @@
         if (e.key === 'Enter') {
           const term = mobileSearchInput.value.trim();
           hideSuggestions();
-          if (window._ffhApiProducts && window._ffhApiProducts.length) {
-            const filtered = window._ffhApiProducts.filter(p => p.name.toLowerCase().includes(term.toLowerCase()));
-            renderProductGrid(filtered);
-            if (categoryTitle) categoryTitle.innerText = term ? `🔍 Search: "${term}"` : '🌿 All Products';
-          } else {
-            renderProductsByCategory(currentCategory, term);
-          }
+          renderProductsByCategory(currentCategory, term);
           mobileSearchBar.classList.add('hidden');
           goToHome();
         }
@@ -3074,12 +3015,7 @@
 
       searchInput.addEventListener('input', function() {
         if (this.value.trim() === '') {
-          if (window._ffhApiProducts && window._ffhApiProducts.length) {
-            renderProductGrid(window._ffhApiProducts);
-            if (categoryTitle) categoryTitle.innerText = '🌿 All Products';
-          } else {
-            renderProductsByCategory(currentCategory, '');
-          }
+          renderProductsByCategory(currentCategory, '');
         }
       });
 
@@ -3118,7 +3054,7 @@
         updateCartUI();
         showCartPopup();
       }
-      window.addToCart = addToCart;
+window.addToCart = addToCart;
       function removeFromCart(productId) {
         cart = cart.filter(item => item.id !== productId);
         updateCartUI();
@@ -3233,8 +3169,7 @@
         if (cart.length === 0) return;
 
         const firstCartItem = cart[0];
-        const productSource = (window._ffhApiProducts && window._ffhApiProducts.length) ? window._ffhApiProducts : products;
-        const relatedProducts = productSource.filter(p => 
+        const relatedProducts = products.filter(p => 
           p.category === firstCartItem.category && 
           p.id !== firstCartItem.id
         ).slice(0, 4);
@@ -3266,7 +3201,7 @@
         document.querySelectorAll('.addRelatedProduct').forEach(btn => {
           btn.addEventListener('click', (e) => {
             const id = parseInt(e.target.dataset.id);
-            const product = productSource.find(p => p.id === id);
+            const product = products.find(p => p.id === id);
             if (product) addToCart(product, 1);
           });
         });
@@ -3484,13 +3419,41 @@
         currentSlide(autoSlideIndex);
       }, 4000);
 
-      function init() {
-        const dummy = [];
-        renderProductsByCategory('all', '');
-        updateCartUI();
-        setupEventListeners();
+      async function loadProductsFromAPI() {
+        try {
+          const API = window.FFH_API || 'https://familyfashionhub-backend.onrender.com/api';
+          const res = await fetch(API + '/products?limit=500');
+          const data = await res.json();
+          if (data.success && data.data && data.data.length) {
+            products = data.data.map(p => ({
+              id: p._id,
+              _apiId: p._id,
+              name: p.name,
+              price: p.price,
+              oldPrice: p.oldPrice || 0,
+              saving: p.saving || 0,
+              img: p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
+              images: (p.images || []).map(i => i.url || i),
+              description: p.description || '',
+              category: p.category || 'all',
+              onSale: !!p.onSale,
+              soldOut: !!p.soldOut,
+              featured: !!p.featured,
+            }));
+            renderProductsByCategory('all', '');
+            if (categoryPage.classList.contains('active')) {
+              const cat = currentCategory;
+              if (cat !== 'all') showCategoryPage(cat);
+            }
+          }
+        } catch(e) {
+          console.warn('API load failed, using mock data?', e);
+        }
       }
-      init();
+
+      loadProductsFromAPI();
+      updateCartUI();
+      setupEventListeners();
     })();
   </script>
   <script>
@@ -3719,7 +3682,7 @@
 window.FFH_API = (function() {
   var h = window.location.hostname;
   if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:5000/api';
-  return 'https://familyfashionhub.onrender.com/api';
+  return 'https://familyfashionhub-backend.onrender.com/api';
 })();
 let ffhUser = JSON.parse(localStorage.getItem('ffh_user') || 'null');
 let ffhToken = localStorage.getItem('ffh_user_token') || '';
@@ -3764,380 +3727,9 @@ function _ffhRenderDashOrders(orders) {
   if (listEl)   listEl.innerHTML   = orders.map(orderCard).join('');
 }
 
-async function loadProductsFromAPI() {
-  try {
-    const res = await fetch(window.FFH_API + '/products?limit=200');
-    const data = await res.json();
-    if (!data.success || !data.data || !data.data.length) return;
-
-    var apiMapped = data.data.map(function(p, idx) {
-      return {
-        id: p._id,
-        _apiId: p._id,
-        name: p.name,
-        price: p.price,
-        oldPrice: p.oldPrice || 0,
-        saving: p.saving || 0,
-        img: p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
-        images: (p.images || []).map(function(i){ return i.url || i; }),
-        description: p.description || '',
-        category: p.category || 'all',
-        subcategory: p.subcategory || '',
-        onSale: !!p.onSale,
-        soldOut: !!p.soldOut,
-        featured: !!p.featured,
-      };
-    });
-
-    window.apiProducts = apiMapped;
-    window._ffhApiProducts = apiMapped;
-
-    var _origFilter = window.filterByCategory;
-    window.filterByCategory = function(cat) {
-      if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
-        if (_origFilter) _origFilter(cat);
-        setTimeout(function() {
-          var catProducts = cat === 'all'
-            ? window._ffhApiProducts
-            : window._ffhApiProducts.filter(function(p) { return p.category === cat; });
-          var catGrid   = document.getElementById('catProductGrid');
-          var catGridM  = document.getElementById('catProductGridMobile');
-          var catEmpty  = document.getElementById('catEmptyState');
-          var catEmptyM = document.getElementById('catEmptyStateMobile');
-          if (catGrid && cat !== 'all') {
-            _ffhRenderCatGrid(catProducts, catGrid, catGridM, catEmpty, catEmptyM);
-          }
-          var homeGrid = document.getElementById('productGrid');
-          if (homeGrid) {
-            _ffhRenderHomeGrid(catProducts, homeGrid);
-          }
-        }, 50);
-      } else {
-        if (_origFilter) _origFilter(cat);
-      }
-    };
-
-    var _origRender = window.renderProductsByCategory;
-    window.renderProductsByCategory = function(cat, searchTerm) {
-      if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
-        var filtered = window._ffhApiProducts;
-        if (cat && cat !== 'all') {
-          filtered = filtered.filter(function(p){ return p.category === cat; });
-        }
-        if (searchTerm) {
-          var q = searchTerm.toLowerCase();
-          filtered = filtered.filter(function(p){ return p.name.toLowerCase().includes(q); });
-        }
-        var homeGrid = document.getElementById('productGrid');
-        if (homeGrid) _ffhRenderHomeGrid(filtered, homeGrid);
-      } else {
-        if (_origRender) _origRender(cat, searchTerm);
-      }
-    };
-
-    var homeGrid = document.getElementById('productGrid');
-    if (homeGrid) _ffhRenderHomeGrid(apiMapped, homeGrid);
-
-  } catch(e) {
-    console.warn('[FFH] Product API unavailable:', e.message);
-  }
-}
-
-function _ffhRenderHomeGrid(productList, gridEl) {
-  if (!gridEl) return;
-  if (!productList || productList.length === 0) {
-    gridEl.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500">কোনো পণ্য পাওয়া যায়নি</p>';
-    return;
-  }
-  gridEl.innerHTML = '';
-  productList.forEach(function(p) {
-    var card = document.createElement('div');
-    card.className = 'product-card bg-white border border-gray-100 shadow-sm';
-    card.dataset.id = p.id;
-
-    var badgeHtml = '';
-    if (p.soldOut)      badgeHtml = '<div class="soldout-badge">Sold Out</div>';
-    else if (p.onSale)  badgeHtml = '<div class="sale-badge">ছাড়!</div>';
-
-    var discHtml = '';
-    if (p.oldPrice && p.price && p.oldPrice > p.price) {
-      var disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
-      if (disc > 0) discHtml = '<div class="discount-badge">Save: '+(p.oldPrice-p.price)+'ট (-'+disc+'%)</div>';
-    }
-
-    card.innerHTML = '<div class="card-container">'
-      + discHtml + badgeHtml
-      + '<div class="card-image-wrapper"><img src="'+p.img+'" class="card-image" alt="'+p.name+'" onerror="this.src=\'https://placehold.co/300x300?text=No+Image\'"></div>'
-      + '<div class="card-content">'
-      + '<h3 class="card-title">'+p.name+'</h3>'
-      + '<div class="card-price"><span class="price-new">'+p.price+'ট</span>'
-      + (p.oldPrice ? '<span class="price-old">'+p.oldPrice+'ট</span>' : '')+'</div>'
-      + '<button class="quick-add-btn api-cart-btn" data-pid="'+p.id+'" '+(p.soldOut?'disabled':'')+'>'
-      + (p.soldOut ? 'Sold Out' : '🛒 Add To Cart')+'</button>'
-      + '</div></div>';
-
-    card.querySelector('.api-cart-btn:not([disabled])')?.addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (typeof addToCart === 'function') addToCart(p);
-    });
-    card.addEventListener('click', function(e) {
-      if (e.target.closest('.quick-add-btn')) return;
-      window._ffhCurrentDetailProduct = p;
-      _ffhShowApiDetail(p);
-    });
-    gridEl.appendChild(card);
-  });
-}
-
-function _ffhRenderCatGrid(productList, grid, mGrid, empty, mEmpty) {
-  if (!grid) return;
-  grid.innerHTML = '';
-  if (mGrid) mGrid.innerHTML = '';
-
-  if (!productList || productList.length === 0) {
-    if (empty)  { empty.style.display='block';  grid.style.display='none'; }
-    if (mEmpty) { mEmpty.style.display='block'; }
-    if (mGrid)  { mGrid.style.display='none'; }
-    return;
-  }
-  if (empty)  { empty.style.display='none';  grid.style.display='grid'; }
-  if (mEmpty) mEmpty.style.display='none';
-  if (mGrid)  mGrid.style.display='grid';
-
-  productList.forEach(function(p) {
-    var card = document.createElement('div');
-    card.className = 'product-card bg-white border border-gray-100 shadow-sm';
-    card.dataset.id = p.id;
-
-    var badgeHtml = '';
-    if (p.soldOut)      badgeHtml = '<div class="soldout-badge">Sold Out</div>';
-    else if (p.onSale)  badgeHtml = '<div class="sale-badge">ছাড়!</div>';
-    var discHtml = '';
-    if (p.oldPrice && p.price && p.oldPrice > p.price) {
-      var disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
-      if (disc > 0) discHtml = '<div class="discount-badge">Save: '+(p.oldPrice-p.price)+'ট (-'+disc+'%)</div>';
-    }
-
-    card.innerHTML = '<div class="card-container">'
-      + discHtml + badgeHtml
-      + '<div class="card-image-wrapper"><img src="'+p.img+'" class="card-image" alt="'+p.name+'" onerror="this.src=\'https://placehold.co/300x300?text=No+Image\'"></div>'
-      + '<div class="card-content">'
-      + '<h3 class="card-title">'+p.name+'</h3>'
-      + '<div class="card-price"><span class="price-new">'+p.price+'ট</span>'
-      + (p.oldPrice ? '<span class="price-old">'+p.oldPrice+'ট</span>' : '')+'</div>'
-      + '<button class="cat-quick-add-btn quick-add-btn" data-pid="'+p.id+'" '+(p.soldOut?'disabled':'')+'>'
-      + (p.soldOut ? 'Sold Out' : '🛒 Add To Cart')+'</button>'
-      + '</div></div>';
-
-    card.querySelector('.cat-quick-add-btn:not([disabled])')?.addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (typeof addToCart === 'function') addToCart(p);
-    });
-    card.addEventListener('click', function(e) {
-      if (e.target.closest('.quick-add-btn')) return;
-      _ffhShowApiDetail(p);
-    });
-    grid.appendChild(card);
-    if (mGrid) mGrid.appendChild(card.cloneNode(true));
-  });
-
-  if (mGrid) {
-    mGrid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var prod = (window._ffhApiProducts||[]).find(function(pp){ return pp.id === btn.closest('.product-card').dataset.id; });
-        if (prod && typeof addToCart === 'function') addToCart(prod);
-      });
-    });
-    mGrid.querySelectorAll('.product-card').forEach(function(c) {
-      c.addEventListener('click', function(e) {
-        if (e.target.closest('.quick-add-btn')) return;
-        var prod = (window._ffhApiProducts||[]).find(function(pp){ return pp.id === c.dataset.id; });
-        if (prod) _ffhShowApiDetail(prod);
-      });
-    });
-  }
-}
-
-function _ffhShowApiDetail(p) {
-  var detailPage = document.getElementById('productDetailPage');
-  var homePage   = document.getElementById('homePage');
-  var catPage    = document.getElementById('categoryPage');
-  if (!detailPage) return;
-
-  var nameEl   = document.getElementById('detailPageTitle');
-  var priceEl  = document.getElementById('detailPagePrice');
-  var oldPriceEl = document.getElementById('detailPageOldPrice');
-  var descEl   = document.getElementById('detailPageDescription');
-  var mainImg  = document.getElementById('detailPageImg');
-
-  if (nameEl)    nameEl.textContent    = p.name;
-  if (priceEl)   priceEl.textContent   = p.price;
-  if (oldPriceEl && p.oldPrice) { oldPriceEl.textContent = p.oldPrice; oldPriceEl.parentElement.style.display = ''; }
-  if (descEl)    descEl.textContent    = p.description || '';
-  if (mainImg)   { mainImg.src = p.img; mainImg.alt = p.name; }
-
-  var thumbContainer = document.getElementById('detailThumbStrip');
-  if (thumbContainer && p.images && p.images.length) {
-    thumbContainer.innerHTML = p.images.map(function(imgUrl, i) {
-      return '<div style="width:56px;height:56px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#f9fafb;border:2px solid '+(i===0?'#f97316':'#e5e7eb')+';flex-shrink:0;transition:border-color 0.2s;"><img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:contain;" onclick="document.getElementById(\'detailPageImg\').src=\''+imgUrl+'\'; this.parentNode.parentNode.querySelectorAll(\'div\').forEach(function(d){ d.style.borderColor=\'#e5e7eb\'; }); this.parentNode.style.borderColor=\'#f97316\';"></div>';
-    }).join('');
-  }
-
-  var cartBtn = document.getElementById('detailPageAddToCart');
-  if (cartBtn) {
-    cartBtn.onclick = function() {
-      if (typeof addToCart === 'function') addToCart(p);
-    };
-  }
-
-  if (homePage) homePage.classList.add('hidden');
-  if (catPage)  { catPage.classList.remove('active'); catPage.classList.add('detail-page'); }
-  detailPage.classList.add('active');
-  detailPage.classList.remove('detail-page');
-  window.scrollTo({ top: 0 });
-}
-
-async function loadSiteSettings() {
-  try {
-    const res = await fetch(window.FFH_API + '/settings');
-    const data = await res.json();
-    if (data.success) {
-      if (data.data.phone) {
-        const phoneText = document.getElementById('navPhoneText');
-        const phoneLink = document.getElementById('navPhoneLink');
-        if (phoneText) phoneText.textContent = '+88' + data.data.phone;
-        if (phoneLink) phoneLink.href = 'tel:+88' + data.data.phone;
-      }
-    }
-  } catch(e) {}
-}
-
-var FFH_DEFAULT_CATS = [
-  { value:'baby_dress',  label:'🧸 Baby Dress', subcategories:[
-    {value:'newborn_set',label:'Newborn Set (0-6 Months)'},
-    {value:'cotton_dress',label:'Cotton Dress (Summer Comfort)'},
-    {value:'winter_dress',label:'Winter Dress'},
-    {value:'frocks_tshirts',label:'Frocks, T-Shirts & Pants'}
-  ]},
-  { value:'toys', label:'🧸 Toys', subcategories:[
-    {value:'soft_toys',label:'Soft Toys (Dolls)'},
-    {value:'sound_toys',label:'সাউন্ড টয় (Musical Toys)'},
-    {value:'educational_toys',label:'Educational Toys (ABC/Numbers)'},
-    {value:'baby_rattle',label:'Baby Rattle'}
-  ]},
-  { value:'feeding', label:'🍼 Feeding Items', subcategories:[
-    {value:'feeding_bottle',label:'Feeding Bottle'},
-    {value:'feeding_bowl',label:'Baby Feeding Bowl + Spoon'},
-    {value:'sipper_cup',label:'Sipper Cup'},
-    {value:'feeding_chair',label:'Baby Feeding Chair'}
-  ]},
-  { value:'baby_care', label:'🛁 Baby Care', subcategories:[
-    {value:'soap_shampoo',label:'Baby Soap & Shampoo'},
-    {value:'lotion_oil',label:'Baby Lotion / Oil'},
-    {value:'wet_tissue',label:'Wet Tissue'},
-    {value:'diaper',label:'Diaper'}
-  ]},
-  { value:'baby_bedding', label:'👶 Essentials', subcategories:[
-    {value:'mosquito_net',label:'Baby Mosquito Net'},
-    {value:'baby_bed',label:'Baby Bed / Nest'},
-    {value:'blanket',label:'Baby Blanket'},
-    {value:'towel',label:'Baby Towel'}
-  ]},
-  { value:'trending', label:'🔥 Trending', subcategories:[
-    {value:'baby_carrier',label:'Baby Carrier'},
-    {value:'baby_walker',label:'Baby Walker'},
-    {value:'nail_cutter',label:'Baby Nail Cutter Set'},
-    {value:'thermometer',label:'Baby Thermometer'}
-  ]}
-];
-
-async function loadNavCategories() {
-  var cats = FFH_DEFAULT_CATS;
-  try {
-    var res  = await fetch(window.FFH_API + '/categories');
-    var json = await res.json();
-    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-      cats = json.data;
-    }
-  } catch(e) { }
-
-  renderDesktopNav(cats);
-  renderMobileAccordion(cats);
-}
-
-function renderDesktopNav(cats) {
-  var skeleton = document.getElementById('navSkeletonBar');
-  var container = document.getElementById('navCatItems');
-  var phoneWrap = document.getElementById('navPhoneWrap');
-  if (skeleton)   skeleton.style.display = 'none';
-  if (phoneWrap)  phoneWrap.style.display = '';
-  if (!container) return;
-
-  container.innerHTML = cats.map(function(cat) {
-    var subs = (cat.subcategories || []);
-    var subHTML = subs.length > 0
-      ? subs.map(function(s) {
-          return '<a href="#" onclick="event.preventDefault();ffhNavFilter(\'' + cat.value + '\',\'' + s.value + '\')"'
-               + ' class="block px-4 py-2 hover:bg-gray-100">' + s.label + '</a>';
-        }).join('')
-      : '<span style="display:block;padding:10px 16px;font-size:12px;color:#9ca3af;">কোনো সাব-ক্যাটাগরি নেই</span>';
-
-    return '<div class="group relative">'
-         +   '<button class="hover:text-orange-400 transition py-2 flex items-center gap-1 whitespace-nowrap"'
-         +   ' onclick="ffhNavFilter(\'' + cat.value + '\',\'\')">'
-         +   cat.label
-         +   ' <i class="fas fa-chevron-down text-xs"></i>'
-         +   '</button>'
-         +   '<div class="">' + subHTML + '</div>'
-         + '</div>';
-  }).join('');
-}
-
-var PLUS_SVG_DYN  = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2V14M2 8H14" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg>';
-var MINUS_SVG_DYN = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8H14" stroke="#374151" stroke-width="2" stroke-linecap="round"/></svg>';
-
-function renderMobileAccordion(cats) {
-  var listEl = document.getElementById('mobAccordionList');
-  if (!listEl) return;
-
-  var html = cats.map(function(cat, idx) {
-    var accId  = 'mob-acc-dyn-' + idx;
-    var iconId = accId + '-icon';
-    var subs   = (cat.subcategories || []);
-    var subLinks = subs.length > 0
-      ? subs.map(function(s) {
-          return '<a href="#" onclick="event.preventDefault();closeMobMenuAndFilter(\'' + cat.value + '\')">'
-               + '<span class="sub-dot"></span>' + s.label + '</a>';
-        }).join('')
-      : '<span style="padding:10px 20px 10px 52px;font-size:12px;color:#9ca3af;display:block;">কোনো সাব-ক্যাটাগরি নেই</span>';
-
-    return '<div class="mob-acc-item">'
-         +   '<button class="mob-acc-btn" onclick="mobAccToggle(\'' + accId + '\',this)">'
-         +     '<div class="btn-left"><span class="cat-label">' + cat.label + '</span></div>'
-         +     '<div class="btn-right">'
-         +       '<span class="mob-acc-toggle" id="' + iconId + '">' + PLUS_SVG_DYN + '</span>'
-         +     '</div>'
-         +   '</button>'
-         +   '<div class="mob-acc-sub" id="' + accId + '">' + subLinks + '</div>'
-         + '</div>';
-  }).join('');
-
-  listEl.innerHTML = html;
-}
-
-window.ffhNavFilter = function(catValue, subValue) {
-  if (typeof filterByCategory === 'function') {
-    filterByCategory(catValue);
-  }
-};
-
 document.addEventListener('DOMContentLoaded', () => {
   _ffhRestoreSession();
-  loadProductsFromAPI();
-  loadSiteSettings();
-  loadNavCategories();
 });
 </script>
 </body>
-</html>  
+</html>
