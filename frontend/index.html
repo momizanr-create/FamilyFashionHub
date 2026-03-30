@@ -13,40 +13,255 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-    * { font-family: 'Hind Siliguri', 'Poppins', sans-serif; margin: 0; padding: 0; box-sizing: border-box; }
+    * { 
+      font-family: 'Hind Siliguri', 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
     html { scroll-behavior: smooth; }
-    body { background-color: #f9fafb; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; min-height: 100vh; width: 100%; font-family: 'Hind Siliguri', 'Poppins', sans-serif; padding-top: 0; overflow-x: hidden; }
-    .main-container { padding-top: 40px; max-width: 1200px; width: 100%; margin: 0 auto; background-color: #f9fafb; }
-    .product-card { transition: all 0.3s ease; cursor: pointer; position: relative; }
-    .product-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
-    .card-container { background: white; border-radius: 0; padding: 0; overflow: hidden; border: 1px solid #e5e7eb; display: flex; flex-direction: column; height: 100%; position: relative; }
-    .discount-badge { position: absolute; top: 12px; left: 12px; background: linear-gradient(135deg,#6d28d9 0%,#7c3aed 100%); color: white; padding: 6px 12px; border-radius: 0; font-size: 11px; font-weight: 700; z-index: 10; letter-spacing: 0.3px; }
-    .special-badge { position: absolute; bottom: 80px; right: 12px; width: 50px; height: 50px; background: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 10px; text-align: center; z-index: 10; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
-    .sale-badge { position: absolute; top: 10px; left: 10px; background: #10b981; color: white; padding: 4px 10px; border-radius: 0; font-size: 12px; font-weight: bold; z-index: 2; }
-    .soldout-badge { position: absolute; top: 10px; left: 10px; background: #6b7280; color: white; padding: 4px 10px; border-radius: 0; font-size: 12px; font-weight: bold; z-index: 2; }
-    .organic-badge { position: absolute; top: 10px; right: 10px; background: #059669; color: white; padding: 4px 10px; border-radius: 0; font-size: 12px; font-weight: bold; z-index: 2; }
-    .card-image-wrapper { width: 100%; height: 180px; background: #f9fafb; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-    @media (min-width: 1024px) { .card-image-wrapper { height: 180px; } }
-    .card-image { width: 100%; height: 100%; object-fit: cover; padding: 0; transition: transform 0.3s ease; }
-    .product-card:hover .card-image { transform: scale(1.08); }
-    .card-content { padding: 16px 14px; flex-grow: 1; display: flex; flex-direction: column; }
-    .card-title { font-size: 14px; font-weight: 600; color: #1f2937; margin: 0 0 10px 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .card-price { display: flex; align-items: baseline; gap: 8px; margin: 0 0 12px 0; }
-    .price-new { font-size: 16px; font-weight: 700; color: #dc2626; }
-    .price-old { font-size: 13px; color: #9ca3af; text-decoration: line-through; }
-    .quick-add-btn { background: linear-gradient(135deg,#22c55e 0%,#16a34a 100%); color: white; border: none; padding: 10px 12px; border-radius: 0; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; width: 100%; position: relative; z-index: 5; margin-top: auto; }
-    .quick-add-btn:hover:not(:disabled) { background: linear-gradient(135deg,#16a34a 0%,#15803d 100%); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(34,197,94,0.3); }
-    .quick-add-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    @media (min-width: 768px) { #homePage { margin-top: 120px !important; } #categoryPage { margin-top: 56px !important; } #productDetailPage { margin-top: 56px !important; } #signInBreadcrumbPage { margin-top: 120px !important; } #loginPage { margin-top: 120px !important; } #registerPage { margin-top: 120px !important; } #dashboardPage { margin-top: 120px !important; } }
-    @media (max-width: 767px) { #homePage { margin-top: 56px !important; } #categoryPage { margin-top: 0px !important; } #productDetailPage { margin-top: 0px !important; } #signInBreadcrumbPage { margin-top: 56px !important; } #loginPage { margin-top: 56px !important; } #registerPage { margin-top: 56px !important; } #dashboardPage { margin-top: 56px !important; } }
+    body { 
+      background-color: #f9fafb; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      width: 100%;
+      font-family: 'Hind Siliguri', 'Poppins', sans-serif;
+      padding-top: 0;
+      overflow-x: hidden;
+    }
+    .main-container {
+      padding-top: 40px;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      background-color: #f9fafb;
+    }
+    .product-card { 
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    .product-card:hover {
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    }
+    .card-container {
+      background: white;
+      border-radius: 0;
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+    }
+    .discount-badge {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 0;
+      font-size: 11px;
+      font-weight: 700;
+      z-index: 10;
+      letter-spacing: 0.3px;
+    }
+    .special-badge {
+      position: absolute;
+      bottom: 80px;
+      right: 12px;
+      width: 50px;
+      height: 50px;
+      background: #ef4444;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 10px;
+      text-align: center;
+      z-index: 10;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+    .sale-badge { 
+      position: absolute; 
+      top: 10px; 
+      left: 10px; 
+      background: #10b981; 
+      color: white; 
+      padding: 4px 10px; 
+      border-radius: 0; 
+      font-size: 12px; 
+      font-weight: bold; 
+      z-index: 2; 
+    }
+    .soldout-badge { 
+      position: absolute; 
+      top: 10px; 
+      left: 10px; 
+      background: #6b7280; 
+      color: white; 
+      padding: 4px 10px; 
+      border-radius: 0; 
+      font-size: 12px; 
+      font-weight: bold; 
+      z-index: 2; 
+    }
+    .organic-badge { 
+      position: absolute; 
+      top: 10px; 
+      right: 10px; 
+      background: #059669; 
+      color: white; 
+      padding: 4px 10px; 
+      border-radius: 0; 
+      font-size: 12px; 
+      font-weight: bold; 
+      z-index: 2; 
+    }
+    .card-image-wrapper {
+      width: 100%;
+      height: 180px;
+      background: #f9fafb;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    @media (min-width: 1024px) {
+      .card-image-wrapper {
+        height: 180px;
+      }
+    }
+    .card-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      padding: 0;
+      transition: transform 0.3s ease;
+    }
+    .product-card:hover .card-image {
+      transform: scale(1.08);
+    }
+    .card-content {
+      padding: 16px 14px;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1f2937;
+      margin: 0 0 10px 0;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .card-price {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin: 0 0 12px 0;
+    }
+    .price-new {
+      font-size: 16px;
+      font-weight: 700;
+      color: #dc2626;
+    }
+    .price-old {
+      font-size: 13px;
+      color: #9ca3af;
+      text-decoration: line-through;
+    }
+    .quick-add-btn {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+      color: white;
+      border: none;
+      padding: 10px 12px;
+      border-radius: 0;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+      position: relative;
+      z-index: 5;
+      margin-top: auto;
+    }
+    .quick-add-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
+    }
+    .quick-add-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    @media (min-width: 768px) {
+      #homePage { margin-top: 120px !important; }
+      #categoryPage { margin-top: 56px !important; }
+      #productDetailPage { margin-top: 56px !important; }
+      #signInBreadcrumbPage { margin-top: 120px !important; }
+      #loginPage { margin-top: 120px !important; }
+      #registerPage { margin-top: 120px !important; }
+      #dashboardPage { margin-top: 120px !important; }
+    }
+    @media (max-width: 767px) {
+      #homePage { margin-top: 56px !important; }
+      #categoryPage { margin-top: 0px !important; }
+      #productDetailPage { margin-top: 0px !important; }
+      #signInBreadcrumbPage { margin-top: 56px !important; }
+      #loginPage { margin-top: 56px !important; }
+      #registerPage { margin-top: 56px !important; }
+      #dashboardPage { margin-top: 56px !important; }
+    }
     .slider-dot { transition: width 0.2s; }
-    #sliderContainer { height: 320px; }
-    #sliderContainer .min-w-full { height: 320px; }
-    @media (max-width: 767px) { #sliderSection { padding-left: 10px !important; padding-right: 10px !important; padding-top: 8px !important; } #sliderWrapper { border-radius: 14px !important; overflow: hidden !important; } #sliderContainer { height: auto !important; aspect-ratio: 390 / 220; } #sliderContainer .min-w-full { height: 100% !important; aspect-ratio: 390 / 220; } }
+    #sliderContainer {
+      height: 320px;
+    }
+    #sliderContainer .min-w-full {
+      height: 320px;
+    }
+    @media (max-width: 767px) {
+      #sliderSection {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+        padding-top: 8px !important;
+      }
+      #sliderWrapper {
+        border-radius: 14px !important;
+        overflow: hidden !important;
+      }
+      #sliderContainer {
+        height: auto !important;
+        aspect-ratio: 390 / 220;
+      }
+      #sliderContainer .min-w-full {
+        height: 100% !important;
+        aspect-ratio: 390 / 220;
+      }
+    }
     .popup-scale { animation: scaleIn 0.2s ease-out; }
-    @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-    #successPopup:not(.invisible) #successPopupBox { animation: successBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
-    @keyframes successBounce { 0% { opacity: 0; transform: scale(0.7) translateY(30px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    #successPopup:not(.invisible) #successPopupBox {
+      animation: successBounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes successBounce {
+      0%   { opacity: 0; transform: scale(0.7) translateY(30px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
     .go-top { transition: 0.2s; }
     .go-top:hover { transform: translateY(-3px); }
     .description-full { font-size: 1.1rem; line-height: 1.7; }
@@ -58,39 +273,144 @@
     .collection-text { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.7), transparent); color: white; padding: 20px 12px 12px; font-weight: bold; font-size: 1.2rem; }
     .mobile-menu { transition: transform 0.3s ease; transform: translateX(-100%); }
     .mobile-menu.open { transform: translateX(0); }
-    #menuToggle span { transition: transform 0.28s ease, opacity 0.2s ease, width 0.2s ease; }
+    #menuToggle span {
+      transition: transform 0.28s ease, opacity 0.2s ease, width 0.2s ease;
+    }
     .modal-no-close { pointer-events: auto; }
     .detail-page { display: none; }
     .detail-page.active { display: block; }
     .home-page { display: block; }
     .home-page.hidden { display: none; }
-    .feat-cat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
-    @media (max-width: 900px) { .feat-cat-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 560px) { .feat-cat-grid { grid-template-columns: repeat(2, 1fr); } .feat-cat-card { padding: 12px 10px !important; } }
-    .product-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; }
-    @media (max-width: 1024px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (max-width: 768px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (max-width: 480px) { .product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; } }
+    .feat-cat-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+    @media (max-width: 900px) {
+      .feat-cat-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 560px) {
+      .feat-cat-grid { grid-template-columns: repeat(2, 1fr); }
+      .feat-cat-card { padding: 12px 10px !important; }
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+    }
+    @media (max-width: 1024px) {
+      .product-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 768px) {
+      .product-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 480px) {
+      .product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    }
     nav .container { max-width: 1200px; width: 100%; margin: 0 auto; }
     footer .container { max-width: 1200px; width: 100%; margin: 0 auto; }
-    #mainNav { width: 100%; position: fixed; top: 0; left: 0; right: 0; z-index: 40; background: white; overflow: visible; }
-    #topNavBar { position: relative; z-index: 45; background: white; transition: opacity 0.3s ease; }
+    #mainNav {
+      width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 40;
+      background: white;
+      overflow: visible;
+    }
+    #topNavBar {
+      position: relative;
+      z-index: 45;
+      background: white;
+      transition: opacity 0.3s ease;
+    }
     * { box-sizing: border-box; }
     img { max-width: 100%; height: auto; }
     .main-container { overflow-x: hidden; }
-    @media (max-width: 767px) { html, body { overflow-x: hidden; width: 100%; } .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; } #categoryPage > div > div[style*="flex"] { flex-direction: column !important; } #catSidebar { width: 100% !important; min-width: unset !important; } #catProductGrid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; } #allCategoriesPage > div > div[style*="grid"] { grid-template-columns: repeat(2, 1fr) !important; } .feat-cat-grid { grid-template-columns: repeat(2, 1fr) !important; } .detail-main-grid { grid-template-columns: 1fr !important; } #bottomNavBar { display: none !important; } .price-new { font-size: 14px !important; } .price-old { font-size: 12px !important; } .card-title { font-size: 13px !important; } .quick-add-btn { font-size: 12px !important; padding: 8px 6px !important; } .dash-wrap { flex-direction: column !important; padding: 8px !important; } .dash-sidebar { width: 100% !important; min-width: unset !important; } .dash-content { margin-left: 0 !important; } .dash-stats-grid { grid-template-columns: repeat(2, 1fr) !important; } }
-    @media (max-width: 480px) { .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6px !important; } .card-image-wrapper { height: 150px !important; } }
-    #bottomNavBar { position: sticky; top: 60px; background: #111827; z-index: 30; width: 100vw; margin-left: calc(-50vw + 50%); overflow: visible !important; }
+    @media (max-width: 767px) {
+      html, body { overflow-x: hidden; width: 100%; }
+      .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+      #categoryPage > div > div[style*="flex"] { flex-direction: column !important; }
+      #catSidebar { width: 100% !important; min-width: unset !important; }
+      #catProductGrid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px !important; }
+      #allCategoriesPage > div > div[style*="grid"] { grid-template-columns: repeat(2, 1fr) !important; }
+      .feat-cat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+      .detail-main-grid { grid-template-columns: 1fr !important; }
+      #bottomNavBar { display: none !important; }
+      .price-new { font-size: 14px !important; }
+      .price-old { font-size: 12px !important; }
+      .card-title { font-size: 13px !important; }
+      .quick-add-btn { font-size: 12px !important; padding: 8px 6px !important; }
+      .dash-wrap { flex-direction: column !important; padding: 8px !important; }
+      .dash-sidebar { width: 100% !important; min-width: unset !important; }
+      .dash-content { margin-left: 0 !important; }
+      .dash-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+    @media (max-width: 480px) {
+      .product-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6px !important; }
+      .card-image-wrapper { height: 150px !important; }
+    }
+    #bottomNavBar {
+      position: sticky;
+      top: 60px;
+      background: #111827;
+      z-index: 30;
+      width: 100vw;
+      margin-left: calc(-50vw + 50%);
+      overflow: visible !important;
+    }
     #bottomNavBar .mx-auto { overflow: visible !important; }
     #bottomNavBar > div { overflow: visible !important; }
     #bottomNavBar .group { position: relative; }
-    #bottomNavBar .group > div { position: absolute; left: 0; top: 100%; width: 220px; background: white; border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none; z-index: 9999; padding-top: 8px; padding-bottom: 8px; }
+    #bottomNavBar .group > div {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      width: 220px;
+      background: white;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      z-index: 9999;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
     #bottomNavBar .group:hover > div { display: block; }
-    #bottomNavBar .group > div a { display: block; padding: 10px 20px; color: #374151; font-weight: 400; text-decoration: none; font-size: 14px; }
-    #bottomNavBar .group > div a:hover { background-color: #f3f4f6; color: #111827; }
-    .detail-main-grid { display: grid; grid-template-columns: 280px 1fr 260px; gap: 14px; align-items: start; }
-    @media (max-width: 1024px) { .detail-main-grid { grid-template-columns: 1fr 1fr; } .detail-main-grid > div:last-child { grid-column: 1 / -1; } }
-    @media (max-width: 640px) { .detail-main-grid { grid-template-columns: 1fr; } .detail-main-grid > div:last-child { grid-column: auto; } }
+    #bottomNavBar .group > div a {
+      display: block;
+      padding: 10px 20px;
+      color: #374151;
+      font-weight: 400;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    #bottomNavBar .group > div a:hover {
+      background-color: #f3f4f6;
+      color: #111827;
+    }
+    .detail-main-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr 260px;
+      gap: 14px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .detail-main-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .detail-main-grid > div:last-child {
+        grid-column: 1 / -1;
+      }
+    }
+    @media (max-width: 640px) {
+      .detail-main-grid {
+        grid-template-columns: 1fr;
+      }
+      .detail-main-grid > div:last-child {
+        grid-column: auto;
+      }
+    }
     .dash-wrap { display: flex; gap: 0; max-width: 1200px; margin: 0 auto; padding: 24px 16px; min-height: calc(100vh - 160px); }
     .dash-sidebar { width: 200px; min-width: 200px; background: #1f2937; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
     .dash-sidebar-header { background: linear-gradient(135deg,#6366f1,#8b5cf6,#a855f7); padding: 20px 16px 18px; }
@@ -128,13 +448,29 @@
     .dash-submit-btn { width: 100%; background: #1f2937; color: white; border: none; padding: 12px; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; transition: background 0.2s; }
     .dash-submit-btn:hover { background: #374151; }
     .dash-banner { height: 90px; background: linear-gradient(120deg,#60a5fa 0%,#818cf8 40%,#c084fc 70%,#e879f9 100%); border-radius: 10px 10px 0 0; margin: 0; }
-    @media (max-width: 640px) { .dash-wrap { flex-direction: column; padding: 12px 8px; } .dash-sidebar { width: 100%; min-width: unset; border-radius: 8px; margin-bottom: 12px; } .dash-content { margin-left: 0; } .dash-stats-grid { grid-template-columns: repeat(2,1fr); } }
-    @media (max-width: 767px) { #allCatGrid { grid-template-columns: repeat(2, 1fr) !important; } }
-    @media (min-width: 768px) { #allCatGrid { grid-template-columns: repeat(4, 1fr) !important; } }
-    @media (max-width: 768px) { .review-slide { min-width: 100% !important; } }
-    @media (min-width: 769px) and (max-width: 1024px) { .review-slide { min-width: 50% !important; } }
+    @media (max-width: 640px) {
+      .dash-wrap { flex-direction: column; padding: 12px 8px; }
+      .dash-sidebar { width: 100%; min-width: unset; border-radius: 8px; margin-bottom: 12px; }
+      .dash-content { margin-left: 0; }
+      .dash-stats-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 767px) {
+      #allCatGrid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+    @media (min-width: 768px) {
+      #allCatGrid { grid-template-columns: repeat(4, 1fr) !important; }
+    }
+    @media (max-width: 768px) {
+      .review-slide { min-width: 100% !important; }
+    }
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .review-slide { min-width: 50% !important; }
+    }
     .rev-dot.active { width: 28px !important; border-radius: 4px !important; background: #f97316 !important; }
-    @media (max-width: 768px) { .review-grid-wrap { grid-template-columns: 1fr !important; } #detailRelatedGrid { grid-template-columns: repeat(2,1fr) !important; } }
+    @media (max-width: 768px) {
+      .review-grid-wrap { grid-template-columns: 1fr !important; }
+      #detailRelatedGrid { grid-template-columns: repeat(2,1fr) !important; }
+    }
 </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased" dir="ltr">
@@ -3383,237 +3719,663 @@ window.addToCart = addToCart;
     });
   })();
   </script>
-   <script>
-    (function() {
-      // ---------- API CONFIG ----------
-      window.FFH_API = (function() {
-        let host = window.location.hostname;
-        if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:5000/api';
-        return 'https://familyfashionhub.onrender.com/api';
-      })();
+<script>
+  // ================================
+  // 1. API কনফিগারেশন
+  // ================================
+  window.FFH_API = (function() {
+    var host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:5000/api';
+    return 'https://familyfashionhub.onrender.com/api';
+  })();
 
-      let allProducts = [];       // will hold products from API
-      let cart = [];
-      let isLoggedIn = false;
-      let loggedInUser = {};
+  // গ্লোবাল ভেরিয়েবল
+  let allProducts = [];            // API থেকে লোড হওয়া সকল পণ্য
+  let cart = JSON.parse(localStorage.getItem('ffh_cart') || '[]');
+  let currentCategory = 'all';
+  let currentProduct = null;
+  let isLoggedIn = false;
+  let loggedInUser = { name: '', email: '', phone: '' };
+  let userReviews = [];
+  let ffhUser = JSON.parse(localStorage.getItem('ffh_user') || 'null');
+  let ffhToken = localStorage.getItem('ffh_user_token') || '';
 
-      // ---------- FETCH PRODUCTS FROM API ----------
-      async function fetchProducts() {
-        try {
-          const res = await fetch(window.FFH_API + '/products?limit=200');
-          const data = await res.json();
-          if (data.success && data.data) {
-            allProducts = data.data.map(p => ({
-              id: p._id,
-              name: p.name,
-              price: p.price,
-              oldPrice: p.oldPrice || 0,
-              img: p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
-              description: p.description || '',
-              category: p.category || 'all',
-              onSale: !!p.onSale,
-              soldOut: !!p.soldOut
-            }));
-            return allProducts;
-          }
-          return [];
-        } catch(e) { console.warn(e); return []; }
+  // DOM এলিমেন্ট
+  const homePage = document.getElementById('homePage');
+  const detailPage = document.getElementById('productDetailPage');
+  const categoryPage = document.getElementById('categoryPage');
+  const productGrid = document.getElementById('productGrid');
+  const categoryTitle = document.getElementById('categoryTitle');
+  const searchInput = document.getElementById('searchInput');
+  const searchBtn = document.getElementById('searchBtn');
+  const mobileSearchInput = document.getElementById('mobileSearchInput');
+  const mobileSearchBtn = document.getElementById('mobileSearchBtn');
+
+  // ================================
+  // 2. API কল হেলপার
+  // ================================
+  async function apiFetch(endpoint, options = {}) {
+    const res = await fetch(window.FFH_API + endpoint, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    });
+    return res.json();
+  }
+
+  // ================================
+  // 3. সকল পণ্য লোড (API থেকে)
+  // ================================
+  async function loadAllProducts() {
+    try {
+      const data = await apiFetch('/products?limit=200');
+      if (data.success && Array.isArray(data.data)) {
+        allProducts = data.data.map(p => ({
+          id: p._id,
+          _apiId: p._id,
+          name: p.name,
+          price: p.price,
+          oldPrice: p.oldPrice || 0,
+          saving: p.saving || 0,
+          img: p.img || (p.images?.[0]?.url) || 'https://placehold.co/300x300?text=No+Image',
+          images: (p.images || []).map(i => i.url || i),
+          description: p.description || '',
+          category: p.category,
+          subcategory: p.subcategory || '',
+          onSale: !!p.onSale,
+          soldOut: !!p.soldOut,
+          featured: !!p.featured,
+          stock: p.stock || 0,
+          sizes: p.sizes || [],
+          colors: p.colors || [],
+          highlights: p.highlights || [],
+          material: p.material || '',
+          ageGroup: p.ageGroup || '',
+          deliveryInfo: p.deliveryInfo || '',
+          returnPolicy: p.returnPolicy || '',
+          careInstructions: p.careInstructions || '',
+          sku: p.sku || '',
+        }));
+      } else {
+        allProducts = [];
+      }
+    } catch (err) {
+      console.error('API load failed:', err);
+      allProducts = [];
+    }
+    // UI রিফ্রেশ
+    if (homePage && !homePage.classList.contains('hidden')) {
+      renderProductsByCategory(currentCategory, '');
+    }
+  }
+
+  // ================================
+  // 4. প্রোডাক্ট রেন্ডার (হোম পেজ)
+  // ================================
+  function renderProductsByCategory(cat, searchTerm = '') {
+    let filtered = [...allProducts];
+    if (cat !== 'all') {
+      filtered = filtered.filter(p => p.category === cat);
+    }
+    if (searchTerm) {
+      const q = searchTerm.toLowerCase();
+      filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
+    }
+    renderProductGrid(filtered);
+  }
+
+  function renderProductGrid(productsArray) {
+    if (!productGrid) return;
+    if (productsArray.length === 0) {
+      productGrid.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500">কোনো পণ্য পাওয়া যায়নি</p>';
+      return;
+    }
+    productGrid.innerHTML = '';
+    productsArray.forEach(p => {
+      const card = document.createElement('div');
+      card.className = 'product-card bg-white border border-gray-100 shadow-sm';
+      card.dataset.id = p.id;
+
+      let badgeHtml = '';
+      if (p.soldOut) badgeHtml = '<div class="soldout-badge">Sold Out</div>';
+      else if (p.onSale) badgeHtml = '<div class="sale-badge">ছাড়!</div>';
+      badgeHtml += '<div class="organic-badge">🌱 অর্গানিক</div>';
+
+      let discountHtml = '';
+      if (p.oldPrice && p.price && p.oldPrice > p.price) {
+        const disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
+        if (disc > 0) {
+          discountHtml = `<div class="discount-badge">Save: ${p.oldPrice - p.price}ট (-${disc}%)</div>`;
+        }
       }
 
-      // ---------- RENDER HOME GRID ----------
-      function renderHomeGrid(products) {
-        const grid = document.getElementById('productGrid');
-        if (!grid) return;
-        if (!products.length) { grid.innerHTML = '<p class="col-span-full text-center py-8">কোনো পণ্য নেই</p>'; return; }
-        grid.innerHTML = '';
-        products.forEach(p => {
-          const card = document.createElement('div');
-          card.className = 'product-card bg-white border border-gray-100 shadow-sm';
-          card.dataset.id = p.id;
-          card.innerHTML = `
-            <div class="card-container">
-              ${p.onSale ? '<div class="sale-badge">ছাড়!</div>' : ''}
-              <div class="card-image-wrapper"><img src="${p.img}" class="card-image" onerror="this.src='https://placehold.co/300x300?text=No+Image'"></div>
-              <div class="card-content">
-                <h3 class="card-title">${p.name}</h3>
-                <div class="card-price"><span class="price-new">${p.price}ট</span>${p.oldPrice ? `<span class="price-old">${p.oldPrice}ট</span>` : ''}</div>
-                <button data-id="${p.id}" class="quick-add-btn" ${p.soldOut ? 'disabled' : ''}>🛒 Add To Cart</button>
-              </div>
-            </div>`;
-          card.querySelector('.quick-add-btn')?.addEventListener('click', (e) => { e.stopPropagation(); addToCart(p); });
-          card.addEventListener('click', () => showProductDetail(p.id));
-          grid.appendChild(card);
-        });
-      }
-
-      // ---------- SEARCH SUGGESTIONS (LIVE FROM API PRODUCTS) ----------
-      let activeInput = null;
-      const suggestBox = document.createElement('div');
-      suggestBox.id = 'searchSuggestions';
-      suggestBox.style.cssText = `display:none; position:fixed; background:white; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 12px 32px rgba(0,0,0,0.18); z-index:99999; max-height:400px; overflow-y:auto; width:300px;`;
-      document.body.appendChild(suggestBox);
-
-      function positionSuggestBox(inputEl) {
-        const rect = inputEl.getBoundingClientRect();
-        suggestBox.style.top = (rect.bottom + 6) + 'px';
-        suggestBox.style.left = rect.left + 'px';
-        suggestBox.style.width = rect.width + 'px';
-      }
-
-      function buildSuggestionItem(product) {
-        const div = document.createElement('div');
-        div.style.cssText = 'display:flex; align-items:center; gap:10px; padding:10px 14px; cursor:pointer; border-bottom:1px solid #f3f4f6; background:white;';
-        div.innerHTML = `
-          <img src="${product.img}" style="width:44px;height:44px;object-fit:cover;border-radius:6px;flex-shrink:0;">
-          <div style="flex:1;min-width:0;">
-            <div style="font-size:13px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${product.name}</div>
-            <div style="font-size:12px;color:#f97316;">৳ ${product.price.toLocaleString()}</div>
+      card.innerHTML = `
+        <div class="card-container">
+          ${discountHtml}${badgeHtml}
+          <div class="card-image-wrapper">
+            <img src="${p.img}" class="card-image" alt="${p.name}" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
           </div>
-          ${product.soldOut ? '<span style="font-size:10px;background:#e5e7eb;padding:2px 6px;border-radius:4px;">স্টক নেই</span>' : ''}
+          <div class="card-content">
+            <h3 class="card-title">${escapeHtml(p.name)}</h3>
+            <div class="card-price">
+              <span class="price-new">${p.price}ট</span>
+              <span class="price-old">${p.oldPrice}ট</span>
+            </div>
+            <button data-id="${p.id}" class="quick-add-btn" ${p.soldOut ? 'disabled' : ''}>
+              🛒 Add To Cart
+            </button>
+          </div>
+        </div>
+      `;
+      productGrid.appendChild(card);
+    });
+
+    // Add to cart events
+    document.querySelectorAll('.quick-add-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const product = allProducts.find(p => p.id === id);
+        if (product) addToCart(product);
+      });
+    });
+
+    // Click on card -> detail page
+    document.querySelectorAll('.product-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.quick-add-btn')) return;
+        const id = card.dataset.id;
+        const product = allProducts.find(p => p.id === id);
+        if (product) showProductDetailPage(product);
+      });
+    });
+  }
+
+  // ================================
+  // 5. ক্যাটাগরি পেজ রেন্ডার (API ডাটা ব্যবহার)
+  // ================================
+  window.filterByCategory = function(cat) {
+    currentCategory = cat;
+    if (cat === 'all') {
+      // হোম পেজে ফিরে যাও
+      if (categoryPage) categoryPage.classList.remove('active');
+      if (detailPage) detailPage.classList.remove('active');
+      if (homePage) homePage.classList.remove('hidden');
+      renderProductsByCategory('all', searchInput.value.trim());
+      if (categoryTitle) categoryTitle.innerText = '🌿 All Products';
+      window.scrollTo({ top: 0 });
+    } else {
+      // ক্যাটাগরি পেজ দেখাও
+      if (homePage) homePage.classList.add('hidden');
+      if (detailPage) detailPage.classList.remove('active');
+      if (categoryPage) {
+        categoryPage.classList.add('active');
+        categoryPage.classList.remove('detail-page');
+      }
+      // ক্যাটাগরি পেজের প্রোডাক্ট লোড
+      const filtered = allProducts.filter(p => p.category === cat);
+      renderCategoryGrid(filtered, cat);
+      window.scrollTo({ top: 0 });
+    }
+    // মোবাইল মেনু বন্ধ
+    const menu = document.getElementById('mobileMenu');
+    const overlay = document.getElementById('menuOverlay');
+    if (menu) menu.classList.remove('open');
+    if (overlay) overlay.classList.add('hidden');
+  };
+
+  function renderCategoryGrid(productsList, catName) {
+    const grid = document.getElementById('catProductGrid');
+    const gridMobile = document.getElementById('catProductGridMobile');
+    const empty = document.getElementById('catEmptyState');
+    const emptyMobile = document.getElementById('catEmptyStateMobile');
+    const catPageTitle = document.getElementById('catPageTitle');
+    const catPageName = document.getElementById('catPageName');
+    const catProductCount = document.getElementById('catProductCount');
+
+    if (catPageTitle) catPageTitle.innerText = catName;
+    if (catPageName) catPageName.innerText = catName;
+    if (catProductCount) catProductCount.innerText = productsList.length;
+
+    if (!grid) return;
+    if (productsList.length === 0) {
+      if (empty) empty.style.display = 'block';
+      if (emptyMobile) emptyMobile.style.display = 'block';
+      grid.style.display = 'none';
+      if (gridMobile) gridMobile.style.display = 'none';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+    if (emptyMobile) emptyMobile.style.display = 'none';
+    grid.style.display = 'grid';
+    if (gridMobile) gridMobile.style.display = 'grid';
+
+    grid.innerHTML = '';
+    if (gridMobile) gridMobile.innerHTML = '';
+
+    productsList.forEach(p => {
+      const card = createProductCard(p, true);
+      grid.appendChild(card);
+      if (gridMobile) gridMobile.appendChild(card.cloneNode(true));
+    });
+
+    // রি-অ্যাটাচ ইভেন্ট
+    document.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const id = btn.dataset.id;
+        const product = allProducts.find(p => p.id === id);
+        if (product) addToCart(product);
+      });
+    });
+    document.querySelectorAll('#catProductGrid .product-card, #catProductGridMobile .product-card').forEach(card => {
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.quick-add-btn')) return;
+        const id = card.dataset.id;
+        const product = allProducts.find(p => p.id === id);
+        if (product) showProductDetailPage(product);
+      });
+    });
+  }
+
+  function createProductCard(p, isCategory = false) {
+    const card = document.createElement('div');
+    card.className = 'product-card bg-white border border-gray-100 shadow-sm';
+    card.dataset.id = p.id;
+
+    let badgeHtml = '';
+    if (p.soldOut) badgeHtml = '<div class="soldout-badge">Sold Out</div>';
+    else if (p.onSale) badgeHtml = '<div class="sale-badge">ছাড়!</div>';
+
+    let discountHtml = '';
+    if (p.oldPrice && p.price && p.oldPrice > p.price) {
+      const disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
+      if (disc > 0) discountHtml = `<div class="discount-badge">Save: ${p.oldPrice - p.price}ট (-${disc}%)</div>`;
+    }
+
+    card.innerHTML = `
+      <div class="card-container">
+        ${discountHtml}${badgeHtml}
+        <div class="card-image-wrapper">
+          <img src="${p.img}" class="card-image" alt="${escapeHtml(p.name)}" onerror="this.src='https://placehold.co/300x300?text=No+Image'">
+        </div>
+        <div class="card-content">
+          <h3 class="card-title">${escapeHtml(p.name)}</h3>
+          <div class="card-price">
+            <span class="price-new">${p.price}ট</span>
+            <span class="price-old">${p.oldPrice}ট</span>
+          </div>
+          <button data-id="${p.id}" class="${isCategory ? 'cat-quick-add-btn' : 'quick-add-btn'} quick-add-btn" ${p.soldOut ? 'disabled' : ''}>
+            🛒 Add To Cart
+          </button>
+        </div>
+      </div>
+    `;
+    return card;
+  }
+
+  // ================================
+  // 6. প্রোডাক্ট ডিটেইল পেজ (API ডাটা)
+  // ================================
+  function showProductDetailPage(product) {
+    if (!product) return;
+    currentProduct = product;
+
+    if (homePage) homePage.classList.add('hidden');
+    if (categoryPage) categoryPage.classList.remove('active');
+    if (detailPage) {
+      detailPage.classList.add('active');
+      detailPage.classList.remove('detail-page');
+    }
+
+    // UI এলিমেন্ট পপুলেট
+    document.getElementById('detailPageImg').src = product.img;
+    document.getElementById('detailPageTitle').innerText = product.name;
+    document.getElementById('detailPagePrice').innerText = product.price;
+    document.getElementById('detailPageOldPrice').innerText = product.oldPrice;
+    document.getElementById('detailPageSaving').innerText = product.saving || (product.oldPrice - product.price);
+    document.getElementById('detailPageDescription').innerText = product.description;
+    document.getElementById('detailPageQty').value = 1;
+
+    // থাম্বনেইল
+    const thumbStrip = document.getElementById('detailThumbStrip');
+    if (thumbStrip) {
+      thumbStrip.innerHTML = '';
+      const imgs = product.images && product.images.length ? product.images : [product.img];
+      imgs.forEach((imgUrl, idx) => {
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'width:56px;height:56px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#f9fafb;border:2px solid ' + (idx === 0 ? '#f97316' : '#e5e7eb') + ';flex-shrink:0;';
+        const tImg = document.createElement('img');
+        tImg.src = imgUrl;
+        tImg.style.cssText = 'width:100%;height:100%;object-fit:contain;';
+        wrap.appendChild(tImg);
+        wrap.addEventListener('click', () => {
+          document.getElementById('detailPageImg').src = imgUrl;
+          thumbStrip.querySelectorAll('div').forEach(d => d.style.borderColor = '#e5e7eb');
+          wrap.style.borderColor = '#f97316';
+        });
+        thumbStrip.appendChild(wrap);
+      });
+    }
+
+    // সেভ ব্যাজ
+    const saveBadge = document.getElementById('detailSaveBadge');
+    if (saveBadge && product.oldPrice && product.price) {
+      const pct = Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100);
+      saveBadge.innerText = pct > 0 ? `Save${pct}%` : '';
+    }
+
+    // ক্যাটাগরি লিংক
+    const detailCategorySpan = document.getElementById('detailCategory');
+    if (detailCategorySpan) {
+      detailCategorySpan.innerText = product.category;
+      detailCategorySpan.onclick = () => filterByCategory(product.category);
+    }
+    document.getElementById('detailNameBreadcrumb').innerText = product.name;
+
+    // আউট অফ স্টক হ্যান্ডলিং
+    const qtySection = document.getElementById('detailPageQtySection');
+    const actions = document.getElementById('detailPageActions');
+    const soldOutMsg = document.getElementById('soldOutMessage');
+    if (product.soldOut) {
+      if (qtySection) qtySection.style.display = 'none';
+      if (actions) actions.style.display = 'none';
+      if (soldOutMsg) soldOutMsg.classList.remove('hidden');
+    } else {
+      if (qtySection) qtySection.style.display = 'flex';
+      if (actions) actions.style.display = 'flex';
+      if (soldOutMsg) soldOutMsg.classList.add('hidden');
+    }
+
+    // হোয়াটসঅ্যাপ শেয়ার
+    const whatsappLink = document.getElementById('whatsappShareBtn');
+    if (whatsappLink) {
+      const text = `আমি ${product.name} পণ্যটি কিনতে আগ্রহী। দাম: ${product.price} BDT।`;
+      whatsappLink.href = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    }
+
+    // সম্পর্কিত পণ্য
+    showRelatedProducts(product.category, product.id);
+    showBottomRelatedProducts(product.category, product.id);
+
+    window.scrollTo({ top: 0 });
+  }
+
+  function showRelatedProducts(category, currentId) {
+    const related = allProducts.filter(p => p.category === category && p.id !== currentId).slice(0, 8);
+    const container = document.getElementById('relatedProductsGrid');
+    if (!container) return;
+    container.innerHTML = '';
+    related.forEach(p => {
+      const item = document.createElement('div');
+      item.dataset.id = p.id;
+      item.style.cssText = 'display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid #f3f4f6;background:white;';
+      item.innerHTML = `
+        <img src="${p.img}" style="width:52px;height:52px;object-fit:contain;background:#f9fafb;flex-shrink:0;">
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:600;">${escapeHtml(p.name)}</div>
+          <div>৳${p.price}</div>
+        </div>
+      `;
+      item.addEventListener('click', () => showProductDetailPage(p));
+      container.appendChild(item);
+    });
+  }
+
+  function showBottomRelatedProducts(category, currentId) {
+    const grid = document.getElementById('detailRelatedGrid');
+    if (!grid) return;
+    const related = allProducts.filter(p => p.id !== currentId).slice(0, 4);
+    grid.innerHTML = '';
+    related.forEach(p => {
+      const card = document.createElement('div');
+      card.style.cssText = 'background:white;border:1px solid #e5e7eb;cursor:pointer;padding:10px;';
+      card.innerHTML = `
+        <img src="${p.img}" style="height:120px;object-fit:contain;width:100%;">
+        <div style="padding:8px 0;"><strong>${escapeHtml(p.name)}</strong><br>৳${p.price}</div>
+      `;
+      card.addEventListener('click', () => showProductDetailPage(p));
+      grid.appendChild(card);
+    });
+  }
+
+  // ================================
+  // 7. কার্ট ফাংশনালিটি
+  // ================================
+  function addToCart(product, qty = 1) {
+    const existing = cart.find(item => item.id === product.id);
+    if (existing) existing.qty += qty;
+    else cart.push({ ...product, qty });
+    updateCartUI();
+    saveCartToLocal();
+    showCartPopup();
+  }
+
+  function removeFromCart(productId) {
+    cart = cart.filter(item => item.id !== productId);
+    updateCartUI();
+    saveCartToLocal();
+  }
+
+  function updateQty(productId, newQty) {
+    const item = cart.find(i => i.id === productId);
+    if (!item) return;
+    if (newQty <= 0) removeFromCart(productId);
+    else { item.qty = newQty; updateCartUI(); saveCartToLocal(); }
+  }
+
+  function saveCartToLocal() {
+    localStorage.setItem('ffh_cart', JSON.stringify(cart));
+  }
+
+  function updateCartUI() {
+    const totalItems = cart.reduce((acc, i) => acc + i.qty, 0);
+    const cartCountSpan = document.getElementById('cartCount');
+    const cartCountMobile = document.getElementById('cartCountMobile');
+    if (cartCountSpan) cartCountSpan.innerText = totalItems;
+    if (cartCountMobile) cartCountMobile.innerText = totalItems;
+
+    const cartContainer = document.getElementById('cartItemsContainer');
+    if (!cartContainer) return;
+    if (cart.length === 0) {
+      cartContainer.innerHTML = `<div class="flex flex-col items-center py-20"><p>No items in cart!</p></div>`;
+      document.getElementById('cartFooterContent')?.classList.add('hidden');
+    } else {
+      let html = '';
+      cart.forEach(item => {
+        html += `
+          <div class="bg-white border rounded-lg p-3 flex gap-3">
+            <img src="${item.img}" class="w-16 h-16 object-contain">
+            <div class="flex-1">
+              <div class="font-semibold">${escapeHtml(item.name)}</div>
+              <div class="flex items-center gap-2 mt-1">
+                <button class="decQty" data-id="${item.id}">-</button>
+                <span>${item.qty}</span>
+                <button class="incQty" data-id="${item.id}">+</button>
+                <span class="ml-2 font-bold">৳${item.price * item.qty}</span>
+              </div>
+            </div>
+            <button class="removeItem text-red-500" data-id="${item.id}">✕</button>
+          </div>
         `;
-        div.addEventListener('mouseover', () => div.style.background = '#fff7ed');
-        div.addEventListener('mouseout', () => div.style.background = 'white');
+      });
+      cartContainer.innerHTML = html;
+      document.getElementById('cartFooterContent')?.classList.remove('hidden');
+
+      // ইভেন্ট
+      document.querySelectorAll('.incQty').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = btn.dataset.id;
+          const item = cart.find(i => i.id === id);
+          if (item) updateQty(id, item.qty + 1);
+        });
+      });
+      document.querySelectorAll('.decQty').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = btn.dataset.id;
+          const item = cart.find(i => i.id === id);
+          if (item && item.qty > 1) updateQty(id, item.qty - 1);
+        });
+      });
+      document.querySelectorAll('.removeItem').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = btn.dataset.id;
+          removeFromCart(id);
+        });
+      });
+    }
+    const total = cart.reduce((sum, i) => sum + (i.price * i.qty), 0);
+    const cartTotalSpan = document.getElementById('cartTotalPrice');
+    if (cartTotalSpan) cartTotalSpan.innerText = total.toLocaleString();
+  }
+
+  function showCartPopup() {
+    const popup = document.getElementById('cartPopup');
+    if (popup) popup.classList.remove('invisible', 'opacity-0');
+  }
+  function hideCartPopup() {
+    const popup = document.getElementById('cartPopup');
+    if (popup) popup.classList.add('invisible', 'opacity-0');
+  }
+
+  // ================================
+  // 8. সার্চ ফাংশনালিটি (API ডাটা)
+  // ================================
+  function performSearch() {
+    const term = searchInput.value.trim();
+    hideSuggestions();
+    if (homePage && !homePage.classList.contains('hidden')) {
+      renderProductsByCategory(currentCategory, term);
+    } else {
+      // অন্য পেজে থাকলে হোমে চলে যাই
+      filterByCategory('all');
+      renderProductsByCategory('all', term);
+    }
+  }
+
+  let activeInput = null;
+  const suggestBox = document.createElement('div');
+  suggestBox.id = 'searchSuggestions';
+  suggestBox.style.cssText = `
+    display:none; position:fixed; background:white; border:1px solid #e5e7eb;
+    border-radius:0; box-shadow:0 12px 32px rgba(0,0,0,0.18); z-index:99999;
+    max-height:400px; overflow-y:auto;
+  `;
+  document.body.appendChild(suggestBox);
+
+  function positionSuggestBox(inputEl) {
+    const rect = inputEl.getBoundingClientRect();
+    suggestBox.style.top = (rect.bottom + 6) + 'px';
+    suggestBox.style.left = rect.left + 'px';
+    suggestBox.style.width = rect.width + 'px';
+  }
+
+  function showSuggestions(term, inputEl) {
+    activeInput = inputEl;
+    if (!term || term.length < 1) { hideSuggestions(); return; }
+    const lower = term.toLowerCase();
+    const matched = allProducts.filter(p => p.name.toLowerCase().includes(lower));
+    suggestBox.innerHTML = '';
+    if (matched.length === 0) {
+      suggestBox.innerHTML = '<div style="padding:14px;color:#9ca3af;">No products found</div>';
+    } else {
+      matched.slice(0, 10).forEach(p => {
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;align-items:center;gap:10px;padding:9px 14px;cursor:pointer;border-bottom:1px solid #f3f4f6;';
+        div.innerHTML = `
+          <img src="${p.img}" style="width:44px;height:44px;object-fit:cover;">
+          <div><strong>${escapeHtml(p.name)}</strong><br>৳${p.price}</div>
+        `;
         div.addEventListener('mousedown', (e) => {
           e.preventDefault();
           hideSuggestions();
-          showProductDetail(product.id);
+          showProductDetailPage(p);
         });
-        return div;
-      }
+        suggestBox.appendChild(div);
+      });
+    }
+    positionSuggestBox(inputEl);
+    suggestBox.style.display = 'block';
+  }
 
-      function hideSuggestions() { suggestBox.style.display = 'none'; }
+  function hideSuggestions() {
+    suggestBox.style.display = 'none';
+  }
 
-      async function showSuggestions(term, inputEl) {
-        activeInput = inputEl;
-        if (!term || term.length < 1) { hideSuggestions(); return; }
-        // ensure we have latest products
-        let products = allProducts.length ? allProducts : await fetchProducts();
-        const lower = term.toLowerCase();
-        const matched = products.filter(p => p.name.toLowerCase().includes(lower));
-        suggestBox.innerHTML = '';
-        if (matched.length === 0) {
-          suggestBox.innerHTML = '<div style="padding:14px 16px;color:#9ca3af;font-size:13px;">কোনো পণ্য খুঁজে পাওয়া যায়নি</div>';
-        } else {
-          matched.slice(0, 8).forEach(p => suggestBox.appendChild(buildSuggestionItem(p)));
-          if (matched.length > 8) {
-            const more = document.createElement('div');
-            more.style.cssText = 'padding:9px 14px;font-size:12px;color:#6b7280;text-align:center;cursor:pointer;background:#f9fafb;';
-            more.textContent = `আরও ${matched.length - 8}টি ফলাফল দেখতে Enter চাপুন`;
-            more.addEventListener('mousedown', (e) => { e.preventDefault(); performSearch(); });
-            suggestBox.appendChild(more);
-          }
-        }
-        positionSuggestBox(inputEl);
-        suggestBox.style.display = 'block';
-      }
+  // ================================
+  // 9. অন্যান্য হেল্পার ও ইভেন্ট
+  // ================================
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
 
-      // ---------- SEARCH FUNCTION (uses fresh data) ----------
-      async function performSearch() {
-        const term = document.getElementById('searchInput')?.value.trim() || '';
-        const mobileTerm = document.getElementById('mobileSearchInput')?.value.trim() || '';
-        const searchTerm = term || mobileTerm;
-        const products = allProducts.length ? allProducts : await fetchProducts();
-        const filtered = searchTerm ? products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())) : products;
-        renderHomeGrid(filtered);
-        // ensure home page is visible
-        document.getElementById('homePage')?.classList.remove('hidden');
-        document.getElementById('categoryPage')?.classList.remove('active');
-        document.getElementById('productDetailPage')?.classList.remove('active');
-        hideSuggestions();
-        // close mobile search bar
-        const mobileBar = document.getElementById('mobileSearchBar');
-        if (mobileBar) mobileBar.classList.add('hidden');
-        window.scrollTo({ top: 0 });
-      }
+  // গ্লোবাল ফাংশন এক্সপোজ
+  window.addToCart = addToCart;
+  window.showProductDetailPage = showProductDetailPage;
+  window.goToHome = function() {
+    if (homePage) homePage.classList.remove('hidden');
+    if (detailPage) detailPage.classList.remove('active');
+    if (categoryPage) categoryPage.classList.remove('active');
+    renderProductsByCategory('all', '');
+    window.scrollTo({ top: 0 });
+  };
+  window.showHomePage = window.goToHome;
 
-      // ---------- PRODUCT DETAIL ----------
-      async function showProductDetail(productId) {
-        let product = allProducts.find(p => p.id === productId);
-        if (!product) {
-          await fetchProducts();
-          product = allProducts.find(p => p.id === productId);
-        }
-        if (!product) return;
-        // very basic detail view (you can extend)
-        alert(`পণ্য: ${product.name}\nদাম: ${product.price} টাকা\nবিস্তারিত দেখতে এডমিন প্যানেল থেকে ডিজাইন করুন।`);
-      }
+  // ইভেন্ট লিসেনার
+  if (searchBtn) searchBtn.addEventListener('click', performSearch);
+  if (searchInput) {
+    searchInput.addEventListener('input', () => showSuggestions(searchInput.value.trim(), searchInput));
+    searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) showSuggestions(searchInput.value.trim(), searchInput); });
+    searchInput.addEventListener('blur', () => setTimeout(hideSuggestions, 180));
+    searchInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') performSearch(); });
+  }
+  if (mobileSearchBtn) mobileSearchBtn.addEventListener('click', performSearch);
+  if (mobileSearchInput) {
+    mobileSearchInput.addEventListener('input', () => showSuggestions(mobileSearchInput.value.trim(), mobileSearchInput));
+    mobileSearchInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') performSearch(); });
+  }
 
-      // ---------- ADD TO CART ----------
-      function addToCart(product, qty = 1) {
-        const existing = cart.find(item => item.id === product.id);
-        if (existing) existing.qty += qty;
-        else cart.push({ ...product, qty });
-        updateCartUI();
-        alert(`${product.name} কার্টে যোগ হয়েছে!`);
-      }
-      function updateCartUI() {
-        const totalItems = cart.reduce((s, i) => s + i.qty, 0);
-        document.getElementById('cartCount').innerText = totalItems;
-        document.getElementById('cartCountMobile').innerText = totalItems;
-      }
+  // কার্ট আইকন
+  const cartIcon = document.getElementById('cartIconBtn');
+  const cartIconMobile = document.getElementById('cartIconBtnMobile');
+  const closeCart = document.getElementById('closeCartBtn');
+  if (cartIcon) cartIcon.addEventListener('click', showCartPopup);
+  if (cartIconMobile) cartIconMobile.addEventListener('click', showCartPopup);
+  if (closeCart) closeCart.addEventListener('click', hideCartPopup);
 
-      // ---------- CATEGORY FILTER (using API data) ----------
-      window.filterByCategory = async function(cat) {
-        const products = allProducts.length ? allProducts : await fetchProducts();
-        const filtered = cat === 'all' ? products : products.filter(p => p.category === cat);
-        renderHomeGrid(filtered);
-        document.getElementById('homePage')?.classList.remove('hidden');
-        document.getElementById('categoryPage')?.classList.remove('active');
-        document.getElementById('productDetailPage')?.classList.remove('active');
-        if (cat !== 'all') document.getElementById('categoryTitle').innerText = `🛍️ ${cat} পণ্য`;
-        else document.getElementById('categoryTitle').innerText = '🌿 All Products';
-        window.scrollTo({ top: 0 });
-      };
+  // ডিটেইল পেজে +/- কোয়ান্টিটি
+  const incQty = document.getElementById('detailPageIncQty');
+  const decQty = document.getElementById('detailPageDecQty');
+  const qtyInput = document.getElementById('detailPageQty');
+  if (incQty && qtyInput) incQty.addEventListener('click', () => { qtyInput.value = parseInt(qtyInput.value) + 1; });
+  if (decQty && qtyInput) decQty.addEventListener('click', () => { let v = parseInt(qtyInput.value); if (v > 1) qtyInput.value = v - 1; });
 
-      // ---------- INITIAL LOAD ----------
-      async function init() {
-        await fetchProducts();
-        renderHomeGrid(allProducts);
-        // attach search events
-        const searchInput = document.getElementById('searchInput');
-        const mobileSearchInput = document.getElementById('mobileSearchInput');
-        const searchBtn = document.getElementById('searchBtn');
-        const mobileSearchBtn = document.getElementById('mobileSearchBtn');
-        if (searchInput) {
-          searchInput.addEventListener('input', () => showSuggestions(searchInput.value.trim(), searchInput));
-          searchInput.addEventListener('focus', () => { if (searchInput.value.trim()) showSuggestions(searchInput.value.trim(), searchInput); });
-          searchInput.addEventListener('blur', () => setTimeout(hideSuggestions, 180));
-          searchInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') performSearch(); if (e.key === 'Escape') hideSuggestions(); });
-        }
-        if (mobileSearchInput) {
-          mobileSearchInput.addEventListener('input', () => showSuggestions(mobileSearchInput.value.trim(), mobileSearchInput));
-          mobileSearchInput.addEventListener('focus', () => { if (mobileSearchInput.value.trim()) showSuggestions(mobileSearchInput.value.trim(), mobileSearchInput); });
-          mobileSearchInput.addEventListener('blur', () => setTimeout(hideSuggestions, 180));
-          mobileSearchInput.addEventListener('keyup', (e) => { if (e.key === 'Enter') performSearch(); });
-        }
-        if (searchBtn) searchBtn.addEventListener('click', performSearch);
-        if (mobileSearchBtn) mobileSearchBtn.addEventListener('click', performSearch);
-        // mobile search toggle
-        const mobileSearchIcon = document.getElementById('mobileSearchIcon');
-        if (mobileSearchIcon) mobileSearchIcon.addEventListener('click', () => document.getElementById('mobileSearchBar')?.classList.toggle('hidden'));
-        document.getElementById('mobileSearchCancelBtn')?.addEventListener('click', () => {
-          document.getElementById('mobileSearchBar')?.classList.add('hidden');
-          if (mobileSearchInput) mobileSearchInput.value = '';
-          hideSuggestions();
-        });
-        // cart icons
-        document.getElementById('cartIconBtn')?.addEventListener('click', () => alert('কার্ট দেখানো হবে'));
-        document.getElementById('cartIconBtnMobile')?.addEventListener('click', () => alert('কার্ট দেখানো হবে'));
-        // simple goTop
-        const goTop = document.getElementById('goTopBtn');
-        if (goTop) goTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-        // periodic refresh (every 30 sec) to get new products from admin
-        setInterval(async () => {
-          await fetchProducts();
-          if (!document.getElementById('homePage')?.classList.contains('hidden')) {
-            const searchVal = document.getElementById('searchInput')?.value.trim() || '';
-            const filtered = searchVal ? allProducts.filter(p => p.name.toLowerCase().includes(searchVal.toLowerCase())) : allProducts;
-            renderHomeGrid(filtered);
-          }
-        }, 30000);
+  // ডিটেইল পেজে অ্যাড টু কার্ট
+  const detailAddToCart = document.getElementById('detailPageAddToCart');
+  if (detailAddToCart) {
+    detailAddToCart.addEventListener('click', () => {
+      if (currentProduct && !currentProduct.soldOut) {
+        const qty = parseInt(document.getElementById('detailPageQty').value) || 1;
+        addToCart(currentProduct, qty);
       }
-      init();
-    })();
-  </script>
+    });
+  }
+
+  // ================================
+  // 10. ইনিশিয়াল লোড
+  // ================================
+  (async function init() {
+    await loadAllProducts();
+    renderProductsByCategory('all', '');
+    updateCartUI();
+    // ক্যাটাগরি পেজের সাইডবার ফিল্টার ও সর্ট ফাংশন API ডাটার জন্য আপডেট করতে হবে (যদি প্রয়োজন)
+    // বাকি ফাংশন (স্লাইডার, রিভিউ ইত্যাদি) আগের মতো থাকবে
+  })();
+</script>
 </body>
 </html>
