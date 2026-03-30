@@ -77,10 +77,19 @@ mongoose.connect(process.env.MONGODB_URI)
     } catch(e) {
       // index নেই — no problem
     }
+    
+    // Drop the problematic phone index on users collection
+    try {
+      await mongoose.connection.collection('users').dropIndex('phone_1');
+      console.log('🔧 Dropped phone_1 index from users collection');
+    } catch(e) {
+      // index না থাকলে কিছু করার নেই
+      if (e.code !== 27) console.log('ℹ️ phone_1 index not found, skipping');
+    }
+    
     autoSetupAdmin();
   })
   .catch(err => console.error('❌ MongoDB Error:', err));
-
 // ===== SCHEMAS =====
 
 const productSchema = new mongoose.Schema({
