@@ -1340,8 +1340,8 @@
         <div style="max-width:400px;margin:0 auto;">
           <h2 style="font-size:1.5rem;font-weight:700;color:#111827;margin-bottom:24px;">Account Login</h2>
           <div style="margin-bottom:16px;">
-            <label style="display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:6px;">Phone / E-Mail</label>
-            <input type="text" id="loginEmail" placeholder="Phone / E-Mail" style="width:100%;border:1px solid #d1d5db;border-radius:4px;padding:11px 14px;font-size:14px;outline:none;font-family:inherit;" onfocus="this.style.borderColor='#3b4fcf'" onblur="this.style.borderColor='#d1d5db'">
+            <label style="display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:6px;">Gmail / E-Mail</label>
+            <input type="email" id="loginEmail" placeholder="example@gmail.com" style="width:100%;border:1px solid #d1d5db;border-radius:4px;padding:11px 14px;font-size:14px;outline:none;font-family:inherit;" onfocus="this.style.borderColor='#3b4fcf'" onblur="this.style.borderColor='#d1d5db'">
           </div>
           <div style="margin-bottom:20px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
@@ -1377,8 +1377,8 @@
           <input type="text" id="regLastName" placeholder="Last Name" style="width:100%;border:1px solid #d1d5db;border-radius:4px;padding:11px 14px;font-size:14px;outline:none;"></div>
       </div>
       <div style="margin-bottom:16px;">
-        <label style="display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:6px;">Phone Number <span style="color:#ef4444;">*</span></label>
-        <input type="tel" id="regPhone" placeholder="01XXXXXXXXX" style="width:100%;border:1px solid #d1d5db;border-radius:4px;padding:11px 14px;font-size:14px;outline:none;">
+        <label style="display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:6px;">Gmail / E-Mail <span style="color:#ef4444;">*</span></label>
+        <input type="email" id="regEmail" placeholder="example@gmail.com" style="width:100%;border:1px solid #d1d5db;border-radius:4px;padding:11px 14px;font-size:14px;outline:none;">
       </div>
       <div style="margin-bottom:16px;">
         <label style="display:block;font-size:14px;font-weight:500;color:#374151;margin-bottom:6px;">Password <span style="color:#ef4444;">*</span></label>
@@ -2586,12 +2586,18 @@
       }
 
       window.handleLogin = async function() {
-        const phone = document.getElementById('loginEmail').value.trim();
+        const email = document.getElementById('loginEmail').value.trim();
         const pass  = document.getElementById('loginPassword').value.trim();
         const err   = document.getElementById('loginError');
-        if (!phone || !pass) {
+        if (!email || !pass) {
           err.style.display = 'block';
-          err.textContent = 'ফোন নম্বর এবং পাসওয়ার্ড দিন।';
+          err.textContent = 'ইমেইল এবং পাসওয়ার্ড দিন।';
+          return;
+        }
+        // basic email format check
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+          err.style.display = 'block';
+          err.textContent = 'সঠিক ইমেইল ঠিকানা দিন।';
           return;
         }
         err.style.display = 'none';
@@ -2601,7 +2607,7 @@
           const res  = await fetch(window.FFH_API + '/users/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone, password: pass }),
+            body: JSON.stringify({ email, password: pass }),
           });
           const data = await res.json();
           if (!data.success) {
@@ -2615,7 +2621,7 @@
           ffhUser  = data.user;
           ffhToken = data.token;
           isLoggedIn = true;
-          loggedInUser = { name: data.user.name, email: data.user.phone, phone: data.user.phone };
+          loggedInUser = { name: data.user.name, email: data.user.email, phone: '' };
           document.getElementById('signInLabel').textContent = data.user.name;
           signInBtnEl.querySelector('i').className = 'fas fa-user-check text-lg text-orange-600';
           updateMobileSignInUI();
@@ -2643,21 +2649,21 @@
   const firstName = document.getElementById('regFirstName')?.value.trim() || '';
   const lastName  = document.getElementById('regLastName')?.value.trim() || '';
   const name      = (firstName + ' ' + lastName).trim();
-  const phone     = document.getElementById('regPhone')?.value.trim() || '';
+  const email     = document.getElementById('regEmail')?.value.trim() || '';
   const password  = document.getElementById('regPassword')?.value.trim() || '';
   const confirm   = document.getElementById('regConfirmPassword')?.value.trim() || '';
   const errDiv    = document.getElementById('regError');
 
-  if (!name || !phone || !password || !confirm) {
+  if (!name || !email || !password || !confirm) {
     if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = 'সব তথ্য পূরণ করুন।'; }
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = 'সঠিক ইমেইল / Gmail ঠিকানা দিন।'; }
     return;
   }
   if (password !== confirm) {
     if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = 'পাসওয়ার্ড এবং কনফার্ম পাসওয়ার্ড একই নয়।'; }
-    return;
-  }
-  if (!/^01[3-9]\d{8}$/.test(phone)) {
-    if (errDiv) { errDiv.style.display = 'block'; errDiv.textContent = 'সঠিক ফোন নম্বর দিন (11 ডিজিট, 01 দিয়ে শুরু)।'; }
     return;
   }
   if (password.length < 6) {
@@ -2673,7 +2679,7 @@
     const res = await fetch(window.FFH_API + '/users/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, phone, password }),
+      body: JSON.stringify({ name, email, password }),
     });
     const data = await res.json();
     if (!data.success) {
@@ -2687,7 +2693,7 @@
     ffhUser  = data.user;
     ffhToken = data.token;
     isLoggedIn = true;
-    loggedInUser = { name: data.user.name, email: data.user.phone, phone: data.user.phone };
+    loggedInUser = { name: data.user.name, email: data.user.email, phone: '' };
     const signInLabel = document.getElementById('signInLabel');
     if (signInLabel) signInLabel.textContent = data.user.name;
     const signBtn = document.getElementById('signInBtn');
@@ -2781,7 +2787,7 @@
         hideAllPages();
         const pg = document.getElementById('dashboardPage');
         document.getElementById('dashUserName').textContent = loggedInUser.name;
-        document.getElementById('dashUserEmail').textContent = loggedInUser.phone || loggedInUser.email;
+        document.getElementById('dashUserEmail').textContent = loggedInUser.email || ffhUser?.email || '';
         pg.classList.add('active'); pg.classList.remove('detail-page');
         switchDashPanel(panel || 'dashboard');
         window.scrollTo({ top: 0 });
@@ -2827,7 +2833,7 @@
           const loginRes = await fetch(window.FFH_API + '/users/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: ffhUser?.phone, password: op }),
+            body: JSON.stringify({ email: ffhUser?.email, password: op }),
           });
           const loginData = await loginRes.json();
           if (!loginData.success) {
@@ -3756,7 +3762,7 @@ let ffhToken = localStorage.getItem('ffh_user_token') || '';
 function _ffhRestoreSession() {
   if (ffhUser && ffhToken) {
     isLoggedIn = true;
-    loggedInUser = { name: ffhUser.name, email: ffhUser.phone, phone: ffhUser.phone };
+    loggedInUser = { name: ffhUser.name, email: ffhUser.email, phone: '' };
     const label = document.getElementById('signInLabel');
     if (label) label.textContent = ffhUser.name;
     const signBtn = document.getElementById('signInBtn');
