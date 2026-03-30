@@ -3719,429 +3719,357 @@ window.addToCart = addToCart;
     });
   })();
   </script>
-<script>
-window.FFH_API = (function() {
-  var h = window.location.hostname;
-  if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:5000/api';
-  return 'https://familyfashionhub.onrender.com/api';
-})();
-let ffhUser = JSON.parse(localStorage.getItem('ffh_user') || 'null');
-let ffhToken = localStorage.getItem('ffh_user_token') || '';
+  <script>
+    (function() {
+      // ========== GLOBAL API CONFIG ==========
+      window.FFH_API = (function() {
+        var h = window.location.hostname;
+        if (h === 'localhost' || h === '127.0.0.1') return 'http://localhost:5000/api';
+        return 'https://familyfashionhub.onrender.com/api';
+      })();
 
-function _ffhRestoreSession() {
-  if (ffhUser && ffhToken) {
-    isLoggedIn = true;
-    loggedInUser = { name: ffhUser.name, email: ffhUser.phone, phone: ffhUser.phone };
-    const label = document.getElementById('signInLabel');
-    if (label) label.textContent = ffhUser.name;
-    const signBtn = document.getElementById('signInBtn');
-    if (signBtn) {
-      const icon = signBtn.querySelector('i');
-      if (icon) icon.className = 'fas fa-user-check text-lg text-orange-600';
-    }
-    if (typeof updateMobileSignInUI === 'function') updateMobileSignInUI();
-  }
-}
+      // ========== FRESH DATA FETCH HELPERS ==========
+      let cachedProducts = [];      // always sync with server
 
-function _ffhRenderDashOrders(orders) {
-  const recentEl = document.getElementById('dashRecentOrders');
-  const listEl   = document.getElementById('dashOrdersList');
-  const statuses = { pending:'⏳ পেন্ডিং', processing:'🔧 প্রক্রিয়াধীন', shipped:'🚚 শিপ হয়েছে', delivered:'✅ ডেলিভারি', cancelled:'❌ বাতিল' };
-  const colors   = { pending:'#f97316', processing:'#3b82f6', shipped:'#8b5cf6', delivered:'#22c55e', cancelled:'#ef4444' };
-  if (!orders.length) {
-    if (recentEl) recentEl.innerHTML = '<div class="dash-empty">কোনো অর্ডার নেই।</div>';
-    if (listEl)   listEl.innerHTML   = '<div class="dash-empty"><i class="fas fa-box-open" style="font-size:2.5rem;color:#d1d5db;display:block;margin-bottom:12px;"></i>এখনো কোনো অর্ডার নেই।<br><button onclick="showHomePage()" style="margin-top:14px;background:#f97316;color:white;border:none;padding:10px 22px;font-size:13px;font-weight:600;cursor:pointer;border-radius:6px;font-family:inherit;">পণ্য কিনুন</button></div>';
-    return;
-  }
-  function orderCard(o) {
-    const date = new Date(o.createdAt).toLocaleDateString('bn-BD');
-    return `<div style="border:1px solid #e5e7eb;border-radius:8px;padding:12px 14px;margin-bottom:10px;background:white;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-        <span style="font-size:12px;font-weight:700;color:#374151;">#${o._id.slice(-8).toUpperCase()}</span>
-        <span style="font-size:11px;font-weight:600;color:${colors[o.status]||'#6b7280'};background:${colors[o.status]||'#6b7280'}22;padding:3px 9px;border-radius:20px;">${statuses[o.status]||o.status}</span>
-      </div>
-      <div style="font-size:12px;color:#6b7280;">📅 ${date} &nbsp;|&nbsp; 💰 ৳${o.total?.toLocaleString()}</div>
-      <div style="font-size:12px;color:#374151;margin-top:4px;">${(o.items||[]).map(i=>i.name).join(', ')}</div>
-    </div>`;
-  }
-  if (recentEl) recentEl.innerHTML = orders.slice(0,3).map(orderCard).join('');
-  if (listEl)   listEl.innerHTML   = orders.map(orderCard).join('');
-}
-
-async function loadProductsFromAPI() {
-  try {
-    const res = await fetch(window.FFH_API + '/products?limit=200');
-    const data = await res.json();
-    if (!data.success || !data.data || !data.data.length) return;
-
-    var apiMapped = data.data.map(function(p, idx) {
-      return {
-        id: p._id,
-        _apiId: p._id,
-        name: p.name,
-        price: p.price,
-        oldPrice: p.oldPrice || 0,
-        saving: p.saving || 0,
-        img: p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
-        images: (p.images || []).map(function(i){ return i.url || i; }),
-        description: p.description || '',
-        category: p.category || 'all',
-        subcategory: p.subcategory || '',
-        onSale: !!p.onSale,
-        soldOut: !!p.soldOut,
-        featured: !!p.featured,
-      };
-    });
-
-    window.apiProducts = apiMapped;
-    window._ffhApiProducts = apiMapped;
-
-    var _origFilter = window.filterByCategory;
-    window.filterByCategory = function(cat) {
-      if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
-        if (_origFilter) _origFilter(cat);
-        setTimeout(function() {
-          var catProducts = cat === 'all'
-            ? window._ffhApiProducts
-            : window._ffhApiProducts.filter(function(p) { return p.category === cat; });
-          var catGrid   = document.getElementById('catProductGrid');
-          var catGridM  = document.getElementById('catProductGridMobile');
-          var catEmpty  = document.getElementById('catEmptyState');
-          var catEmptyM = document.getElementById('catEmptyStateMobile');
-          if (catGrid && cat !== 'all') {
-            _ffhRenderCatGrid(catProducts, catGrid, catGridM, catEmpty, catEmptyM);
+      async function fetchFreshProducts(limit = 200) {
+        try {
+          const res = await fetch(window.FFH_API + '/products?limit=' + limit);
+          const data = await res.json();
+          if (data.success && data.data) {
+            cachedProducts = data.data.map(p => ({
+              id: p._id,
+              _apiId: p._id,
+              name: p.name,
+              price: p.price,
+              oldPrice: p.oldPrice || 0,
+              saving: p.saving || 0,
+              img: p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
+              images: (p.images || []).map(i => i.url || i),
+              description: p.description || '',
+              category: p.category || 'all',
+              subcategory: p.subcategory || '',
+              onSale: !!p.onSale,
+              soldOut: !!p.soldOut,
+              featured: !!p.featured,
+              stock: p.stock || 0
+            }));
+            window._ffhApiProducts = cachedProducts;
+            return cachedProducts;
           }
-          var homeGrid = document.getElementById('productGrid');
-          if (homeGrid) {
-            _ffhRenderHomeGrid(catProducts, homeGrid);
-          }
-        }, 50);
-      } else {
-        if (_origFilter) _origFilter(cat);
+          return [];
+        } catch(e) { console.warn('API fetch error:', e); return []; }
       }
-    };
 
-    var _origRender = window.renderProductsByCategory;
-    window.renderProductsByCategory = function(cat, searchTerm) {
-      if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
-        var filtered = window._ffhApiProducts;
-        if (cat && cat !== 'all') {
-          filtered = filtered.filter(function(p){ return p.category === cat; });
+      // Render home grid
+      function renderHomeGrid(productsArray) {
+        const grid = document.getElementById('productGrid');
+        if (!grid) return;
+        if (!productsArray.length) {
+          grid.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500">কোনো পণ্য পাওয়া যায়নি</p>';
+          return;
         }
+        grid.innerHTML = '';
+        productsArray.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'product-card bg-white border border-gray-100 shadow-sm';
+          card.dataset.id = p.id;
+          let badgeHtml = '';
+          if (p.soldOut) badgeHtml = '<div class="soldout-badge">Sold Out</div>';
+          else if (p.onSale) badgeHtml = '<div class="sale-badge">ছাড়!</div>';
+          let discHtml = '';
+          if (p.oldPrice && p.price && p.oldPrice > p.price) {
+            const disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
+            if (disc > 0) discHtml = `<div class="discount-badge">Save: ${p.oldPrice - p.price}ট (-${disc}%)</div>`;
+          }
+          card.innerHTML = `
+            <div class="card-container">
+              ${discHtml}${badgeHtml}
+              <div class="card-image-wrapper"><img src="${p.img}" class="card-image" alt="${p.name}" onerror="this.src='https://placehold.co/300x300?text=No+Image'"></div>
+              <div class="card-content">
+                <h3 class="card-title">${p.name}</h3>
+                <div class="card-price"><span class="price-new">${p.price}ট</span>${p.oldPrice ? `<span class="price-old">${p.oldPrice}ট</span>` : ''}</div>
+                <button data-id="${p.id}" class="quick-add-btn" ${p.soldOut ? 'disabled' : ''}>🛒 Add To Cart</button>
+              </div>
+            </div>`;
+          card.querySelector('.quick-add-btn:not([disabled])')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (typeof addToCart === 'function') addToCart(p);
+          });
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('.quick-add-btn')) return;
+            window._ffhCurrentDetailProduct = p;
+            if (typeof showProductDetailPage === 'function') showProductDetailPage(p.id);
+            else _ffhShowApiDetail(p);
+          });
+          grid.appendChild(card);
+        });
+      }
+
+      // Refresh home page with fresh data
+      async function refreshHomePage() {
+        const home = document.getElementById('homePage');
+        if (!home || home.classList.contains('hidden')) return;
+        const fresh = await fetchFreshProducts();
+        const searchTerm = document.getElementById('searchInput')?.value.trim() || '';
+        let filtered = fresh;
         if (searchTerm) {
-          var q = searchTerm.toLowerCase();
-          filtered = filtered.filter(function(p){ return p.name.toLowerCase().includes(q); });
+          const q = searchTerm.toLowerCase();
+          filtered = fresh.filter(p => p.name.toLowerCase().includes(q));
         }
-        var homeGrid = document.getElementById('productGrid');
-        if (homeGrid) _ffhRenderHomeGrid(filtered, homeGrid);
-      } else {
-        if (_origRender) _origRender(cat, searchTerm);
+        renderHomeGrid(filtered);
       }
-    };
 
-    var homeGrid = document.getElementById('productGrid');
-    if (homeGrid) _ffhRenderHomeGrid(apiMapped, homeGrid);
-
-  } catch(e) {
-    console.warn('[FFH] Product API unavailable:', e.message);
-  }
-}
-
-function _ffhRenderHomeGrid(productList, gridEl) {
-  if (!gridEl) return;
-  if (!productList || productList.length === 0) {
-    gridEl.innerHTML = '<p class="col-span-full text-center py-8 text-gray-500">কোনো পণ্য পাওয়া যায়নি</p>';
-    return;
-  }
-  gridEl.innerHTML = '';
-  productList.forEach(function(p) {
-    var card = document.createElement('div');
-    card.className = 'product-card bg-white border border-gray-100 shadow-sm';
-    card.dataset.id = p.id;
-
-    var badgeHtml = '';
-    if (p.soldOut)      badgeHtml = '<div class="soldout-badge">Sold Out</div>';
-    else if (p.onSale)  badgeHtml = '<div class="sale-badge">ছাড়!</div>';
-
-    var discHtml = '';
-    if (p.oldPrice && p.price && p.oldPrice > p.price) {
-      var disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
-      if (disc > 0) discHtml = '<div class="discount-badge">Save: '+(p.oldPrice-p.price)+'ট (-'+disc+'%)</div>';
-    }
-
-    card.innerHTML = '<div class="card-container">'
-      + discHtml + badgeHtml
-      + '<div class="card-image-wrapper"><img src="'+p.img+'" class="card-image" alt="'+p.name+'" onerror="this.src=\'https://placehold.co/300x300?text=No+Image\'"></div>'
-      + '<div class="card-content">'
-      + '<h3 class="card-title">'+p.name+'</h3>'
-      + '<div class="card-price"><span class="price-new">'+p.price+'ট</span>'
-      + (p.oldPrice ? '<span class="price-old">'+p.oldPrice+'ট</span>' : '')+'</div>'
-      + '<button class="quick-add-btn api-cart-btn" data-pid="'+p.id+'" '+(p.soldOut?'disabled':'')+'>'
-      + (p.soldOut ? 'Sold Out' : '🛒 Add To Cart')+'</button>'
-      + '</div></div>';
-
-    card.querySelector('.api-cart-btn:not([disabled])')?.addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (typeof addToCart === 'function') addToCart(p);
-    });
-    card.addEventListener('click', function(e) {
-  if (e.target.closest('.quick-add-btn')) return;
-  window._ffhCurrentDetailProduct = p;
-  _ffhShowApiDetail(p);
-});
-    gridEl.appendChild(card);
-  });
-}
-
-function _ffhRenderCatGrid(productList, grid, mGrid, empty, mEmpty) {
-  if (!grid) return;
-  grid.innerHTML = '';
-  if (mGrid) mGrid.innerHTML = '';
-
-  if (!productList || productList.length === 0) {
-    if (empty)  { empty.style.display='block';  grid.style.display='none'; }
-    if (mEmpty) { mEmpty.style.display='block'; }
-    if (mGrid)  { mGrid.style.display='none'; }
-    return;
-  }
-  if (empty)  { empty.style.display='none';  grid.style.display='grid'; }
-  if (mEmpty) mEmpty.style.display='none';
-  if (mGrid)  mGrid.style.display='grid';
-
-  productList.forEach(function(p) {
-    var card = document.createElement('div');
-    card.className = 'product-card bg-white border border-gray-100 shadow-sm';
-    card.dataset.id = p.id;
-
-    var badgeHtml = '';
-    if (p.soldOut)      badgeHtml = '<div class="soldout-badge">Sold Out</div>';
-    else if (p.onSale)  badgeHtml = '<div class="sale-badge">ছাড়!</div>';
-    var discHtml = '';
-    if (p.oldPrice && p.price && p.oldPrice > p.price) {
-      var disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
-      if (disc > 0) discHtml = '<div class="discount-badge">Save: '+(p.oldPrice-p.price)+'ট (-'+disc+'%)</div>';
-    }
-
-    card.innerHTML = '<div class="card-container">'
-      + discHtml + badgeHtml
-      + '<div class="card-image-wrapper"><img src="'+p.img+'" class="card-image" alt="'+p.name+'" onerror="this.src=\'https://placehold.co/300x300?text=No+Image\'"></div>'
-      + '<div class="card-content">'
-      + '<h3 class="card-title">'+p.name+'</h3>'
-      + '<div class="card-price"><span class="price-new">'+p.price+'ট</span>'
-      + (p.oldPrice ? '<span class="price-old">'+p.oldPrice+'ট</span>' : '')+'</div>'
-      + '<button class="cat-quick-add-btn quick-add-btn" data-pid="'+p.id+'" '+(p.soldOut?'disabled':'')+'>'
-      + (p.soldOut ? 'Sold Out' : '🛒 Add To Cart')+'</button>'
-      + '</div></div>';
-
-    card.querySelector('.cat-quick-add-btn:not([disabled])')?.addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (typeof addToCart === 'function') addToCart(p);
-    });
-    card.addEventListener('click', function(e) {
-      if (e.target.closest('.quick-add-btn')) return;
-      _ffhShowApiDetail(p);
-    });
-    grid.appendChild(card);
-    if (mGrid) mGrid.appendChild(card.cloneNode(true));
-  });
-
-  if (mGrid) {
-    mGrid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
-        e.stopPropagation();
-        var prod = (window._ffhApiProducts||[]).find(function(pp){ return pp.id === btn.closest('.product-card').dataset.id; });
-        if (prod && typeof addToCart === 'function') addToCart(prod);
-      });
-    });
-    mGrid.querySelectorAll('.product-card').forEach(function(c) {
-      c.addEventListener('click', function(e) {
-        if (e.target.closest('.quick-add-btn')) return;
-        var prod = (window._ffhApiProducts||[]).find(function(pp){ return pp.id === c.dataset.id; });
-        if (prod) _ffhShowApiDetail(prod);
-      });
-    });
-  }
-}
-
-function _ffhShowApiDetail(p) {
-  var detailPage = document.getElementById('productDetailPage');
-  var homePage   = document.getElementById('homePage');
-  var catPage    = document.getElementById('categoryPage');
-  if (!detailPage) return;
-
-  var nameEl   = document.getElementById('detailPageTitle');
-  var priceEl  = document.getElementById('detailPagePrice');
-  var oldPriceEl = document.getElementById('detailPageOldPrice');
-  var descEl   = document.getElementById('detailPageDescription');
-  var mainImg  = document.getElementById('detailPageImg');
-
-  if (nameEl)    nameEl.textContent    = p.name;
-  if (priceEl)   priceEl.textContent   = p.price;
-  if (oldPriceEl && p.oldPrice) { oldPriceEl.textContent = p.oldPrice; oldPriceEl.parentElement.style.display = ''; }
-  if (descEl)    descEl.textContent    = p.description || '';
-  if (mainImg)   { mainImg.src = p.img; mainImg.alt = p.name; }
-
-  var thumbContainer = document.getElementById('detailThumbStrip');
-  if (thumbContainer && p.images && p.images.length) {
-    thumbContainer.innerHTML = p.images.map(function(imgUrl, i) {
-      return '<div style="width:56px;height:56px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#f9fafb;border:2px solid '+(i===0?'#f97316':'#e5e7eb')+';flex-shrink:0;transition:border-color 0.2s;"><img src="'+imgUrl+'" style="width:100%;height:100%;object-fit:contain;" onclick="document.getElementById(\'detailPageImg\').src=\''+imgUrl+'\'; this.parentNode.parentNode.querySelectorAll(\'div\').forEach(function(d){ d.style.borderColor=\'#e5e7eb\'; }); this.parentNode.style.borderColor=\'#f97316\';"></div>';
-    }).join('');
-  }
-
-  var cartBtn = document.getElementById('detailPageAddToCart');
-  if (cartBtn) {
-    cartBtn.onclick = function() {
-      if (typeof addToCart === 'function') addToCart(p);
-    };
-  }
-
-  if (homePage) homePage.classList.add('hidden');
-  if (catPage)  { catPage.classList.remove('active'); catPage.classList.add('detail-page'); }
-  detailPage.classList.add('active');
-  detailPage.classList.remove('detail-page');
-  window.scrollTo({ top: 0 });
-}
-
-async function loadSiteSettings() {
-  try {
-    const res = await fetch(window.FFH_API + '/settings');
-    const data = await res.json();
-    if (data.success) {
-      if (data.data.phone) {
-        const phoneText = document.getElementById('navPhoneText');
-        const phoneLink = document.getElementById('navPhoneLink');
-        if (phoneText) phoneText.textContent = '+88' + data.data.phone;
-        if (phoneLink) phoneLink.href = 'tel:+88' + data.data.phone;
+      // Refresh category page with fresh data
+      async function refreshCategoryPage(cat) {
+        const fresh = await fetchFreshProducts();
+        const filtered = cat === 'all' ? fresh : fresh.filter(p => p.category === cat);
+        if (typeof applyCatFilters === 'function') {
+          // update the global product list and re-apply filters
+          if (window.catCurrentProducts) window.catCurrentProducts = filtered;
+          applyCatFilters();
+        } else {
+          // fallback render
+          const grid = document.getElementById('catProductGrid');
+          const mGrid = document.getElementById('catProductGridMobile');
+          if (grid) _ffhRenderCatGrid(filtered, grid, mGrid, document.getElementById('catEmptyState'), document.getElementById('catEmptyStateMobile'));
+        }
       }
-    }
-  } catch(e) {}
-}
 
-var FFH_DEFAULT_CATS = [
-  { value:'baby_dress',  label:'🧸 Baby Dress', subcategories:[
-    {value:'newborn_set',label:'Newborn Set (0-6 Months)'},
-    {value:'cotton_dress',label:'Cotton Dress (Summer Comfort)'},
-    {value:'winter_dress',label:'Winter Dress'},
-    {value:'frocks_tshirts',label:'Frocks, T-Shirts & Pants'}
-  ]},
-  { value:'toys', label:'🧸 Toys', subcategories:[
-    {value:'soft_toys',label:'Soft Toys (Dolls)'},
-    {value:'sound_toys',label:'সাউন্ড টয় (Musical Toys)'},
-    {value:'educational_toys',label:'Educational Toys (ABC/Numbers)'},
-    {value:'baby_rattle',label:'Baby Rattle'}
-  ]},
-  { value:'feeding', label:'🍼 Feeding Items', subcategories:[
-    {value:'feeding_bottle',label:'Feeding Bottle'},
-    {value:'feeding_bowl',label:'Baby Feeding Bowl + Spoon'},
-    {value:'sipper_cup',label:'Sipper Cup'},
-    {value:'feeding_chair',label:'Baby Feeding Chair'}
-  ]},
-  { value:'baby_care', label:'🛁 Baby Care', subcategories:[
-    {value:'soap_shampoo',label:'Baby Soap & Shampoo'},
-    {value:'lotion_oil',label:'Baby Lotion / Oil'},
-    {value:'wet_tissue',label:'Wet Tissue'},
-    {value:'diaper',label:'Diaper'}
-  ]},
-  { value:'baby_bedding', label:'👶 Essentials', subcategories:[
-    {value:'mosquito_net',label:'Baby Mosquito Net'},
-    {value:'baby_bed',label:'Baby Bed / Nest'},
-    {value:'blanket',label:'Baby Blanket'},
-    {value:'towel',label:'Baby Towel'}
-  ]},
-  { value:'trending', label:'🔥 Trending', subcategories:[
-    {value:'baby_carrier',label:'Baby Carrier'},
-    {value:'baby_walker',label:'Baby Walker'},
-    {value:'nail_cutter',label:'Baby Nail Cutter Set'},
-    {value:'thermometer',label:'Baby Thermometer'}
-  ]}
-];
+      // Override search function to always fetch fresh data
+      const originalPerformSearch = window.performSearch;
+      window.performSearch = async function() {
+        const term = document.getElementById('searchInput')?.value.trim() || '';
+        const fresh = await fetchFreshProducts();
+        let filtered = fresh;
+        if (term) {
+          const q = term.toLowerCase();
+          filtered = fresh.filter(p => p.name.toLowerCase().includes(q));
+        }
+        // update home page grid
+        renderHomeGrid(filtered);
+        // if we are on home page, also update category title? no need
+        // but ensure the home page is visible
+        if (typeof goToHome === 'function') goToHome();
+        else {
+          document.getElementById('homePage')?.classList.remove('hidden');
+          document.getElementById('productDetailPage')?.classList.remove('active');
+          document.getElementById('categoryPage')?.classList.remove('active');
+        }
+        if (typeof hideSuggestions === 'function') hideSuggestions();
+      };
 
-async function loadNavCategories() {
-  var cats = FFH_DEFAULT_CATS;
-  try {
-    var res  = await fetch(window.FFH_API + '/categories');
-    var json = await res.json();
-    if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-      cats = json.data;
-    }
-  } catch(e) { }
+      // Override category filter (for both "all" and specific)
+      const originalFilterByCategory = window.filterByCategory;
+      window.filterByCategory = async function(cat) {
+        if (cat === 'all') {
+          // home page all products
+          const fresh = await fetchFreshProducts();
+          renderHomeGrid(fresh);
+          if (typeof goToHome === 'function') goToHome();
+          else document.getElementById('homePage')?.classList.remove('hidden');
+          const title = document.getElementById('categoryTitle');
+          if (title) title.innerText = '🌿 All Products';
+        } else {
+          // category page
+          const fresh = await fetchFreshProducts();
+          const filtered = fresh.filter(p => p.category === cat);
+          if (window.catCurrentProducts) window.catCurrentProducts = filtered;
+          if (typeof showCategoryPage === 'function') showCategoryPage(cat);
+          else {
+            // manual render category page
+            const cp = document.getElementById('categoryPage');
+            const home = document.getElementById('homePage');
+            if (home) home.classList.add('hidden');
+            if (cp) {
+              cp.classList.remove('detail-page');
+              cp.classList.add('active');
+              const meta = { title: cat, icon: '📦', desc: '' };
+              document.getElementById('catPageName').innerText = meta.title;
+              document.getElementById('catPageIcon').innerText = meta.icon;
+              document.getElementById('catPageTitle').innerText = meta.title;
+              document.getElementById('catPageDesc').innerText = meta.desc;
+              const grid = document.getElementById('catProductGrid');
+              const mGrid = document.getElementById('catProductGridMobile');
+              if (grid) _ffhRenderCatGrid(filtered, grid, mGrid, document.getElementById('catEmptyState'), document.getElementById('catEmptyStateMobile'));
+            }
+          }
+        }
+        // close mobile menu if open
+        const menu = document.getElementById('mobileMenu');
+        const overlay = document.getElementById('menuOverlay');
+        if (menu) menu.classList.remove('open');
+        if (overlay) overlay.classList.add('hidden');
+        const closeBtn = document.getElementById('closeMenuBtn');
+        if (closeBtn) { closeBtn.style.opacity = '0'; closeBtn.style.pointerEvents = 'none'; }
+        if (typeof resetAllAccordions === 'function') resetAllAccordions();
+        window.scrollTo({ top: 0 });
+      };
 
-  renderDesktopNav(cats);
-  renderMobileAccordion(cats);
-}
+      // Helper to render category grid
+      function _ffhRenderCatGrid(list, grid, mGrid, empty, mEmpty) {
+        if (!grid) return;
+        grid.innerHTML = '';
+        if (mGrid) mGrid.innerHTML = '';
+        if (!list.length) {
+          if (empty) { empty.style.display = 'block'; grid.style.display = 'none'; }
+          if (mEmpty) mEmpty.style.display = 'block';
+          if (mGrid) mGrid.style.display = 'none';
+          return;
+        }
+        if (empty) { empty.style.display = 'none'; grid.style.display = 'grid'; }
+        if (mEmpty) mEmpty.style.display = 'none';
+        if (mGrid) mGrid.style.display = 'grid';
+        list.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'product-card bg-white border border-gray-100 shadow-sm';
+          card.dataset.id = p.id;
+          let badgeHtml = '';
+          if (p.soldOut) badgeHtml = '<div class="soldout-badge">Sold Out</div>';
+          else if (p.onSale) badgeHtml = '<div class="sale-badge">ছাড়!</div>';
+          let discHtml = '';
+          if (p.oldPrice && p.price && p.oldPrice > p.price) {
+            const disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
+            if (disc > 0) discHtml = `<div class="discount-badge">Save: ${p.oldPrice - p.price}ট (-${disc}%)</div>`;
+          }
+          card.innerHTML = `
+            <div class="card-container">
+              ${discHtml}${badgeHtml}
+              <div class="card-image-wrapper"><img src="${p.img}" class="card-image" alt="${p.name}" onerror="this.src='https://placehold.co/300x300?text=No+Image'"></div>
+              <div class="card-content">
+                <h3 class="card-title">${p.name}</h3>
+                <div class="card-price"><span class="price-new">${p.price}ট</span>${p.oldPrice ? `<span class="price-old">${p.oldPrice}ট</span>` : ''}</div>
+                <button data-id="${p.id}" class="cat-quick-add-btn quick-add-btn" ${p.soldOut ? 'disabled' : ''}>🛒 Add To Cart</button>
+              </div>
+            </div>`;
+          card.querySelector('.cat-quick-add-btn:not([disabled])')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (typeof addToCart === 'function') addToCart(p);
+          });
+          card.addEventListener('click', (e) => {
+            if (e.target.closest('.quick-add-btn')) return;
+            if (typeof showProductDetailPage === 'function') showProductDetailPage(p.id);
+            else _ffhShowApiDetail(p);
+          });
+          grid.appendChild(card);
+          if (mGrid) mGrid.appendChild(card.cloneNode(true));
+        });
+        if (mGrid) {
+          mGrid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const prod = list.find(pp => pp.id === btn.closest('.product-card')?.dataset.id);
+              if (prod && typeof addToCart === 'function') addToCart(prod);
+            });
+          });
+          mGrid.querySelectorAll('.product-card').forEach(c => {
+            c.addEventListener('click', (e) => {
+              if (e.target.closest('.quick-add-btn')) return;
+              const prod = list.find(pp => pp.id === c.dataset.id);
+              if (prod && typeof showProductDetailPage === 'function') showProductDetailPage(prod.id);
+              else if (prod) _ffhShowApiDetail(prod);
+            });
+          });
+        }
+      }
 
-function renderDesktopNav(cats) {
-  var skeleton = document.getElementById('navSkeletonBar');
-  var container = document.getElementById('navCatItems');
-  var phoneWrap = document.getElementById('navPhoneWrap');
-  if (skeleton)   skeleton.style.display = 'none';
-  if (phoneWrap)  phoneWrap.style.display = '';
-  if (!container) return;
+      function _ffhShowApiDetail(p) {
+        const detailPage = document.getElementById('productDetailPage');
+        const homePage = document.getElementById('homePage');
+        const catPage = document.getElementById('categoryPage');
+        if (!detailPage) return;
+        const nameEl = document.getElementById('detailPageTitle');
+        const priceEl = document.getElementById('detailPagePrice');
+        const oldPriceEl = document.getElementById('detailPageOldPrice');
+        const descEl = document.getElementById('detailPageDescription');
+        const mainImg = document.getElementById('detailPageImg');
+        if (nameEl) nameEl.textContent = p.name;
+        if (priceEl) priceEl.textContent = p.price;
+        if (oldPriceEl && p.oldPrice) { oldPriceEl.textContent = p.oldPrice; oldPriceEl.parentElement.style.display = ''; }
+        if (descEl) descEl.textContent = p.description || '';
+        if (mainImg) { mainImg.src = p.img; mainImg.alt = p.name; }
+        const thumbContainer = document.getElementById('detailThumbStrip');
+        if (thumbContainer && p.images && p.images.length) {
+          thumbContainer.innerHTML = p.images.map((imgUrl, i) => `
+            <div style="width:56px;height:56px;overflow:hidden;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#f9fafb;border:2px solid ${i===0?'#f97316':'#e5e7eb'};flex-shrink:0;transition:border-color 0.2s;">
+              <img src="${imgUrl}" style="width:100%;height:100%;object-fit:contain;" onclick="document.getElementById('detailPageImg').src='${imgUrl}'; this.parentNode.parentNode.querySelectorAll('div').forEach(d=>d.style.borderColor='#e5e7eb'); this.parentNode.style.borderColor='#f97316';">
+            </div>
+          `).join('');
+        }
+        const cartBtn = document.getElementById('detailPageAddToCart');
+        if (cartBtn) cartBtn.onclick = () => { if (typeof addToCart === 'function') addToCart(p); };
+        if (homePage) homePage.classList.add('hidden');
+        if (catPage) { catPage.classList.remove('active'); catPage.classList.add('detail-page'); }
+        detailPage.classList.add('active');
+        detailPage.classList.remove('detail-page');
+        window.scrollTo({ top: 0 });
+      }
 
-  container.innerHTML = cats.map(function(cat) {
-    var subs = (cat.subcategories || []);
-    var subHTML = subs.length > 0
-      ? subs.map(function(s) {
-          return '<a href="#" onclick="event.preventDefault();ffhNavFilter(\'' + cat.value + '\',\'' + s.value + '\')"'
-               + ' class="block px-4 py-2 hover:bg-gray-100">' + s.label + '</a>';
-        }).join('')
-      : '<span style="display:block;padding:10px 16px;font-size:12px;color:#9ca3af;">কোনো সাব-ক্যাটাগরি নেই</span>';
+      // Intercept product detail page opening to fetch fresh product data
+      const originalShowProductDetail = window.showProductDetailPage;
+      window.showProductDetailPage = async function(productId) {
+        const fresh = await fetchFreshProducts();
+        const product = fresh.find(p => p.id === productId);
+        if (!product) return;
+        window._ffhCurrentDetailProduct = product;
+        _ffhShowApiDetail(product);
+      };
 
-    return '<div class="group relative">'
-         +   '<button class="hover:text-orange-400 transition py-2 flex items-center gap-1 whitespace-nowrap"'
-         +   ' onclick="ffhNavFilter(\'' + cat.value + '\',\'\')">'
-         +   cat.label
-         +   ' <i class="fas fa-chevron-down text-xs"></i>'
-         +   '</button>'
-         +   '<div class="">' + subHTML + '</div>'
-         + '</div>';
-  }).join('');
-}
+      // Also override any other functions that might rely on static products array
+      // Re-initialize by fetching fresh data on page load and every 30 seconds
+      async function initialLoad() {
+        await fetchFreshProducts();
+        refreshHomePage();
+        // also update category dropdowns and nav if needed
+        if (typeof loadNavCategories === 'function') loadNavCategories();
+      }
 
-var PLUS_SVG_DYN  = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2V14M2 8H14" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/></svg>';
-var MINUS_SVG_DYN = '<svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 8H14" stroke="#374151" stroke-width="2" stroke-linecap="round"/></svg>';
+      // Auto-refresh every 30 seconds to catch newly added products from admin
+      setInterval(async () => {
+        const fresh = await fetchFreshProducts();
+        // if home page is active, refresh grid
+        const home = document.getElementById('homePage');
+        if (home && !home.classList.contains('hidden')) {
+          const searchTerm = document.getElementById('searchInput')?.value.trim() || '';
+          let filtered = fresh;
+          if (searchTerm) filtered = fresh.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+          renderHomeGrid(filtered);
+        }
+        // if category page active, refresh category products
+        const catPage = document.getElementById('categoryPage');
+        if (catPage && catPage.classList.contains('active')) {
+          const currentCat = window.currentCategory || 'all';
+          const filtered = currentCat === 'all' ? fresh : fresh.filter(p => p.category === currentCat);
+          if (window.catCurrentProducts) window.catCurrentProducts = filtered;
+          if (typeof applyCatFilters === 'function') applyCatFilters();
+          else {
+            const grid = document.getElementById('catProductGrid');
+            const mGrid = document.getElementById('catProductGridMobile');
+            if (grid) _ffhRenderCatGrid(filtered, grid, mGrid, document.getElementById('catEmptyState'), document.getElementById('catEmptyStateMobile'));
+          }
+        }
+      }, 30000);
 
-function renderMobileAccordion(cats) {
-  var listEl = document.getElementById('mobAccordionList');
-  if (!listEl) return;
+      // Override global product arrays
+      window._ffhApiProducts = [];
+      window.apiProducts = [];
+      window.products = []; // static fallback empty
 
-  var html = cats.map(function(cat, idx) {
-    var accId  = 'mob-acc-dyn-' + idx;
-    var iconId = accId + '-icon';
-    var subs   = (cat.subcategories || []);
-    var subLinks = subs.length > 0
-      ? subs.map(function(s) {
-          return '<a href="#" onclick="event.preventDefault();closeMobMenuAndFilter(\'' + cat.value + '\')">'
-               + '<span class="sub-dot"></span>' + s.label + '</a>';
-        }).join('')
-      : '<span style="padding:10px 20px 10px 52px;font-size:12px;color:#9ca3af;display:block;">কোনো সাব-ক্যাটাগরি নেই</span>';
+      // Replace the original renderProductsByCategory
+      const originalRender = window.renderProductsByCategory;
+      window.renderProductsByCategory = async function(cat, searchTerm) {
+        const fresh = await fetchFreshProducts();
+        let filtered = fresh;
+        if (cat && cat !== 'all') filtered = fresh.filter(p => p.category === cat);
+        if (searchTerm) {
+          const q = searchTerm.toLowerCase();
+          filtered = filtered.filter(p => p.name.toLowerCase().includes(q));
+        }
+        renderHomeGrid(filtered);
+      };
 
-    return '<div class="mob-acc-item">'
-         +   '<button class="mob-acc-btn" onclick="mobAccToggle(\'' + accId + '\',this)">'
-         +     '<div class="btn-left"><span class="cat-label">' + cat.label + '</span></div>'
-         +     '<div class="btn-right">'
-         +       '<span class="mob-acc-toggle" id="' + iconId + '">' + PLUS_SVG_DYN + '</span>'
-         +     '</div>'
-         +   '</button>'
-         +   '<div class="mob-acc-sub" id="' + accId + '">' + subLinks + '</div>'
-         + '</div>';
-  }).join('');
-
-  listEl.innerHTML = html;
-}
-
-window.ffhNavFilter = function(catValue, subValue) {
-  if (typeof filterByCategory === 'function') {
-    filterByCategory(catValue);
-  }
-};
-
-document.addEventListener('DOMContentLoaded', () => {
-  _ffhRestoreSession();
-  loadProductsFromAPI();
-  loadSiteSettings();
-  loadNavCategories();
-});
-</script>
+      // start
+      initialLoad();
+    })();
+  </script>
 </body>
 </html>
