@@ -3012,9 +3012,15 @@
         'gold-plate':        { title: 'Gold Plate Items',      icon: '✨', desc: 'মার্জিত গোল্ড প্লেটেড গহনার সংগ্রহ' },
         'indoor-plants':     { title: 'Indoor Plants',         icon: '🪴', desc: 'ঘর সাজানো ও বায়ু বিশুদ্ধকারী গাছের সংগ্রহ' },
         'artificial-flowers':{ title: 'Artificial Flowers',    icon: '🌸', desc: 'চিরন্তন সুন্দর কৃত্রিম ফুলের সংগ্রহ' },
-        'baby-dress':        { title: 'Baby Dress',            icon: '👗', desc: 'শিশুর জন্য নরম ও আরামদায়ক পোশাক' },
+        'baby-dress':        { title: '🧸 Baby Dress',         icon: '👗', desc: 'শিশুর জন্য নরম ও আরামদায়ক পোশাক' },
         'feeding-bottles':   { title: 'Feeding Items',         icon: '🍼', desc: 'শিশুর খাওয়ানোর জন্য নিরাপদ পণ্য সংগ্রহ' },
         'daily-care':        { title: 'Baby Care',             icon: '❤️', desc: 'শিশুর দৈনন্দিন যত্নের পণ্য সংগ্রহ' },
+        // ===== নতুন ক্যাটাগরি =====
+        'toys':              { title: '🧸 Toys',               icon: '🧸', desc: 'শিশুর মানসিক বিকাশে সহায়ক মজাদার খেলনা সংগ্রহ' },
+        'feeding':           { title: '🍼 Feeding Items',       icon: '🍼', desc: 'শিশুর খাওয়ানোর জন্য নিরাপদ ও স্বাস্থ্যকর পণ্য' },
+        'baby_care':         { title: '🛁 Baby Care',           icon: '🛁', desc: 'শিশুর দৈনন্দিন পরিচর্যার জন্য সেরা পণ্য সংগ্রহ' },
+        'baby_bedding':      { title: '👶 Essentials',          icon: '👶', desc: 'শিশুর দৈনন্দিন জীবনের অপরিহার্য পণ্য সংগ্রহ' },
+        'trending':          { title: '🔥 Trending',            icon: '🔥', desc: 'এই মুহূর্তের সবচেয়ে জনপ্রিয় শিশু পণ্য সমূহ' },
       };
 
       // ===== Price Range Slider setup =====
@@ -3588,13 +3594,19 @@ else if (product.category === 'baby-toys') catName = 'Baby Toys';
 else if (product.category === 'feeding-bottles') catName = 'Feeding Bottle';
 else if (product.category === 'baby-feeding') catName = 'বেবি খাবার';
 else if (product.category === 'daily-care') catName = 'দৈনন্দিন পরিচর্যা';
-else if (product.category === 'baby-dress') catName = 'বেবি পোশাক';
+else if (product.category === 'baby-dress' || product.category === 'baby_dress') catName = '🧸 Baby Dress';
 else if (product.category === 'baby-essentials') catName = 'বেবি Essentials';
 else if (product.category === 'baby-carriers') catName = 'ডাডিং প্রোডাক্ট';
-else if (product.category === 'women-cosmetics') catName = "Women's Cosmetics";  // ← double quote ব্যবহার করা হয়েছে
+else if (product.category === 'women-cosmetics') catName = "Women's Cosmetics";
 else if (product.category === 'gold-plate') catName = 'গোল্ড প্লেটের আইটেম';
 else if (product.category === 'indoor-plants') catName = 'ইনডোর গাছ';
 else if (product.category === 'artificial-flowers') catName = 'Artificial Flowers';
+// ===== নতুন ক্যাটাগরি =====
+else if (product.category === 'toys') catName = '🧸 Toys';
+else if (product.category === 'feeding') catName = '🍼 Feeding Items';
+else if (product.category === 'baby_care') catName = '🛁 Baby Care';
+else if (product.category === 'baby_bedding') catName = '👶 Essentials';
+else if (product.category === 'trending') catName = '🔥 Trending';
         detailCategory.innerText = catName;
         detailNameBreadcrumb.innerText = product.name;
         
@@ -5158,37 +5170,37 @@ async function loadSiteSettings() {
 // Admin Panel-এ categories যোগ/মুছলে এখানে auto reflect হবে
 
 var FFH_DEFAULT_CATS = [
-  { value:'baby_dress',  label:'Baby Dress', subcategories:[
+  { value:'baby_dress',  label:'🧸 Baby Dress', subcategories:[
     {value:'newborn_set',label:'Newborn Set (0-6 Months)'},
     {value:'cotton_dress',label:'Cotton Dress (Summer Comfort)'},
     {value:'winter_dress',label:'Winter Dress'},
     {value:'frocks_tshirts',label:'Frocks, T-Shirts & Pants'}
   ]},
-  { value:'toys', label:'Toys', subcategories:[
+  { value:'toys', label:'🧸 Toys', subcategories:[
     {value:'soft_toys',label:'Soft Toys (Dolls)'},
     {value:'sound_toys',label:'সাউন্ড টয় (Musical Toys)'},
     {value:'educational_toys',label:'Educational Toys (ABC/Numbers)'},
     {value:'baby_rattle',label:'Baby Rattle'}
   ]},
-  { value:'feeding', label:'Feeding Items', subcategories:[
+  { value:'feeding', label:'🍼 Feeding Items', subcategories:[
     {value:'feeding_bottle',label:'Feeding Bottle'},
     {value:'feeding_bowl',label:'Baby Feeding Bowl + Spoon'},
     {value:'sipper_cup',label:'Sipper Cup'},
     {value:'feeding_chair',label:'Baby Feeding Chair'}
   ]},
-  { value:'baby_care', label:'Baby Care', subcategories:[
+  { value:'baby_care', label:'🛁 Baby Care', subcategories:[
     {value:'soap_shampoo',label:'Baby Soap & Shampoo'},
     {value:'lotion_oil',label:'Baby Lotion / Oil'},
     {value:'wet_tissue',label:'Wet Tissue'},
     {value:'diaper',label:'Diaper'}
   ]},
-  { value:'baby_bedding', label:'Essentials', subcategories:[
+  { value:'baby_bedding', label:'👶 Essentials', subcategories:[
     {value:'mosquito_net',label:'Baby Mosquito Net'},
     {value:'baby_bed',label:'Baby Bed / Nest'},
     {value:'blanket',label:'Baby Blanket'},
     {value:'towel',label:'Baby Towel'}
   ]},
-  { value:'trending', label:'Trending', subcategories:[
+  { value:'trending', label:'🔥 Trending', subcategories:[
     {value:'baby_carrier',label:'Baby Carrier'},
     {value:'baby_walker',label:'Baby Walker'},
     {value:'nail_cutter',label:'Baby Nail Cutter Set'},

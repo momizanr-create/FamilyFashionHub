@@ -610,37 +610,37 @@ app.get('/api/categories', async (req, res) => {
     res.json({
       success: true,
       data: [
-        { value: 'baby_dress', label: 'বেবি পোশাক', subcategories: [
-            { value: 'newborn_set',    label: 'Baby Dress Newborn Set (0-6 Months)' },
+        { value: 'baby_dress', label: '🧸 Baby Dress', subcategories: [
+            { value: 'newborn_set',    label: 'Newborn Set (0-6 Months)' },
             { value: 'cotton_dress',   label: 'Cotton Dress (Summer Comfort)' },
             { value: 'winter_dress',   label: 'Winter Dress' },
             { value: 'frocks_tshirts', label: 'Frocks, T-Shirts & Pants' },
         ]},
-        { value: 'toys', label: 'খেলনা', subcategories: [
+        { value: 'toys', label: '🧸 Toys', subcategories: [
             { value: 'soft_toys',        label: 'Soft Toys (Dolls)' },
             { value: 'sound_toys',       label: 'সাউন্ড টয় (Musical Toys)' },
             { value: 'educational_toys', label: 'Educational Toys (ABC/Numbers)' },
             { value: 'baby_rattle',      label: 'Baby Rattle' },
         ]},
-        { value: 'feeding', label: 'ফিডিং আইটেম', subcategories: [
+        { value: 'feeding', label: '🍼 Feeding Items', subcategories: [
             { value: 'feeding_bottle', label: 'Feeding Bottle' },
             { value: 'feeding_bowl',   label: 'Baby Feeding Bowl + Spoon' },
             { value: 'sipper_cup',     label: 'Sipper Cup' },
             { value: 'feeding_chair',  label: 'Baby Feeding Chair' },
         ]},
-        { value: 'baby_care', label: 'বেবি কেয়ার', subcategories: [
+        { value: 'baby_care', label: '🛁 Baby Care', subcategories: [
             { value: 'soap_shampoo', label: 'Baby Soap & Shampoo' },
             { value: 'lotion_oil',   label: 'Baby Lotion / Oil' },
             { value: 'wet_tissue',   label: 'Wet Tissue' },
-            { value: 'diaper',       label: 'Diaper Essentials' },
+            { value: 'diaper',       label: 'Diaper' },
         ]},
-        { value: 'baby_bedding', label: 'বেবি বেডিং', subcategories: [
+        { value: 'baby_bedding', label: '👶 Essentials', subcategories: [
             { value: 'mosquito_net', label: 'Baby Mosquito Net' },
             { value: 'baby_bed',     label: 'Baby Bed / Nest' },
             { value: 'blanket',      label: 'Baby Blanket' },
             { value: 'towel',        label: 'Baby Towel' },
         ]},
-        { value: 'trending', label: 'ট্রেন্ডিং', subcategories: [
+        { value: 'trending', label: '🔥 Trending', subcategories: [
             { value: 'baby_carrier',   label: 'Baby Carrier' },
             { value: 'baby_walker',    label: 'Baby Walker' },
             { value: 'nail_cutter',    label: 'Baby Nail Cutter Set' },
@@ -755,15 +755,7 @@ app.post('/api/admin/categories/bulk', adminMiddleware, async (req, res) => {
   } catch (e) { res.json({ success: false, message: e.message }); }
 });
 
-// ===== PUBLIC CATEGORIES API (Frontend-এর জন্য — Auth ছাড়া) =====
-// ফ্রন্টএন্ড Navigation Bar এই route থেকে categories লোড করবে
-app.get('/api/categories', async (req, res) => {
-  try {
-    const setting = await Settings.findOne({ key: 'categories' });
-    const categories = (setting && Array.isArray(setting.value)) ? setting.value : [];
-    res.json({ success: true, data: categories });
-  } catch (e) { res.json({ success: false, message: e.message }); }
-});
+// ===== PUBLIC CATEGORIES API (উপরে /api/categories route-এ already handled) =====
 
 // ===== SETTINGS ROUTES =====
 
@@ -857,37 +849,37 @@ app.post('/api/admin/seed-categories', adminMiddleware, async (req, res) => {
       return res.json({ success: false, message: 'Categories ইতিমধ্যে সেট আছে। Reset করতে force=true পাঠান।' });
     }
     const defaultCategories = [
-      { value: 'baby_dress', label: 'বেবি পোশাক', subcategories: [
-          { value: 'newborn_set',    label: 'Baby Dress Newborn Set (0-6 Months)' },
+      { value: 'baby_dress', label: '🧸 Baby Dress', subcategories: [
+          { value: 'newborn_set',    label: 'Newborn Set (0-6 Months)' },
           { value: 'cotton_dress',   label: 'Cotton Dress (Summer Comfort)' },
           { value: 'winter_dress',   label: 'Winter Dress' },
           { value: 'frocks_tshirts', label: 'Frocks, T-Shirts & Pants' },
       ]},
-      { value: 'toys', label: 'খেলনা', subcategories: [
+      { value: 'toys', label: '🧸 Toys', subcategories: [
           { value: 'soft_toys',        label: 'Soft Toys (Dolls)' },
           { value: 'sound_toys',       label: 'সাউন্ড টয় (Musical Toys)' },
           { value: 'educational_toys', label: 'Educational Toys (ABC/Numbers)' },
           { value: 'baby_rattle',      label: 'Baby Rattle' },
       ]},
-      { value: 'feeding', label: 'ফিডিং আইটেম', subcategories: [
+      { value: 'feeding', label: '🍼 Feeding Items', subcategories: [
           { value: 'feeding_bottle', label: 'Feeding Bottle' },
           { value: 'feeding_bowl',   label: 'Baby Feeding Bowl + Spoon' },
           { value: 'sipper_cup',     label: 'Sipper Cup' },
           { value: 'feeding_chair',  label: 'Baby Feeding Chair' },
       ]},
-      { value: 'baby_care', label: 'বেবি কেয়ার', subcategories: [
+      { value: 'baby_care', label: '🛁 Baby Care', subcategories: [
           { value: 'soap_shampoo', label: 'Baby Soap & Shampoo' },
           { value: 'lotion_oil',   label: 'Baby Lotion / Oil' },
           { value: 'wet_tissue',   label: 'Wet Tissue' },
-          { value: 'diaper',       label: 'Diaper Essentials' },
+          { value: 'diaper',       label: 'Diaper' },
       ]},
-      { value: 'baby_bedding', label: 'বেবি বেডিং', subcategories: [
+      { value: 'baby_bedding', label: '👶 Essentials', subcategories: [
           { value: 'mosquito_net', label: 'Baby Mosquito Net' },
           { value: 'baby_bed',     label: 'Baby Bed / Nest' },
           { value: 'blanket',      label: 'Baby Blanket' },
           { value: 'towel',        label: 'Baby Towel' },
       ]},
-      { value: 'trending', label: 'ট্রেন্ডিং', subcategories: [
+      { value: 'trending', label: '🔥 Trending', subcategories: [
           { value: 'baby_carrier',   label: 'Baby Carrier' },
           { value: 'baby_walker',    label: 'Baby Walker' },
           { value: 'nail_cutter',    label: 'Baby Nail Cutter Set' },
