@@ -1232,37 +1232,6 @@ function showAdminPanel() {
   loadCategoriesFromServer();
 }
 
-// ===== TOKEN VERIFY (রিফ্রেশের পর dashboard ধরে রাখে) =====
-async function verifyTokenAndShow() {
-  try {
-    const res = await fetch(API_URL + '/admin/stats', {
-      headers: { Authorization: 'Bearer ' + adminToken }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      if (data.success) {
-        // Token valid — dashboard দেখাও
-        showAdminPanel();
-        loadCategoriesFromServer();
-      } else {
-        // সার্ভার বলছে ব্যর্থ — logout
-        adminLogout();
-      }
-    } else if (res.status === 401 || res.status === 403) {
-      // Token expired বা invalid — logout
-      adminLogout();
-    } else {
-      // সার্ভার error (500 ইত্যাদি) — token থাকলে panel দেখাও, logout করো না
-      showAdminPanel();
-      loadCategoriesFromServer();
-    }
-  } catch {
-    // নেটওয়ার্ক সমস্যা বা সার্ভার বন্ধ — localStorage token দিয়ে panel দেখাও
-    showAdminPanel();
-    loadCategoriesFromServer();
-  }
-}
-
 // ===== INIT =====
 window.addEventListener('DOMContentLoaded', () => {
   // Load API URL from settings
@@ -1279,14 +1248,10 @@ window.addEventListener('DOMContentLoaded', () => {
   refreshCategoryDropdowns();
 
   if (adminToken && adminUser) {
-    // Token সার্ভারে যাচাই করে dashboard দেখাও
-    verifyTokenAndShow();
-  } else {
-    // Token নেই — login page দেখাও
-    document.getElementById('loginPage').style.display = 'flex';
-    document.getElementById('mainContent').style.display = 'none';
+    showAdminPanel();
+    // Server-dan category load kore refresh koro
+    loadCategoriesFromServer();
   }
-
   updateClock();
   setInterval(updateClock, 1000);
   document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') adminLogin(); });
