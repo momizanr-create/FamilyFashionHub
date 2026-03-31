@@ -484,7 +484,44 @@
 .addRelatedProduct:active {
   transform: scale(0.96);
 }
-</style> 
+
+
+/* লোডিং স্পিনার */
+.loader-spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #f97316;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.loading-overlay {
+  text-align: center;
+  padding: 40px;
+  background: white;
+  border-radius: 8px;
+}
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+.skeleton-card {
+  background: #f3f4f6;
+  border-radius: 8px;
+  height: 280px;
+  animation: pulse 1.2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+</style>  
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased" dir="ltr">
   
@@ -3877,107 +3914,41 @@ function _ffhRenderDashOrders(orders) {
 }
 
 async function loadProductsFromAPI() {
+  // Show loading in home product grid
+  const homeGrid = document.getElementById('productGrid');
+  if (homeGrid) showSkeletonLoading('productGrid');
+  
+  // Category page grid if active
+  const catGrid = document.getElementById('catProductGrid');
+  if (catGrid && document.getElementById('categoryPage').classList.contains('active')) {
+    showSkeletonLoading('catProductGrid');
+  }
+
   try {
     const res = await fetch(window.FFH_API + '/products?limit=200');
     const data = await res.json();
     if (!data.success || !data.data || !data.data.length) return;
 
-    var apiMapped = data.data.map(function(p, idx) {
-      return {
-        id: p._id,
-        _apiId: p._id,
-        name: p.name,
-        price: p.price,
-        oldPrice: p.oldPrice || 0,
-        saving: p.saving || 0,
-        img: p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
-        images: (p.images || []).map(function(i){ return i.url || i; }),
-        description: p.description || '',
-        category: p.category || 'all',
-        subcategory: p.subcategory || '',
-        onSale: !!p.onSale,
-        soldOut: !!p.soldOut,
-        featured: !!p.featured,
-      };
-    });
-
-    window.apiProducts = apiMapped;
+    // ... existing mapping code ...
     window._ffhApiProducts = apiMapped;
-    // IMPORTANT: also update the global 'products' variable used by category page filters
-    window.products = apiMapped; // make sure category page uses this
-    // Also set the local products variable in the main scope
-    if (typeof products !== 'undefined') {
-      // Override the products array
-      window.products = apiMapped;
-      // Also update the products variable inside the closure? Not needed because we use window.products in showCategoryPage
-    }
+    window.products = apiMapped;
 
-    // update category page product list if category page is active
-    var cp = document.getElementById('categoryPage');
-    if (cp && cp.classList.contains('active')) {
-      var currentCat = document.getElementById('catPageName')?.innerText || '';
-      var foundCat = Object.keys(categoryMeta).find(k => categoryMeta[k].title === currentCat);
+    // Render after loading
+    if (homeGrid) _ffhRenderHomeGrid(apiMapped, homeGrid);
+    if (catGrid && document.getElementById('categoryPage').classList.contains('active')) {
+      // re-render category products
+      const currentCat = document.getElementById('catPageName')?.innerText || '';
+      const foundCat = Object.keys(categoryMeta).find(k => categoryMeta[k].title === currentCat);
       if (foundCat) {
         catCurrentProducts = foundCat === 'all' ? apiMapped : apiMapped.filter(p => p.category === foundCat);
-        var prices = catCurrentProducts.map(p => p.price);
-        var pMin = prices.length ? Math.min(...prices) : 0;
-        var pMax = prices.length ? Math.max(...prices) : 0;
-        initPriceSlider(pMin, pMax);
         applyCatFilters();
       }
     }
-
-    var _origFilter = window.filterByCategory;
-    window.filterByCategory = function(cat) {
-      if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
-        if (_origFilter) _origFilter(cat);
-        setTimeout(function() {
-          var catProducts = cat === 'all'
-            ? window._ffhApiProducts
-            : window._ffhApiProducts.filter(function(p) { return p.category === cat; });
-          var catGrid   = document.getElementById('catProductGrid');
-          var catGridM  = document.getElementById('catProductGridMobile');
-          var catEmpty  = document.getElementById('catEmptyState');
-          var catEmptyM = document.getElementById('catEmptyStateMobile');
-          if (catGrid && cat !== 'all') {
-            _ffhRenderCatGrid(catProducts, catGrid, catGridM, catEmpty, catEmptyM);
-          }
-          var homeGrid = document.getElementById('productGrid');
-          if (homeGrid) {
-            _ffhRenderHomeGrid(catProducts, homeGrid);
-          }
-        }, 50);
-      } else {
-        if (_origFilter) _origFilter(cat);
-      }
-    };
-
-    var _origRender = window.renderProductsByCategory;
-    window.renderProductsByCategory = function(cat, searchTerm) {
-      if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
-        var filtered = window._ffhApiProducts;
-        if (cat && cat !== 'all') {
-          filtered = filtered.filter(function(p){ return p.category === cat; });
-        }
-        if (searchTerm) {
-          var q = searchTerm.toLowerCase();
-          filtered = filtered.filter(function(p){ return p.name.toLowerCase().includes(q); });
-        }
-        var homeGrid = document.getElementById('productGrid');
-        if (homeGrid) _ffhRenderHomeGrid(filtered, homeGrid);
-      } else {
-        if (_origRender) _origRender(cat, searchTerm);
-      }
-    };
-
-    var homeGrid = document.getElementById('productGrid');
-    if (homeGrid) _ffhRenderHomeGrid(apiMapped, homeGrid);
-
-  } catch(e) {
-    console.warn('[FFH] Product API unavailable:', e.message);
+  } catch (e) {
+    console.warn(e);
+    if (homeGrid) homeGrid.innerHTML = '<p class="text-center py-8 text-red-500">পণ্য লোড করতে সমস্যা হয়েছে।</p>';
   }
 }
-
 function _ffhRenderHomeGrid(productList, gridEl) {
   if (!gridEl) return;
   if (!productList || productList.length === 0) {
@@ -4380,6 +4351,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // immediate effect for soft reloads
     window.scrollTo(0, 0);
   })();
+
+
+  function showProductGridLoading(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = `
+    <div class="loading-overlay">
+      <div class="loader-spinner"></div>
+      <p style="margin-top:12px; color:#6b7280;">পণ্য লোড হচ্ছে...</p>
+    </div>
+  `;
+}
+
+function showSkeletonLoading(containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const skeletonHtml = '<div class="skeleton-grid">' + Array(8).fill('<div class="skeleton-card"></div>').join('') + '</div>';
+  container.innerHTML = skeletonHtml;
+}
 </script>
 </body>
 </html>
