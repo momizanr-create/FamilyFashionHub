@@ -1291,14 +1291,25 @@
                 </div>
               </div>
               <div>
-                <h3 style="font-size:1.1rem;font-weight:700;color:#111827;margin-bottom:16px;padding-bottom:8px;border-bottom:3px solid #f97316;display:inline-block;">Submit Your Review</h3>
-                <div style="background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1.5px dashed #f97316;border-radius:14px;padding:24px;text-align:center;">
-                  <div style="font-size:32px;margin-bottom:10px;">✍️</div>
-                  <p style="font-size:14px;font-weight:600;color:#374151;margin-bottom:6px;">আপনার অভিজ্ঞতা শেয়ার করুন</p>
-                  <p style="font-size:12px;color:#6b7280;margin-bottom:16px;line-height:1.6;">এই পণ্যটি সম্পর্কে আপনার মতামত অন্যদের সঠিক সিদ্ধান্ত নিতে সাহায্য করবে।</p>
-                  <button onclick="openReviewPopup()" style="background:linear-gradient(135deg,#f97316,#ea580c);color:white;border:none;padding:12px 28px;font-size:14px;font-weight:700;border-radius:10px;cursor:pointer;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 14px rgba(249,115,22,0.4);transition:all 0.2s;font-family:inherit;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 20px rgba(249,115,22,0.5)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 14px rgba(249,115,22,0.4)'">
-                    <i class="fas fa-star" style="font-size:13px;"></i> রিভিউ লিখুন
-                  </button>
+                <h3 style="font-size:1.2rem;font-weight:700;color:#111827;margin-bottom:6px;padding-bottom:8px;border-bottom:3px solid #f97316;display:inline-block;">Submit Your Review</h3>
+                <p style="font-size:12px;color:#6b7280;margin:12px 0 16px;">Your email address will not be published. Required fields are marked *</p>
+                <div style="margin-bottom:12px;">
+                  <label style="font-size:13px;color:#374151;font-weight:500;">Write your opinion about the product</label>
+                  <textarea id="reviewTextInput" placeholder="Write Your Review Here..." style="width:100%;margin-top:6px;border:1px solid #d1d5db;border-radius:4px;padding:10px;font-size:13px;resize:vertical;min-height:100px;outline:none;font-family:inherit;" onfocus="this.style.borderColor='#f97316'" onblur="this.style.borderColor='#d1d5db'"></textarea>
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label style="font-size:13px;color:#374151;font-weight:600;">Your Rating:</label>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+                    <select id="reviewRatingSelect" style="border:1px solid #d1d5db;padding:8px 12px;font-size:13px;outline:none;font-family:inherit;border-radius:4px;flex:1;">
+                      <option value="">Select One</option>
+                      <option value="5">★★★★★ (5 Stars)</option>
+                      <option value="4">★★★★ (4 Stars)</option>
+                      <option value="3">★★★ (3 Stars)</option>
+                      <option value="2">★★ (2 Stars)</option>
+                      <option value="1">★ (1 Star)</option>
+                    </select>
+                    <button onclick="submitReview()" style="background:#111827;color:white;border:none;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.5px;white-space:nowrap;" onmouseover="this.style.background='#374151'" onmouseout="this.style.background='#111827'">SUBMIT REVIEW</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -2687,15 +2698,12 @@
           const after = loginPage.dataset.afterLogin;
           delete loginPage.dataset.afterLogin;
           if (after === 'review' && pendingReview) {
-            const _pr = pendingReview; pendingReview = null;
+            addReviewToList(pendingReview.text, pendingReview.rating);
+            pendingReview = null;
             hideAllPages();
             detailPage.classList.add('active'); detailPage.classList.remove('detail-page');
             homePage.classList.add('hidden');
             switchDetailTab('review');
-            setTimeout(() => {
-              if (_pr.openPopup) { openReviewPopup(); }
-              else { addReviewToList(_pr.text, _pr.rating); }
-            }, 300);
           } else {
             goToHome();
           }
@@ -2786,64 +2794,15 @@
         goToHome();
       };
 
-      /* ── REVIEW POPUP OPEN ── */
-      window.openReviewPopup = function() {
+      window.submitReview = async function() {
+        const text   = document.getElementById('reviewTextInput').value.trim();
+        const rating = document.getElementById('reviewRatingSelect').value;
+        if (!text || !rating) { alert('রিভিউ এবং রেটিং উভয়ই দিন।'); return; }
         if (!isLoggedIn) {
-          pendingReview = { openPopup: true };
+          pendingReview = { text, rating };
           showLoginPage('review');
           return;
         }
-        const productName = window._ffhCurrentDetailProduct?.name || 'পণ্য';
-        document.getElementById('_rvPopupProductName').textContent = productName;
-        document.getElementById('_rvPopupTextInput').value = '';
-        document.querySelectorAll('input[name="_rvStar"]').forEach(r => r.checked = false);
-        document.getElementById('_rvPopupFeedback').textContent = '';
-        document.getElementById('_rvPopupCharCount').textContent = '0 / 500';
-        document.getElementById('_rvPopupCharCount').style.color = '#9ca3af';
-        document.getElementById('_rvStarErr').style.display = 'none';
-        document.getElementById('_rvTextErr').style.display = 'none';
-        document.getElementById('_rvPopupForm').style.display = '';
-        document.getElementById('_rvPopupSuccess').style.display = 'none';
-        document.getElementById('_rvPopupSubmitBtn').disabled = false;
-        document.getElementById('_rvPopupSubmitBtn').innerHTML = '<i class="fas fa-paper-plane" style="font-size:13px;"></i> রিভিউ জমা দিন';
-        const overlay = document.getElementById('reviewPopupOverlay');
-        overlay.style.display = 'flex';
-        requestAnimationFrame(() => {
-          overlay.style.opacity = '1';
-          document.getElementById('reviewPopupBox').style.transform = 'translateY(0) scale(1)';
-          document.getElementById('reviewPopupBox').style.opacity = '1';
-        });
-        document.body.style.overflow = 'hidden';
-      };
-
-      window.closeReviewPopup = function() {
-        const overlay = document.getElementById('reviewPopupOverlay');
-        overlay.style.opacity = '0';
-        document.getElementById('reviewPopupBox').style.transform = 'translateY(24px) scale(0.97)';
-        document.getElementById('reviewPopupBox').style.opacity = '0';
-        setTimeout(() => { overlay.style.display = 'none'; }, 280);
-        document.body.style.overflow = '';
-      };
-
-      window.submitReview = async function() {
-        /* called from popup submit button */
-        const text   = document.getElementById('_rvPopupTextInput').value.trim();
-        const ratingEl = document.querySelector('input[name="_rvStar"]:checked');
-        const rating = ratingEl ? ratingEl.value : '';
-
-        let ok = true;
-        if (!rating) { document.getElementById('_rvStarErr').style.display = 'flex'; ok = false; }
-        else { document.getElementById('_rvStarErr').style.display = 'none'; }
-        if (!text) { document.getElementById('_rvTextErr').style.display = 'flex'; ok = false; }
-        else { document.getElementById('_rvTextErr').style.display = 'none'; }
-        if (!ok) return;
-
-        if (!isLoggedIn) { closeReviewPopup(); pendingReview = { text, rating }; showLoginPage('review'); return; }
-
-        const btn = document.getElementById('_rvPopupSubmitBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2.5px solid rgba(255,255,255,0.4);border-top-color:#fff;border-radius:50%;animation:_rvSpin 0.7s linear infinite;vertical-align:middle;margin-right:6px;"></span> জমা হচ্ছে...';
-
         try {
           const productId   = window._ffhCurrentDetailProduct?._apiId || window._ffhCurrentDetailProduct?.id || '';
           const productName = window._ffhCurrentDetailProduct?.name || '';
@@ -2860,19 +2819,19 @@
             }),
           });
           const data = await res.json();
-          if (data.success) { _showReviewSuccess(text, rating); }
-          else { btn.disabled = false; btn.innerHTML = '<i class="fas fa-paper-plane" style="font-size:13px;"></i> রিভিউ জমা দিন'; alert(data.message || 'রিভিউ সংরক্ষণ ব্যর্থ।'); }
-        } catch(e) { _showReviewSuccess(text, rating); }
+          if (data.success) {
+            addReviewToList(text, rating);
+            document.getElementById('reviewTextInput').value = '';
+            document.getElementById('reviewRatingSelect').value = '';
+          } else {
+            alert(data.message || 'রিভিউ সংরক্ষণ ব্যর্থ।');
+          }
+        } catch(e) {
+          addReviewToList(text, rating);
+          document.getElementById('reviewTextInput').value = '';
+          document.getElementById('reviewRatingSelect').value = '';
+        }
       };
-
-      function _showReviewSuccess(text, rating) {
-        addReviewToList(text, rating);
-        document.getElementById('_rvPopupForm').style.display = 'none';
-        document.getElementById('_rvPopupSuccess').style.display = 'flex';
-        const sr = document.getElementById('_rvSuccessStars');
-        sr.innerHTML = Array.from({length:5},(_,i)=>`<span style="color:${i<+rating?'#f97316':'#d1d5db'};font-size:22px;">★</span>`).join('');
-        setTimeout(closeReviewPopup, 3200);
-      }
 
       function addReviewToList(text, rating) {
         const reviewData = { text, rating: parseInt(rating), date: new Date().toLocaleDateString('bn-BD'), user: loggedInUser.name };
@@ -2881,19 +2840,17 @@
         const stars = '★'.repeat(reviewData.rating) + '☆'.repeat(5 - reviewData.rating);
         if (list.querySelector('p')) list.innerHTML = '';
         const el = document.createElement('div');
-        el.style.cssText = 'border-top:1px solid #f3f4f6;padding-top:14px;margin-top:14px;';
+        el.style.cssText = 'border-top:1px solid #f3f4f6;padding-top:12px;margin-top:12px;';
         el.innerHTML = `
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
-            <div style="width:32px;height:32px;background:linear-gradient(135deg,#f97316,#ea580c);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:700;flex-shrink:0;">${(reviewData.user||'U')[0].toUpperCase()}</div>
-            <div>
-              <span style="font-size:13px;font-weight:700;color:#111827;display:block;">${reviewData.user}</span>
-              <span style="color:#f97316;font-size:13px;">${stars}</span>
-              <span style="font-size:11px;color:#9ca3af;margin-left:6px;">${reviewData.date}</span>
-            </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="font-size:14px;font-weight:600;color:#374151;">${reviewData.user}</span>
+            <span style="color:#f97316;font-size:14px;">${stars}</span>
+            <span style="font-size:12px;color:#6b7280;">${reviewData.date}</span>
           </div>
-          <p style="font-size:13px;color:#374151;line-height:1.65;padding-left:42px;">${text}</p>
+          <p style="font-size:13px;color:#374151;line-height:1.6;">${text}</p>
         `;
         list.appendChild(el);
+        alert('রিভিউ সফলভাবে জমা হয়েছে! ধন্যবাদ।');
       }
 
       window.openDashboard = async function openDashboard(panel) {
@@ -4510,157 +4467,5 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   })();
 </script>
-
-  <!-- ════════════════════════════════════════
-       REVIEW POPUP MODAL
-       ════════════════════════════════════════ -->
-  <style>
-    @keyframes _rvSpin { to { transform: rotate(360deg); } }
-    #reviewPopupBox {
-      transition: transform 0.3s cubic-bezier(0.34,1.4,0.64,1), opacity 0.28s ease;
-      transform: translateY(28px) scale(0.96);
-      opacity: 0;
-    }
-    #reviewPopupOverlay { transition: opacity 0.28s ease; }
-    /* star rating CSS-only trick (reverse order) */
-    .rv-star-row { display:flex; flex-direction:row-reverse; justify-content:flex-end; gap:6px; }
-    .rv-star-row input { display:none; }
-    .rv-star-row label { font-size:34px; color:#d1d5db; cursor:pointer; transition:transform 0.15s,color 0.15s; line-height:1; }
-    .rv-star-row label:hover,
-    .rv-star-row label:hover ~ label,
-    .rv-star-row input:checked ~ label { color:#f97316; }
-    .rv-star-row label:hover { transform:scale(1.22); }
-    /* char counter */
-    .rv-char-warn { color:#f59e0b !important; }
-    .rv-char-over { color:#ef4444 !important; }
-    /* error msg */
-    .rv-err { display:none; align-items:center; gap:5px; font-size:11.5px; color:#ef4444; margin-top:5px; font-weight:500; }
-    .rv-err i { font-size:11px; }
-  </style>
-
-  <div id="reviewPopupOverlay"
-       style="display:none;opacity:0;position:fixed;inset:0;background:rgba(15,7,30,0.62);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);z-index:9999;align-items:center;justify-content:center;padding:16px;"
-       onclick="if(event.target===this)closeReviewPopup()">
-
-    <div id="reviewPopupBox"
-         style="background:#fff;border-radius:22px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;overflow-x:hidden;box-shadow:0 28px 70px rgba(249,115,22,0.18),0 8px 28px rgba(0,0,0,0.18);scrollbar-width:thin;scrollbar-color:rgba(249,115,22,0.2) transparent;">
-
-      <!-- HEADER -->
-      <div style="background:linear-gradient(135deg,#f97316 0%,#fb923c 45%,#ea580c 100%);padding:26px 24px 20px;position:relative;overflow:hidden;border-radius:22px 22px 0 0;">
-        <!-- deco circles -->
-        <div style="position:absolute;width:160px;height:160px;border-radius:50%;background:rgba(255,255,255,0.07);top:-55px;right:-35px;pointer-events:none;"></div>
-        <div style="position:absolute;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.07);bottom:-28px;left:18px;pointer-events:none;"></div>
-        <!-- top row -->
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;position:relative;z-index:1;">
-          <div style="width:48px;height:48px;background:rgba(255,255,255,0.18);border:1.5px solid rgba(255,255,255,0.25);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;backdrop-filter:blur(4px);">⭐</div>
-          <button onclick="closeReviewPopup()" style="background:rgba(255,255,255,0.15);border:1.5px solid rgba(255,255,255,0.22);color:rgba(255,255,255,0.9);width:34px;height:34px;border-radius:9px;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.75)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,0.15)';this.style.color='rgba(255,255,255,0.9)'">✕</button>
-        </div>
-        <!-- title -->
-        <div style="margin-top:14px;position:relative;z-index:1;">
-          <h2 style="font-size:20px;font-weight:800;color:#fff;line-height:1.25;font-family:inherit;">আপনার মতামত দিন</h2>
-          <p style="font-size:12.5px;color:rgba(255,255,255,0.78);margin-top:4px;">আপনার সৎ রিভিউ অন্যদের সঠিক সিদ্ধান্ত নিতে সাহায্য করে</p>
-        </div>
-        <!-- product chip -->
-        <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,0.13);border:1px solid rgba(255,255,255,0.22);border-radius:999px;padding:5px 12px 5px 5px;margin-top:13px;position:relative;z-index:1;">
-          <div style="width:26px;height:26px;background:rgba(255,255,255,0.22);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;">👕</div>
-          <span id="_rvPopupProductName" style="font-size:12px;color:rgba(255,255,255,0.92);font-weight:600;max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">পণ্যের নাম</span>
-        </div>
-      </div>
-
-      <!-- FORM BODY -->
-      <div id="_rvPopupForm">
-        <div style="padding:26px 24px 8px;">
-
-          <!-- STAR RATING -->
-          <div style="text-align:center;margin-bottom:22px;">
-            <p style="font-size:11.5px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;">রেটিং দিন <span style="color:#ef4444;">*</span></p>
-            <div class="rv-star-row" style="justify-content:center;">
-              <input type="radio" id="_rvS5" name="_rvStar" value="5" onchange="document.getElementById('_rvPopupFeedback').textContent='🤩 অসাধারণ!';document.getElementById('_rvStarErr').style.display='none'">
-              <label for="_rvS5" title="অসাধারণ">★</label>
-              <input type="radio" id="_rvS4" name="_rvStar" value="4" onchange="document.getElementById('_rvPopupFeedback').textContent='😊 খুব ভালো';document.getElementById('_rvStarErr').style.display='none'">
-              <label for="_rvS4" title="খুব ভালো">★</label>
-              <input type="radio" id="_rvS3" name="_rvStar" value="3" onchange="document.getElementById('_rvPopupFeedback').textContent='🙂 ঠিকঠাক';document.getElementById('_rvStarErr').style.display='none'">
-              <label for="_rvS3" title="ঠিকঠাক">★</label>
-              <input type="radio" id="_rvS2" name="_rvStar" value="2" onchange="document.getElementById('_rvPopupFeedback').textContent='😐 খারাপ';document.getElementById('_rvStarErr').style.display='none'">
-              <label for="_rvS2" title="খারাপ">★</label>
-              <input type="radio" id="_rvS1" name="_rvStar" value="1" onchange="document.getElementById('_rvPopupFeedback').textContent='😞 খুব খারাপ';document.getElementById('_rvStarErr').style.display='none'">
-              <label for="_rvS1" title="খুব খারাপ">★</label>
-            </div>
-            <div id="_rvPopupFeedback" style="margin-top:8px;font-size:13px;font-weight:700;color:#f97316;height:20px;transition:all 0.2s;"></div>
-            <div id="_rvStarErr" class="rv-err" style="justify-content:center;"><i class="fas fa-circle-exclamation"></i> রেটিং দেওয়া আবশ্যক</div>
-          </div>
-
-          <!-- divider -->
-          <div style="height:1px;background:linear-gradient(to right,transparent,#f3f4f6,transparent);margin-bottom:20px;"></div>
-
-          <!-- COMMENT -->
-          <div style="margin-bottom:18px;">
-            <label style="font-size:12.5px;font-weight:700;color:#374151;display:flex;align-items:center;gap:6px;margin-bottom:8px;">
-              <i class="fas fa-comment-dots" style="color:#f97316;font-size:12px;"></i> আপনার মন্তব্য <span style="color:#ef4444;font-size:10px;">*</span>
-            </label>
-            <textarea id="_rvPopupTextInput"
-              placeholder="পণ্যের মান, ডেলিভারি, প্যাকেজিং — যা মনে হয় সৎভাবে লিখুন..."
-              maxlength="500"
-              rows="4"
-              oninput="const l=this.value.length;const c=document.getElementById('_rvPopupCharCount');c.textContent=l+' / 500';c.className=l>480?'rv-char-over':l>400?'rv-char-warn':'';if(l>0)document.getElementById('_rvTextErr').style.display='none';"
-              style="width:100%;border:1.5px solid #e5e7eb;border-radius:12px;padding:12px 14px;font-size:13.5px;resize:vertical;min-height:110px;outline:none;font-family:inherit;color:#374151;background:#fafafa;line-height:1.65;transition:border-color 0.2s,box-shadow 0.2s;"
-              onfocus="this.style.borderColor='#f97316';this.style.boxShadow='0 0 0 4px rgba(249,115,22,0.1)';this.style.background='#fff';"
-              onblur="this.style.borderColor='#e5e7eb';this.style.boxShadow='none';this.style.background='#fafafa';"
-            ></textarea>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px;">
-              <div id="_rvTextErr" class="rv-err"><i class="fas fa-circle-exclamation"></i> মন্তব্য লেখা আবশ্যক</div>
-              <span id="_rvPopupCharCount" style="font-size:11px;color:#9ca3af;margin-left:auto;">0 / 500</span>
-            </div>
-          </div>
-
-          <!-- LOGGED-IN USER notice -->
-          <div id="_rvUserNotice" style="display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#fff7ed,#ffedd5);border:1px solid rgba(249,115,22,0.25);border-radius:11px;padding:11px 13px;margin-bottom:4px;">
-            <i class="fas fa-circle-user" style="font-size:18px;color:#f97316;flex-shrink:0;"></i>
-            <p style="font-size:12px;color:#7c2d12;font-weight:500;line-height:1.5;">আপনি <strong id="_rvUserNoticeName" style="font-weight:800;"></strong> হিসেবে রিভিউ দিচ্ছেন</p>
-          </div>
-
-        </div>
-
-        <!-- FOOTER -->
-        <div style="padding:16px 24px 22px;border-top:1px solid #f3f4f6;display:flex;gap:11px;align-items:center;">
-          <button onclick="closeReviewPopup()" style="flex:1;padding:12px;border:1.5px solid #e5e7eb;border-radius:11px;background:transparent;font-size:13.5px;font-weight:700;color:#6b7280;cursor:pointer;font-family:inherit;transition:all 0.2s;" onmouseover="this.style.borderColor='#f97316';this.style.color='#f97316';this.style.background='#fff7ed'" onmouseout="this.style.borderColor='#e5e7eb';this.style.color='#6b7280';this.style.background='transparent'">
-            বাতিল
-          </button>
-          <button id="_rvPopupSubmitBtn" onclick="submitReview()" style="flex:2.2;padding:13px;border:none;border-radius:11px;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 5px 18px rgba(249,115,22,0.42);transition:all 0.22s;" onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 9px 24px rgba(249,115,22,0.52)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 5px 18px rgba(249,115,22,0.42)'">
-            <i class="fas fa-paper-plane" style="font-size:13px;"></i> রিভিউ জমা দিন
-          </button>
-        </div>
-      </div>
-
-      <!-- SUCCESS STATE -->
-      <div id="_rvPopupSuccess" style="display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 28px;">
-        <div style="width:76px;height:76px;background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px;box-shadow:0 8px 22px rgba(16,185,129,0.22);font-size:34px;">✅</div>
-        <div id="_rvSuccessStars" style="display:flex;justify-content:center;gap:3px;margin-bottom:14px;"></div>
-        <h3 style="font-size:20px;font-weight:800;color:#111827;margin-bottom:8px;">ধন্যবাদ! 🎉</h3>
-        <p style="font-size:13.5px;color:#6b7280;line-height:1.7;max-width:270px;">আপনার রিভিউ সফলভাবে জমা হয়েছে।<br>অনুমোদনের পর সবাই দেখতে পাবেন।</p>
-        <button onclick="closeReviewPopup()" style="margin-top:22px;padding:11px 32px;background:linear-gradient(135deg,#f97316,#ea580c);color:#fff;border:none;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;box-shadow:0 5px 16px rgba(249,115,22,0.38);transition:all 0.2s;" onmouseover="this.style.opacity='0.88'" onmouseout="this.style.opacity='1'">
-          <i class="fas fa-check" style="margin-right:6px;font-size:12px;"></i>সম্পন্ন
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <script>
-    /* Auto-fill user name in review notice when popup opens */
-    (function() {
-      const _origOpen = window.openReviewPopup;
-      window.openReviewPopup = function() {
-        _origOpen && _origOpen();
-        /* fill user name */
-        try {
-          const uname = window.loggedInUser?.name || '';
-          const el = document.getElementById('_rvUserNoticeName');
-          if (el && uname) el.textContent = uname;
-        } catch(e) {}
-      };
-    })();
-  </script>
-
 </body>
 </html>
