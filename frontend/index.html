@@ -3308,13 +3308,31 @@ badgeHtml = '<div class="organic-badge">🌱 অর্গানিক</div>';
                 if (item && item.qty > 1) updateQty(id, item.qty - 1);
               });
             });
-            cartItemsContainer.querySelectorAll('.removeItem').forEach(btn => {
-              btn.addEventListener('click', e => {
-                const id = parseInt(e.target.closest('button').dataset.id);
-                removeFromCart(id);
-              });
-            });
-            cartItemsContainer.querySelectorAll('a[data-id]').forEach(link => {
+            // রিমুভ বাটন – parseInt সরিয়ে ফেলুন, dataset.id সরাসরি ব্যবহার করুন
+cartItemsContainer.querySelectorAll('.removeItem').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const id = e.target.closest('button').dataset.id;   // string id
+    removeFromCart(id);
+  });
+});
+
+// কোয়ান্টিটি ইনক্রিমেন্ট / ডিক্রিমেন্ট বাটন
+cartItemsContainer.querySelectorAll('.incQty').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const id = e.target.closest('button').dataset.id;
+    const item = cart.find(i => i.id === id);
+    if (item) updateQty(id, item.qty + 1);
+  });
+});
+
+cartItemsContainer.querySelectorAll('.decQty').forEach(btn => {
+  btn.addEventListener('click', e => {
+    const id = e.target.closest('button').dataset.id;
+    const item = cart.find(i => i.id === id);
+    if (item && item.qty > 1) updateQty(id, item.qty - 1);
+  });
+});
+cartItemsContainer.querySelectorAll('a[data-id]').forEach(link => {
               link.addEventListener('click', (e) => {
                 e.preventDefault();
                 const id = parseInt(link.dataset.id);
