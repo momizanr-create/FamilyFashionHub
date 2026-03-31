@@ -2165,8 +2165,8 @@
           card.className = 'product-card bg-white border border-gray-100 shadow-sm';
           card.dataset.id = p.id;
           let badgeHtml = '';
-          if (p.soldOut) badgeHtml = '<div class="soldout-badge">Sold Out</div>';
-          else if (p.onSale) badgeHtml = '<div class="sale-badge">ছাড়!</div>';
+          // সব ব্যাজ বাদ
+badgeHtml = '';
           let discountHtml = '';
           if (p.oldPrice && p.price) {
             const disc = Math.round(((p.oldPrice - p.price) / p.oldPrice) * 100);
@@ -2353,14 +2353,8 @@
           card.dataset.id = p.id;
           
           let badgeHtml = '';
-          if (p.soldOut) {
-            badgeHtml = '<div class="soldout-badge">Sold Out</div>';
-          } else if (p.onSale) {
-            badgeHtml = '<div class="sale-badge">ছাড়!</div>';
-          }
-          
-          badgeHtml += '<div class="organic-badge">🌱 অর্গানিক</div>';
-          
+         // "ছাড়!" ও "Sold Out" ব্যাজ বাদ দেওয়া হলো
+badgeHtml = '<div class="organic-badge">🌱 অর্গানিক</div>';
           card.innerHTML = `
             <div class="card-container">
               ${(() => {
@@ -4045,8 +4039,8 @@ function _ffhRenderHomeGrid(productList, gridEl) {
     card.dataset.id = p.id;
 
     var badgeHtml = '';
-    if (p.soldOut)      badgeHtml = '<div class="soldout-badge">Sold Out</div>';
-    else if (p.onSale)  badgeHtml = '<div class="sale-badge">ছাড়!</div>';
+    // ব্যাজ বাদ
+badgeHtml = '';
 
     var discHtml = '';
     if (p.oldPrice && p.price && p.oldPrice > p.price) {
