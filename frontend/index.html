@@ -2535,8 +2535,9 @@
 
       const loginPage = document.getElementById('loginPage');
       const registerPage = document.getElementById('registerPage');
-      let isLoggedIn = false;
-      let loggedInUser = { name: '', email: '', phone: '' };
+      // window-এ declare করা হচ্ছে — যেকোনো script block থেকে access যাবে
+      window.isLoggedIn = false;
+      window.loggedInUser = { name: '', email: '', phone: '' };
       let userReviews = [];
       let pendingReview = null;
 
@@ -2626,7 +2627,7 @@
         });
       }
 
-      function updateMobileSignInUI() {
+      window.updateMobileSignInUI = function updateMobileSignInUI() {
         const mobileIcon = document.getElementById('mobileSignInIcon');
         const mobileLabel = document.getElementById('mobileSignInLabel');
         if (!mobileIcon || !mobileLabel) return;
@@ -2687,8 +2688,9 @@
           localStorage.setItem('ffh_user_token', data.token);
           ffhUser  = data.user;
           ffhToken = data.token;
-          isLoggedIn = true;
+          isLoggedIn = true; window.isLoggedIn = true;
           loggedInUser = { name: data.user.name, email: data.user.email, phone: '' };
+          window.loggedInUser = loggedInUser;
           document.getElementById('signInLabel').textContent = data.user.name;
           signInBtnEl.querySelector('i').className = 'fas fa-user-check text-lg text-orange-600';
           updateMobileSignInUI();
@@ -2759,8 +2761,9 @@
     localStorage.setItem('ffh_user_token', data.token);
     ffhUser  = data.user;
     ffhToken = data.token;
-    isLoggedIn = true;
+    isLoggedIn = true; window.isLoggedIn = true;
     loggedInUser = { name: data.user.name, email: data.user.email, phone: '' };
+    window.loggedInUser = loggedInUser;
     const signInLabel = document.getElementById('signInLabel');
     if (signInLabel) signInLabel.textContent = data.user.name;
     const signBtn = document.getElementById('signInBtn');
@@ -2777,8 +2780,9 @@
   }
 };
       window.handleLogout = function() {
-        isLoggedIn = false;
+        isLoggedIn = false; window.isLoggedIn = false;
         loggedInUser = { name: '', email: '', phone: '' };
+        window.loggedInUser = loggedInUser;
         ffhUser  = null;
         ffhToken = '';
         localStorage.removeItem('ffh_user');
@@ -3885,8 +3889,9 @@ let ffhToken = localStorage.getItem('ffh_user_token') || '';
 
 function _ffhRestoreSession() {
   if (ffhUser && ffhToken) {
-    isLoggedIn = true;
-    loggedInUser = { name: ffhUser.name, email: ffhUser.email, phone: '' };
+    // window scope-এ set করো যাতে inner script-এর var isLoggedIn সাথে sync হয়
+    window.isLoggedIn = true;
+    window.loggedInUser = { name: ffhUser.name, email: ffhUser.email, phone: '' };
     const label = document.getElementById('signInLabel');
     if (label) label.textContent = ffhUser.name;
     const signBtn = document.getElementById('signInBtn');
