@@ -493,9 +493,10 @@ app.post('/api/users/login', async (req, res) => {
 // Admin Login — email অথবা ADMIN_USERNAME দিয়ে login করা যাবে
 app.post('/api/admin/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
-    if (!email || !password) return res.json({ success: false, message: 'ইমেইল ও পাসওয়ার্ড দিন' });
-    const normalizedEmail = email.toLowerCase().trim();
+    const { email, phone, username, password } = req.body;
+const loginId = email || phone || username; // যেকোনো একটা গ্রহণ করবে
+if (!loginId || !password) return res.json({ success: false, message: 'ইউজার নেম ও পাসওয়ার্ড দিন' });
+const normalizedEmail = loginId.toLowerCase().trim();
 
     // প্রথমে .env-এর ADMIN_USERNAME দিয়ে চেক করো
     if (
