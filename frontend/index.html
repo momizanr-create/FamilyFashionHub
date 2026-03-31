@@ -773,8 +773,8 @@
       document.querySelectorAll('.mob-acc-icon').forEach(function(el) { el.classList.remove('open'); });
     }
 
-    function closeMobMenuAndFilter(cat) {
-      if (typeof filterByCategory === 'function') filterByCategory(cat);
+    function closeMobMenuAndFilter(cat, sub) {
+      if (typeof filterByCategory === 'function') filterByCategory(cat, sub || '');
       var menu = document.getElementById('mobileMenu');
       var overlay = document.getElementById('menuOverlay');
       var closeBtn = document.getElementById('closeMenuBtn');
@@ -2043,7 +2043,8 @@
         applyCatFilters();
       };
 
-      function showCategoryPage(cat) {
+      // ─── showCategoryPage: cat = category value, sub = subcategory value (optional)
+      function showCategoryPage(cat, sub) {
         homePage.classList.add('hidden');
         detailPage.classList.remove('active');
         detailPage.classList.add('detail-page');
@@ -2060,10 +2061,8 @@
 
         const _crs = document.getElementById('customerReviewSection');
         if (_crs) _crs.style.display = 'none';
-
         const _mf = document.getElementById('mainFooter');
         if (_mf) _mf.style.display = 'none';
-
         const _aps = document.getElementById('allProductsSection');
         if (_aps) _aps.style.display = 'none';
         const _ocs = document.getElementById('ourCollectionSection');
@@ -2073,35 +2072,68 @@
 
         window.scrollTo({ top: 0 });
 
-        if (typeof setMobileNavActive === 'function') {
-          setMobileNavActive('menu');
+        if (typeof setMobileNavActive === 'function') setMobileNavActive('menu');
+
+        // ─── Meta: static map + dynamic categories from API ───────────────
+        var meta = categoryMeta[cat] || null;
+        if (!meta && window._ffhNavCategories) {
+          var found = window._ffhNavCategories.find(function(c){ return c.value === cat; });
+          if (found) meta = { title: found.label, icon: '📦', desc: '' };
         }
+        // subcategory meta
+        var subMeta = null;
+        if (sub && window._ffhNavCategories) {
+          var fc = window._ffhNavCategories.find(function(c){ return c.value === cat; });
+          if (fc && fc.subcategories) {
+            var fs = fc.subcategories.find(function(s){ return s.value === sub; });
+            if (fs) subMeta = { title: fs.label, icon: meta ? meta.icon : '📦' };
+          }
+        }
+        var displayMeta = subMeta || meta || { title: cat, icon: '📦', desc: '' };
 
-        const meta = { title: cat, icon: '📦', desc: '' };
+        document.getElementById('catPageName').innerText  = displayMeta.title;
+        document.getElementById('catPageIcon').innerText  = displayMeta.icon || '📦';
+        document.getElementById('catPageTitle').innerText = displayMeta.title;
+        document.getElementById('catPageDesc').innerText  = displayMeta.desc || '';
 
-        document.getElementById('catPageName').innerText = meta.title;
-        document.getElementById('catPageIcon').innerText = meta.icon;
-        document.getElementById('catPageTitle').innerText = meta.title;
-        document.getElementById('catPageDesc').innerText = meta.desc;
-
-        const _mobTitle = document.getElementById('catMobileTitle');
+        const _mobTitle    = document.getElementById('catMobileTitle');
         const _mobPageName = document.getElementById('catMobilePageName');
-        if (_mobTitle) _mobTitle.innerText = meta.title;
-        if (_mobPageName) _mobPageName.innerText = meta.title;
+        if (_mobTitle)    _mobTitle.innerText    = displayMeta.title;
+        if (_mobPageName) _mobPageName.innerText = displayMeta.title;
         const mobSort = document.getElementById('catSortSelectMobile');
         if (mobSort) mobSort.value = 'default';
 
-        catCurrentProducts = cat === 'all'
-          ? [...products]
-          : products.filter(p => p.category === cat);
+        // ─── Use API products (with subcategory support) ──────────────────
+        var allProds = (window._ffhApiProducts && window._ffhApiProducts.length)
+                         ? window._ffhApiProducts
+                         : products;
 
-        const prices = catCurrentProducts.map(p => p.price);
-        const pMin = prices.length ? Math.min(...prices) : 0;
-        const pMax = prices.length ? Math.max(...prices) : 0;
+        if (cat === 'all') {
+          catCurrentProducts = allProds.slice();
+        } else if (sub) {
+          // subcategory filter: match category AND subcategory
+          catCurrentProducts = allProds.filter(function(p) {
+            return p.category === cat && p.subcategory === sub;
+          });
+          // if no exact subcategory match, fall back to parent category
+          if (catCurrentProducts.length === 0) {
+            catCurrentProducts = allProds.filter(function(p){ return p.category === cat; });
+          }
+        } else {
+          catCurrentProducts = allProds.filter(function(p){ return p.category === cat; });
+        }
+
+        // store current filter state for re-renders after API load
+        window._ffhCurrentCat = cat;
+        window._ffhCurrentSub = sub || '';
+
+        const prices = catCurrentProducts.map(function(p){ return p.price; });
+        const pMin = prices.length ? Math.min.apply(null, prices) : 0;
+        const pMax = prices.length ? Math.max.apply(null, prices) : 0;
 
         initPriceSlider(pMin, pMax);
 
-        ['availInStock','availPreOrder','availUpComing','filterOnSale'].forEach(id => {
+        ['availInStock','availPreOrder','availUpComing','filterOnSale'].forEach(function(id) {
           const el = document.getElementById(id);
           if (el) el.checked = false;
         });
@@ -2164,33 +2196,47 @@
           }
         });
 
-        grid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
-          btn.addEventListener('click', (e) => {
+        // ─── click handlers: API products-aware ─────────────────────────
+        function _findProd(id) {
+          var src = (window._ffhApiProducts && window._ffhApiProducts.length) ? window._ffhApiProducts : products;
+          return src.find(function(pp){ return pp.id === id || pp.id === parseInt(id); });
+        }
+
+        grid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(function(btn) {
+          btn.addEventListener('click', function(e) {
             e.stopPropagation();
-            const product = products.find(pp => pp.id === parseInt(btn.dataset.id));
-            if (product) addToCart(product);
+            var prod = _findProd(btn.dataset.id);
+            if (prod && typeof addToCart === 'function') addToCart(prod);
           });
         });
 
-        grid.querySelectorAll('.product-card').forEach(card => {
-          card.addEventListener('click', (e) => {
+        grid.querySelectorAll('.product-card').forEach(function(card) {
+          card.addEventListener('click', function(e) {
             if (e.target.classList.contains('quick-add-btn') || e.target.closest('.quick-add-btn')) return;
-            showProductDetailPage(parseInt(card.dataset.id));
+            var prod = _findProd(card.dataset.id);
+            if (prod) {
+              if (typeof _ffhShowApiDetail === 'function') _ffhShowApiDetail(prod);
+              else if (typeof showProductDetailPage === 'function') showProductDetailPage(parseInt(card.dataset.id));
+            }
           });
         });
 
         if (mGrid) {
-          mGrid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
-            btn.addEventListener('click', (e) => {
+          mGrid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
               e.stopPropagation();
-              const product = products.find(pp => pp.id === parseInt(btn.dataset.id));
-              if (product) addToCart(product);
+              var prod = _findProd(btn.dataset.id);
+              if (prod && typeof addToCart === 'function') addToCart(prod);
             });
           });
-          mGrid.querySelectorAll('.product-card').forEach(card => {
-            card.addEventListener('click', (e) => {
+          mGrid.querySelectorAll('.product-card').forEach(function(card) {
+            card.addEventListener('click', function(e) {
               if (e.target.classList.contains('quick-add-btn') || e.target.closest('.quick-add-btn')) return;
-              showProductDetailPage(parseInt(card.dataset.id));
+              var prod = _findProd(card.dataset.id);
+              if (prod) {
+                if (typeof _ffhShowApiDetail === 'function') _ffhShowApiDetail(prod);
+                else if (typeof showProductDetailPage === 'function') showProductDetailPage(parseInt(card.dataset.id));
+              }
             });
           });
         }
@@ -2244,7 +2290,8 @@
         window.scrollTo({ top: 0 });
       });
 
-      window.filterByCategory = function(cat) {
+      // filterByCategory(cat, sub) — sub is optional subcategory value
+      window.filterByCategory = function(cat, sub) {
         currentCategory = cat;
 
         if (cat === 'all') {
@@ -2268,7 +2315,7 @@
           categoryTitle.innerText = titleText;
           window.scrollTo({ top: 0 });
         } else {
-          showCategoryPage(cat);
+          showCategoryPage(cat, sub || '');
         }
 
         mobileMenu.classList.remove('open');
@@ -3817,7 +3864,15 @@
   })();
 
   // পেজ রিফ্রেশ বা লোড হলে সবসময় টপে স্ক্রল করবে
-  // Scroll restore is handled by FFH_SCROLL_KEY session storage system.
+window.addEventListener('load', function() {
+  window.scrollTo(0, 0);
+});
+
+// অথবা more robust way (history scroll restoration বন্ধ করে)
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
   </script>
 <script>
 window.FFH_API = (function() {
@@ -3868,92 +3923,7 @@ function _ffhRenderDashOrders(orders) {
   if (listEl)   listEl.innerHTML   = orders.map(orderCard).join('');
 }
 
-// ─── Product Cache & Scroll Restore ───────────────────────────────────────────
-
-var FFH_CACHE_KEY      = 'ffh_products_cache';
-var FFH_CACHE_TS_KEY   = 'ffh_products_cache_ts';
-var FFH_CACHE_TTL      = 10 * 60 * 1000; // 10 মিনিট (মিলিসেকেন্ড)
-var FFH_SCROLL_KEY     = 'ffh_scroll_pos';
-var FFH_PAGE_STATE_KEY = 'ffh_page_state';
-
-// ── Scroll position save/restore ──────────────────────────────────────────────
-(function() {
-  // পেজ ছাড়ার আগে scroll ও page state সেভ করো
-  window.addEventListener('beforeunload', function() {
-    try {
-      sessionStorage.setItem(FFH_SCROLL_KEY, window.scrollY);
-      // কোন পেজটি active ছিল সেটাও সেভ করো
-      var pages = ['homePage','categoryPage','productDetailPage',
-                   'loginPage','registerPage','dashboardPage',
-                   'signInBreadcrumbPage','allCategoriesPage'];
-      var activePage = 'homePage';
-      pages.forEach(function(id) {
-        var el = document.getElementById(id);
-        if (!el) return;
-        if (el.classList.contains('active') || (id==='homePage' && !el.classList.contains('hidden'))) {
-          activePage = id;
-        }
-      });
-      sessionStorage.setItem(FFH_PAGE_STATE_KEY, activePage);
-    } catch(e) {}
-  });
-
-  // DOMContentLoaded-এ scroll restore করো
-  document.addEventListener('DOMContentLoaded', function() {
-    try {
-      var savedScroll = sessionStorage.getItem(FFH_SCROLL_KEY);
-      if (savedScroll !== null) {
-        // একটু দেরিতে restore করো যাতে পেজ render হয়ে যায়
-        setTimeout(function() {
-          window.scrollTo({ top: parseInt(savedScroll, 10), behavior: 'instant' });
-        }, 120);
-        sessionStorage.removeItem(FFH_SCROLL_KEY);
-      }
-    } catch(e) {}
-  });
-})();
-
-// ── Product cache helpers ──────────────────────────────────────────────────────
-function _ffhSaveCache(mappedList) {
-  try {
-    localStorage.setItem(FFH_CACHE_KEY,    JSON.stringify(mappedList));
-    localStorage.setItem(FFH_CACHE_TS_KEY, Date.now().toString());
-  } catch(e) {}
-}
-
-function _ffhLoadCache() {
-  try {
-    var ts   = parseInt(localStorage.getItem(FFH_CACHE_TS_KEY) || '0', 10);
-    var data = localStorage.getItem(FFH_CACHE_KEY);
-    if (data && (Date.now() - ts) < FFH_CACHE_TTL) {
-      return JSON.parse(data);
-    }
-  } catch(e) {}
-  return null;
-}
-
-function _ffhMapProducts(rawList) {
-  return rawList.map(function(p) {
-    return {
-      id:          p._id,
-      _apiId:      p._id,
-      name:        p.name,
-      price:       p.price,
-      oldPrice:    p.oldPrice  || 0,
-      saving:      p.saving    || 0,
-      img:         p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
-      images:      (p.images || []).map(function(i){ return i.url || i; }),
-      description: p.description  || '',
-      category:    p.category     || 'all',
-      subcategory: p.subcategory  || '',
-      onSale:      !!p.onSale,
-      soldOut:     !!p.soldOut,
-      featured:    !!p.featured,
-    };
-  });
-}
-
-function _ffhApplyProducts(apiMapped) {
+function _ffhApplyApiProducts(apiMapped) {
   window.apiProducts     = apiMapped;
   window._ffhApiProducts = apiMapped;
   window.products        = apiMapped;
@@ -3961,95 +3931,99 @@ function _ffhApplyProducts(apiMapped) {
   // category page আপডেট (যদি active থাকে)
   var cp = document.getElementById('categoryPage');
   if (cp && cp.classList.contains('active')) {
-    var currentCat = document.getElementById('catPageName')?.innerText || '';
-    var foundCat = Object.keys(categoryMeta).find(k => categoryMeta[k].title === currentCat);
-    if (foundCat) {
-      catCurrentProducts = foundCat === 'all' ? apiMapped : apiMapped.filter(function(p){ return p.category === foundCat; });
+    var savedCat = window._ffhCurrentCat || '';
+    var savedSub = window._ffhCurrentSub || '';
+    if (savedCat) {
+      if (savedSub) {
+        catCurrentProducts = apiMapped.filter(function(p){
+          return p.category === savedCat && p.subcategory === savedSub;
+        });
+        if (!catCurrentProducts.length)
+          catCurrentProducts = apiMapped.filter(function(p){ return p.category === savedCat; });
+      } else {
+        catCurrentProducts = savedCat === 'all' ? apiMapped.slice() : apiMapped.filter(function(p){ return p.category === savedCat; });
+      }
       var prices = catCurrentProducts.map(function(p){ return p.price; });
       var pMin = prices.length ? Math.min.apply(null, prices) : 0;
       var pMax = prices.length ? Math.max.apply(null, prices) : 0;
-      initPriceSlider(pMin, pMax);
-      applyCatFilters();
+      if (typeof initPriceSlider === 'function') initPriceSlider(pMin, pMax);
+      if (typeof applyCatFilters === 'function') applyCatFilters();
     }
   }
 
-  // filterByCategory override
-  var _origFilter = window.filterByCategory;
-  window.filterByCategory = function(cat) {
-    if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
-      if (_origFilter) _origFilter(cat);
-      setTimeout(function() {
-        var catProducts = cat === 'all'
-          ? window._ffhApiProducts
-          : window._ffhApiProducts.filter(function(p) { return p.category === cat; });
-        var catGrid   = document.getElementById('catProductGrid');
-        var catGridM  = document.getElementById('catProductGridMobile');
-        var catEmpty  = document.getElementById('catEmptyState');
-        var catEmptyM = document.getElementById('catEmptyStateMobile');
-        if (catGrid && cat !== 'all') {
-          _ffhRenderCatGrid(catProducts, catGrid, catGridM, catEmpty, catEmptyM);
-        }
-        var homeGrid = document.getElementById('productGrid');
-        if (homeGrid) _ffhRenderHomeGrid(catProducts, homeGrid);
-      }, 50);
-    } else {
-      if (_origFilter) _origFilter(cat);
-    }
-  };
-
-  // renderProductsByCategory override
-  var _origRender = window.renderProductsByCategory;
-  window.renderProductsByCategory = function(cat, searchTerm) {
-    if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
-      var filtered = window._ffhApiProducts;
-      if (cat && cat !== 'all') {
-        filtered = filtered.filter(function(p){ return p.category === cat; });
-      }
-      if (searchTerm) {
-        var q = searchTerm.toLowerCase();
-        filtered = filtered.filter(function(p){ return p.name.toLowerCase().includes(q); });
-      }
-      var homeGrid = document.getElementById('productGrid');
-      if (homeGrid) _ffhRenderHomeGrid(filtered, homeGrid);
-    } else {
-      if (_origRender) _origRender(cat, searchTerm);
-    }
-  };
-
-  // home grid রেন্ডার করো
   var homeGrid = document.getElementById('productGrid');
   if (homeGrid) _ffhRenderHomeGrid(apiMapped, homeGrid);
 }
 
 async function loadProductsFromAPI() {
-  // ── ১. Cache থেকে তাৎক্ষণিক দেখাও ──────────────────────────────────────
-  var cached = _ffhLoadCache();
-  if (cached && cached.length) {
-    _ffhApplyProducts(cached);
+  // ── ১. cache থেকে সঙ্গে সঙ্গে দেখাও ────────────────────────────────────
+  if (typeof window._ffhLoadCache === 'function') {
+    var cached = window._ffhLoadCache();
+    if (cached && cached.length) {
+      _ffhApplyApiProducts(cached);
+    }
   }
 
-  // ── ২. Background-এ API থেকে fresh data আনো ────────────────────────────
+  // ── ২. API থেকে fresh data আনো ──────────────────────────────────────────
   try {
-    var res  = await fetch(window.FFH_API + '/products?limit=200');
-    var data = await res.json();
+    const res = await fetch(window.FFH_API + '/products?limit=200');
+    const data = await res.json();
     if (!data.success || !data.data || !data.data.length) return;
 
-    var apiMapped = _ffhMapProducts(data.data);
+    var apiMapped = data.data.map(function(p, idx) {
+      return {
+        id: p._id,
+        _apiId: p._id,
+        name: p.name,
+        price: p.price,
+        oldPrice: p.oldPrice || 0,
+        saving: p.saving || 0,
+        img: p.img || (p.images && p.images[0] && (p.images[0].url || p.images[0])) || 'https://placehold.co/300x300?text=No+Image',
+        images: (p.images || []).map(function(i){ return i.url || i; }),
+        description: p.description || '',
+        category: p.category || 'all',
+        subcategory: p.subcategory || '',
+        onSale: !!p.onSale,
+        soldOut: !!p.soldOut,
+        featured: !!p.featured,
+      };
+    });
 
-    // Cache-এর সাথে তুলনা করো — পরিবর্তন থাকলেই re-render করো
-    var cachedStr = cached ? JSON.stringify(cached.map(function(p){return p.id;})) : '';
-    var freshStr  = JSON.stringify(apiMapped.map(function(p){return p.id;}));
-    var changed   = (cachedStr !== freshStr);
+    // cache-র সাথে তুলনা করে শুধু প্রয়োজনে re-render
+    var cached = (typeof window._ffhLoadCache === 'function') ? window._ffhLoadCache() : null;
+    var cachedIds = cached ? JSON.stringify(cached.map(function(p){ return p.id; })) : '';
+    var freshIds  = JSON.stringify(apiMapped.map(function(p){ return p.id; }));
 
-    _ffhSaveCache(apiMapped); // সবসময় cache আপডেট করো
+    // সবসময় cache আপডেট করো
+    if (typeof window._ffhSaveCache === 'function') window._ffhSaveCache(apiMapped);
 
-    if (!cached || changed) {
-      _ffhApplyProducts(apiMapped);
+    // পরিবর্তন থাকলেই re-render (নতুবা cache-render-ই যথেষ্ট)
+    if (!cached || cachedIds !== freshIds) {
+      _ffhApplyApiProducts(apiMapped);
     }
+
+    // renderProductsByCategory override
+    var _origRender = window.renderProductsByCategory;
+    window.renderProductsByCategory = function(cat, searchTerm) {
+      if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
+        var filtered = window._ffhApiProducts;
+        if (cat && cat !== 'all') {
+          filtered = filtered.filter(function(p){ return p.category === cat; });
+        }
+        if (searchTerm) {
+          var q = searchTerm.toLowerCase();
+          filtered = filtered.filter(function(p){ return p.name.toLowerCase().includes(q); });
+        }
+        var homeGrid = document.getElementById('productGrid');
+        if (homeGrid) _ffhRenderHomeGrid(filtered, homeGrid);
+      } else {
+        if (_origRender) _origRender(cat, searchTerm);
+      }
+    };
 
   } catch(e) {
     console.warn('[FFH] Product API unavailable:', e.message);
-    // Cache ছিল — ইতিমধ্যে দেখানো হয়েছে, কোনো সমস্যা নেই
+    // cache ইতিমধ্যে দেখানো হয়েছে — কোনো সমস্যা নেই
   }
 }
 
@@ -4365,6 +4339,9 @@ async function loadNavCategories() {
     }
   } catch(e) { }
 
+  // সব জায়গায় ব্যবহারের জন্য global-এ সংরক্ষণ করো
+  window._ffhNavCategories = cats;
+
   renderDesktopNav(cats);
   renderMobileAccordion(cats);
 }
@@ -4410,7 +4387,7 @@ function renderMobileAccordion(cats) {
     var subs   = (cat.subcategories || []);
     var subLinks = subs.length > 0
       ? subs.map(function(s) {
-          return '<a href="#" onclick="event.preventDefault();closeMobMenuAndFilter(\'' + cat.value + '\')">'
+          return '<a href="#" onclick="event.preventDefault();closeMobMenuAndFilter(\'' + cat.value + '\',\'' + s.value + '\')">'
                + '<span class="sub-dot"></span>' + s.label + '</a>';
         }).join('')
       : '<span style="padding:10px 20px 10px 52px;font-size:12px;color:#9ca3af;display:block;">কোনো সাব-ক্যাটাগরি নেই</span>';
@@ -4431,7 +4408,7 @@ function renderMobileAccordion(cats) {
 
 window.ffhNavFilter = function(catValue, subValue) {
   if (typeof filterByCategory === 'function') {
-    filterByCategory(catValue);
+    filterByCategory(catValue, subValue || '');
   }
 };
 
@@ -4443,7 +4420,47 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
- // Scroll restore is now handled by the FFH_SCROLL_KEY system above.
+ // ═══ Scroll Restore + Product Cache ═══════════════════════════════════════
+  (function() {
+    var FFH_SCROLL_KEY     = 'ffh_scroll_pos';
+    var FFH_CACHE_KEY      = 'ffh_products_cache';
+    var FFH_CACHE_TS_KEY   = 'ffh_products_ts';
+    var FFH_CACHE_TTL      = 10 * 60 * 1000; // 10 মিনিট
+
+    // ── Scroll: পেজ ছাড়ার আগে position সেভ ─────────────────────────────────
+    window.addEventListener('beforeunload', function() {
+      try { sessionStorage.setItem(FFH_SCROLL_KEY, window.scrollY); } catch(e) {}
+    });
+
+    // ── Scroll: DOMContentLoaded-এ restore ───────────────────────────────────
+    document.addEventListener('DOMContentLoaded', function() {
+      try {
+        var saved = sessionStorage.getItem(FFH_SCROLL_KEY);
+        if (saved !== null) {
+          setTimeout(function() {
+            window.scrollTo({ top: parseInt(saved, 10), behavior: 'instant' });
+          }, 150);
+          sessionStorage.removeItem(FFH_SCROLL_KEY);
+        }
+      } catch(e) {}
+    });
+
+    // ── Product Cache helpers ─────────────────────────────────────────────────
+    window._ffhSaveCache = function(list) {
+      try {
+        localStorage.setItem(FFH_CACHE_KEY,    JSON.stringify(list));
+        localStorage.setItem(FFH_CACHE_TS_KEY, Date.now().toString());
+      } catch(e) {}
+    };
+    window._ffhLoadCache = function() {
+      try {
+        var ts   = parseInt(localStorage.getItem(FFH_CACHE_TS_KEY) || '0', 10);
+        var data = localStorage.getItem(FFH_CACHE_KEY);
+        if (data && (Date.now() - ts) < FFH_CACHE_TTL) return JSON.parse(data);
+      } catch(e) {}
+      return null;
+    };
+  })();
 </script>
 </body>
 </html>
