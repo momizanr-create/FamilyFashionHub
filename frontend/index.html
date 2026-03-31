@@ -686,7 +686,7 @@
     </button>
 
     <div id="mobileMenu" class="fixed top-0 left-0 w-72 h-full bg-white shadow-2xl mobile-menu md:hidden overflow-y-auto" style="z-index:2147483646;">
-      <div class="flex items-center gap-3 px-5 py-4 bg-orange-500 cursor-pointer" id="mobileSidebarSigninBtn" onclick="(function(){ var menu=document.getElementById('mobileMenu'); var overlay=document.getElementById('menuOverlay'); var closeBtn=document.getElementById('closeMenuBtn'); if(menu) menu.classList.remove('open'); if(overlay) overlay.classList.add('hidden'); if(closeBtn){closeBtn.style.opacity='0';closeBtn.style.pointerEvents='none';} if(typeof resetAllAccordions==='function') resetAllAccordions(); if(typeof showSignInBreadcrumbPage==='function') showSignInBreadcrumbPage(); else if(typeof showLoginPage==='function') showLoginPage(); })()"  >
+      <div class="flex items-center gap-3 px-5 py-4 bg-orange-500 cursor-pointer" id="mobileSidebarSigninBtn" onclick="(function(){ var menu=document.getElementById('mobileMenu'); var overlay=document.getElementById('menuOverlay'); var closeBtn=document.getElementById('closeMenuBtn'); if(menu) menu.classList.remove('open'); if(overlay) overlay.classList.add('hidden'); if(closeBtn){closeBtn.style.opacity='0';closeBtn.style.pointerEvents='none';} if(typeof resetAllAccordions==='function') resetAllAccordions(); if(window._ffhIsLoggedIn){if(typeof openDashboard==='function')openDashboard('dashboard');}else{if(typeof showSignInBreadcrumbPage==='function') showSignInBreadcrumbPage(); else if(typeof showLoginPage==='function') showLoginPage();} })()"  >
         <div class="w-12 h-12 rounded-full bg-white/30 flex items-center justify-center flex-shrink-0">
           <i class="fas fa-user text-white text-xl"></i>
         </div>
@@ -773,8 +773,8 @@
       document.querySelectorAll('.mob-acc-icon').forEach(function(el) { el.classList.remove('open'); });
     }
 
-    function closeMobMenuAndFilter(cat, sub) {
-      if (typeof filterByCategory === 'function') filterByCategory(cat, sub || '');
+    function closeMobMenuAndFilter(cat) {
+      if (typeof filterByCategory === 'function') filterByCategory(cat);
       var menu = document.getElementById('mobileMenu');
       var overlay = document.getElementById('menuOverlay');
       var closeBtn = document.getElementById('closeMenuBtn');
@@ -2043,8 +2043,7 @@
         applyCatFilters();
       };
 
-      // ─── showCategoryPage: cat = category value, sub = subcategory value (optional)
-      function showCategoryPage(cat, sub) {
+      function showCategoryPage(cat) {
         homePage.classList.add('hidden');
         detailPage.classList.remove('active');
         detailPage.classList.add('detail-page');
@@ -2061,8 +2060,10 @@
 
         const _crs = document.getElementById('customerReviewSection');
         if (_crs) _crs.style.display = 'none';
+
         const _mf = document.getElementById('mainFooter');
         if (_mf) _mf.style.display = 'none';
+
         const _aps = document.getElementById('allProductsSection');
         if (_aps) _aps.style.display = 'none';
         const _ocs = document.getElementById('ourCollectionSection');
@@ -2072,68 +2073,35 @@
 
         window.scrollTo({ top: 0 });
 
-        if (typeof setMobileNavActive === 'function') setMobileNavActive('menu');
-
-        // ─── Meta: static map + dynamic categories from API ───────────────
-        var meta = categoryMeta[cat] || null;
-        if (!meta && window._ffhNavCategories) {
-          var found = window._ffhNavCategories.find(function(c){ return c.value === cat; });
-          if (found) meta = { title: found.label, icon: '📦', desc: '' };
+        if (typeof setMobileNavActive === 'function') {
+          setMobileNavActive('menu');
         }
-        // subcategory meta
-        var subMeta = null;
-        if (sub && window._ffhNavCategories) {
-          var fc = window._ffhNavCategories.find(function(c){ return c.value === cat; });
-          if (fc && fc.subcategories) {
-            var fs = fc.subcategories.find(function(s){ return s.value === sub; });
-            if (fs) subMeta = { title: fs.label, icon: meta ? meta.icon : '📦' };
-          }
-        }
-        var displayMeta = subMeta || meta || { title: cat, icon: '📦', desc: '' };
 
-        document.getElementById('catPageName').innerText  = displayMeta.title;
-        document.getElementById('catPageIcon').innerText  = displayMeta.icon || '📦';
-        document.getElementById('catPageTitle').innerText = displayMeta.title;
-        document.getElementById('catPageDesc').innerText  = displayMeta.desc || '';
+        const meta = { title: cat, icon: '📦', desc: '' };
 
-        const _mobTitle    = document.getElementById('catMobileTitle');
+        document.getElementById('catPageName').innerText = meta.title;
+        document.getElementById('catPageIcon').innerText = meta.icon;
+        document.getElementById('catPageTitle').innerText = meta.title;
+        document.getElementById('catPageDesc').innerText = meta.desc;
+
+        const _mobTitle = document.getElementById('catMobileTitle');
         const _mobPageName = document.getElementById('catMobilePageName');
-        if (_mobTitle)    _mobTitle.innerText    = displayMeta.title;
-        if (_mobPageName) _mobPageName.innerText = displayMeta.title;
+        if (_mobTitle) _mobTitle.innerText = meta.title;
+        if (_mobPageName) _mobPageName.innerText = meta.title;
         const mobSort = document.getElementById('catSortSelectMobile');
         if (mobSort) mobSort.value = 'default';
 
-        // ─── Use API products (with subcategory support) ──────────────────
-        var allProds = (window._ffhApiProducts && window._ffhApiProducts.length)
-                         ? window._ffhApiProducts
-                         : products;
+        catCurrentProducts = cat === 'all'
+          ? [...products]
+          : products.filter(p => p.category === cat);
 
-        if (cat === 'all') {
-          catCurrentProducts = allProds.slice();
-        } else if (sub) {
-          // subcategory filter: match category AND subcategory
-          catCurrentProducts = allProds.filter(function(p) {
-            return p.category === cat && p.subcategory === sub;
-          });
-          // if no exact subcategory match, fall back to parent category
-          if (catCurrentProducts.length === 0) {
-            catCurrentProducts = allProds.filter(function(p){ return p.category === cat; });
-          }
-        } else {
-          catCurrentProducts = allProds.filter(function(p){ return p.category === cat; });
-        }
-
-        // store current filter state for re-renders after API load
-        window._ffhCurrentCat = cat;
-        window._ffhCurrentSub = sub || '';
-
-        const prices = catCurrentProducts.map(function(p){ return p.price; });
-        const pMin = prices.length ? Math.min.apply(null, prices) : 0;
-        const pMax = prices.length ? Math.max.apply(null, prices) : 0;
+        const prices = catCurrentProducts.map(p => p.price);
+        const pMin = prices.length ? Math.min(...prices) : 0;
+        const pMax = prices.length ? Math.max(...prices) : 0;
 
         initPriceSlider(pMin, pMax);
 
-        ['availInStock','availPreOrder','availUpComing','filterOnSale'].forEach(function(id) {
+        ['availInStock','availPreOrder','availUpComing','filterOnSale'].forEach(id => {
           const el = document.getElementById(id);
           if (el) el.checked = false;
         });
@@ -2196,47 +2164,33 @@
           }
         });
 
-        // ─── click handlers: API products-aware ─────────────────────────
-        function _findProd(id) {
-          var src = (window._ffhApiProducts && window._ffhApiProducts.length) ? window._ffhApiProducts : products;
-          return src.find(function(pp){ return pp.id === id || pp.id === parseInt(id); });
-        }
-
-        grid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(function(btn) {
-          btn.addEventListener('click', function(e) {
+        grid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
+          btn.addEventListener('click', (e) => {
             e.stopPropagation();
-            var prod = _findProd(btn.dataset.id);
-            if (prod && typeof addToCart === 'function') addToCart(prod);
+            const product = products.find(pp => pp.id === parseInt(btn.dataset.id));
+            if (product) addToCart(product);
           });
         });
 
-        grid.querySelectorAll('.product-card').forEach(function(card) {
-          card.addEventListener('click', function(e) {
+        grid.querySelectorAll('.product-card').forEach(card => {
+          card.addEventListener('click', (e) => {
             if (e.target.classList.contains('quick-add-btn') || e.target.closest('.quick-add-btn')) return;
-            var prod = _findProd(card.dataset.id);
-            if (prod) {
-              if (typeof _ffhShowApiDetail === 'function') _ffhShowApiDetail(prod);
-              else if (typeof showProductDetailPage === 'function') showProductDetailPage(parseInt(card.dataset.id));
-            }
+            showProductDetailPage(parseInt(card.dataset.id));
           });
         });
 
         if (mGrid) {
-          mGrid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(function(btn) {
-            btn.addEventListener('click', function(e) {
+          mGrid.querySelectorAll('.cat-quick-add-btn:not([disabled])').forEach(btn => {
+            btn.addEventListener('click', (e) => {
               e.stopPropagation();
-              var prod = _findProd(btn.dataset.id);
-              if (prod && typeof addToCart === 'function') addToCart(prod);
+              const product = products.find(pp => pp.id === parseInt(btn.dataset.id));
+              if (product) addToCart(product);
             });
           });
-          mGrid.querySelectorAll('.product-card').forEach(function(card) {
-            card.addEventListener('click', function(e) {
+          mGrid.querySelectorAll('.product-card').forEach(card => {
+            card.addEventListener('click', (e) => {
               if (e.target.classList.contains('quick-add-btn') || e.target.closest('.quick-add-btn')) return;
-              var prod = _findProd(card.dataset.id);
-              if (prod) {
-                if (typeof _ffhShowApiDetail === 'function') _ffhShowApiDetail(prod);
-                else if (typeof showProductDetailPage === 'function') showProductDetailPage(parseInt(card.dataset.id));
-              }
+              showProductDetailPage(parseInt(card.dataset.id));
             });
           });
         }
@@ -2290,8 +2244,7 @@
         window.scrollTo({ top: 0 });
       });
 
-      // filterByCategory(cat, sub) — sub is optional subcategory value
-      window.filterByCategory = function(cat, sub) {
+      window.filterByCategory = function(cat) {
         currentCategory = cat;
 
         if (cat === 'all') {
@@ -2315,7 +2268,7 @@
           categoryTitle.innerText = titleText;
           window.scrollTo({ top: 0 });
         } else {
-          showCategoryPage(cat, sub || '');
+          showCategoryPage(cat);
         }
 
         mobileMenu.classList.remove('open');
@@ -2535,8 +2488,19 @@
 
       const loginPage = document.getElementById('loginPage');
       const registerPage = document.getElementById('registerPage');
-      let isLoggedIn = false;
-      let loggedInUser = { name: '', email: '', phone: '' };
+      // ===== SESSION FIX: রিফ্রেশে session টিকিয়ে রাখার জন্য window-এ bind করা হয়েছে =====
+      Object.defineProperty(window, 'isLoggedIn', {
+        get: function() { return window._ffhIsLoggedIn || false; },
+        set: function(v) { window._ffhIsLoggedIn = v; },
+        configurable: true
+      });
+      Object.defineProperty(window, 'loggedInUser', {
+        get: function() { return window._ffhLoggedInUser || { name: '', email: '', phone: '' }; },
+        set: function(v) { window._ffhLoggedInUser = v; },
+        configurable: true
+      });
+      window.isLoggedIn = false;
+      window.loggedInUser = { name: '', email: '', phone: '' };
       let userReviews = [];
       let pendingReview = null;
 
@@ -2574,6 +2538,11 @@
       }
 
       window.showLoginPage = function(afterLogin) {
+        // লগইন থাকলে login form না দেখিয়ে dashboard-এ যাও
+        if (window._ffhIsLoggedIn) {
+          if (typeof openDashboard === 'function') openDashboard('dashboard');
+          return;
+        }
         hideAllPages();
         var sbp = document.getElementById('signInBreadcrumbPage');
         if (sbp) { sbp.classList.remove('active'); sbp.classList.add('detail-page'); }
@@ -2604,7 +2573,7 @@
       const accountDropdown = document.getElementById('accountDropdown');
 
       signInBtnEl.addEventListener('click', () => {
-        if (!isLoggedIn) {
+        if (!window._ffhIsLoggedIn) {
           showSignInBreadcrumbPage();
         } else {
           openDashboard('dashboard');
@@ -2612,6 +2581,11 @@
       });
 
       window.showSignInBreadcrumbPage = function() {
+        // লগইন থাকলে breadcrumb/login না দেখিয়ে dashboard-এ যাও
+        if (window._ffhIsLoggedIn) {
+          if (typeof openDashboard === 'function') openDashboard('dashboard');
+          return;
+        }
         hideAllPages();
         var sbp = document.getElementById('signInBreadcrumbPage');
         if (sbp) { sbp.classList.add('active'); sbp.classList.remove('detail-page'); }
@@ -2621,7 +2595,7 @@
       const mobileSignInBtn = document.getElementById('mobileSignInBtn');
       if (mobileSignInBtn) {
         mobileSignInBtn.addEventListener('click', () => {
-          if (!isLoggedIn) showLoginPage();
+          if (!window._ffhIsLoggedIn) showLoginPage();
           else openDashboard('dashboard');
         });
       }
@@ -2777,8 +2751,8 @@
   }
 };
       window.handleLogout = function() {
-        isLoggedIn = false;
-        loggedInUser = { name: '', email: '', phone: '' };
+        window._ffhIsLoggedIn = false;
+        window._ffhLoggedInUser = { name: '', email: '', phone: '' };
         ffhUser  = null;
         ffhToken = '';
         localStorage.removeItem('ffh_user');
@@ -3775,7 +3749,7 @@
         window.scrollTo({ top: 0 });
 
       } else if (tab === 'account') {
-        if (typeof isLoggedIn !== 'undefined' && isLoggedIn) {
+        if (window._ffhIsLoggedIn) {
           if (typeof openDashboard === 'function') openDashboard('dashboard');
         } else {
           if (typeof showSignInBreadcrumbPage === 'function') showSignInBreadcrumbPage();
@@ -3885,8 +3859,11 @@ let ffhToken = localStorage.getItem('ffh_user_token') || '';
 
 function _ffhRestoreSession() {
   if (ffhUser && ffhToken) {
-    isLoggedIn = true;
-    loggedInUser = { name: ffhUser.name, email: ffhUser.email, phone: '' };
+    // IIFE-র defineProperty দিয়ে bind করা আছে
+    window._ffhIsLoggedIn = true;
+    window._ffhLoggedInUser = { name: ffhUser.name, email: ffhUser.email, phone: '' };
+
+    // ── Navbar আপডেট ──────────────────────────────────────────────────────
     const label = document.getElementById('signInLabel');
     if (label) label.textContent = ffhUser.name;
     const signBtn = document.getElementById('signInBtn');
@@ -3895,6 +3872,33 @@ function _ffhRestoreSession() {
       if (icon) icon.className = 'fas fa-user-check text-lg text-orange-600';
     }
     if (typeof updateMobileSignInUI === 'function') updateMobileSignInUI();
+
+    // ── Login/SignIn pages hide করো, home দেখাও ──────────────────────────
+    // লগইন থাকলে কখনো login form বডিতে দেখাবে না
+    var loginPg = document.getElementById('loginPage');
+    var regPg   = document.getElementById('registerPage');
+    var sbPg    = document.getElementById('signInBreadcrumbPage');
+    var homePg  = document.getElementById('homePage');
+
+    if (loginPg) { loginPg.classList.remove('active');  loginPg.classList.add('detail-page'); }
+    if (regPg)   { regPg.classList.remove('active');    regPg.classList.add('detail-page'); }
+    if (sbPg)    { sbPg.classList.remove('active');     sbPg.classList.add('detail-page'); }
+
+    // home page দেখাও — যদি অন্য কোনো real page (category/detail) active না থাকে
+    var anyOtherActive = ['categoryPage','productDetailPage','dashboardPage','allCategoriesPage']
+      .some(function(id) {
+        var el = document.getElementById(id);
+        return el && el.classList.contains('active');
+      });
+
+    if (!anyOtherActive && homePg) {
+      homePg.classList.remove('hidden');
+      ['customerReviewSection','mainFooter','allProductsSection','ourCollectionSection','organicFeatureSection']
+        .forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.style.display = '';
+        });
+    }
   }
 }
 
@@ -3923,48 +3927,7 @@ function _ffhRenderDashOrders(orders) {
   if (listEl)   listEl.innerHTML   = orders.map(orderCard).join('');
 }
 
-function _ffhApplyApiProducts(apiMapped) {
-  window.apiProducts     = apiMapped;
-  window._ffhApiProducts = apiMapped;
-  window.products        = apiMapped;
-
-  // category page আপডেট (যদি active থাকে)
-  var cp = document.getElementById('categoryPage');
-  if (cp && cp.classList.contains('active')) {
-    var savedCat = window._ffhCurrentCat || '';
-    var savedSub = window._ffhCurrentSub || '';
-    if (savedCat) {
-      if (savedSub) {
-        catCurrentProducts = apiMapped.filter(function(p){
-          return p.category === savedCat && p.subcategory === savedSub;
-        });
-        if (!catCurrentProducts.length)
-          catCurrentProducts = apiMapped.filter(function(p){ return p.category === savedCat; });
-      } else {
-        catCurrentProducts = savedCat === 'all' ? apiMapped.slice() : apiMapped.filter(function(p){ return p.category === savedCat; });
-      }
-      var prices = catCurrentProducts.map(function(p){ return p.price; });
-      var pMin = prices.length ? Math.min.apply(null, prices) : 0;
-      var pMax = prices.length ? Math.max.apply(null, prices) : 0;
-      if (typeof initPriceSlider === 'function') initPriceSlider(pMin, pMax);
-      if (typeof applyCatFilters === 'function') applyCatFilters();
-    }
-  }
-
-  var homeGrid = document.getElementById('productGrid');
-  if (homeGrid) _ffhRenderHomeGrid(apiMapped, homeGrid);
-}
-
 async function loadProductsFromAPI() {
-  // ── ১. cache থেকে সঙ্গে সঙ্গে দেখাও ────────────────────────────────────
-  if (typeof window._ffhLoadCache === 'function') {
-    var cached = window._ffhLoadCache();
-    if (cached && cached.length) {
-      _ffhApplyApiProducts(cached);
-    }
-  }
-
-  // ── ২. API থেকে fresh data আনো ──────────────────────────────────────────
   try {
     const res = await fetch(window.FFH_API + '/products?limit=200');
     const data = await res.json();
@@ -3989,20 +3952,57 @@ async function loadProductsFromAPI() {
       };
     });
 
-    // cache-র সাথে তুলনা করে শুধু প্রয়োজনে re-render
-    var cached = (typeof window._ffhLoadCache === 'function') ? window._ffhLoadCache() : null;
-    var cachedIds = cached ? JSON.stringify(cached.map(function(p){ return p.id; })) : '';
-    var freshIds  = JSON.stringify(apiMapped.map(function(p){ return p.id; }));
-
-    // সবসময় cache আপডেট করো
-    if (typeof window._ffhSaveCache === 'function') window._ffhSaveCache(apiMapped);
-
-    // পরিবর্তন থাকলেই re-render (নতুবা cache-render-ই যথেষ্ট)
-    if (!cached || cachedIds !== freshIds) {
-      _ffhApplyApiProducts(apiMapped);
+    window.apiProducts = apiMapped;
+    window._ffhApiProducts = apiMapped;
+    // IMPORTANT: also update the global 'products' variable used by category page filters
+    window.products = apiMapped; // make sure category page uses this
+    // Also set the local products variable in the main scope
+    if (typeof products !== 'undefined') {
+      // Override the products array
+      window.products = apiMapped;
+      // Also update the products variable inside the closure? Not needed because we use window.products in showCategoryPage
     }
 
-    // renderProductsByCategory override
+    // update category page product list if category page is active
+    var cp = document.getElementById('categoryPage');
+    if (cp && cp.classList.contains('active')) {
+      var currentCat = document.getElementById('catPageName')?.innerText || '';
+      var foundCat = Object.keys(categoryMeta).find(k => categoryMeta[k].title === currentCat);
+      if (foundCat) {
+        catCurrentProducts = foundCat === 'all' ? apiMapped : apiMapped.filter(p => p.category === foundCat);
+        var prices = catCurrentProducts.map(p => p.price);
+        var pMin = prices.length ? Math.min(...prices) : 0;
+        var pMax = prices.length ? Math.max(...prices) : 0;
+        initPriceSlider(pMin, pMax);
+        applyCatFilters();
+      }
+    }
+
+    var _origFilter = window.filterByCategory;
+    window.filterByCategory = function(cat) {
+      if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
+        if (_origFilter) _origFilter(cat);
+        setTimeout(function() {
+          var catProducts = cat === 'all'
+            ? window._ffhApiProducts
+            : window._ffhApiProducts.filter(function(p) { return p.category === cat; });
+          var catGrid   = document.getElementById('catProductGrid');
+          var catGridM  = document.getElementById('catProductGridMobile');
+          var catEmpty  = document.getElementById('catEmptyState');
+          var catEmptyM = document.getElementById('catEmptyStateMobile');
+          if (catGrid && cat !== 'all') {
+            _ffhRenderCatGrid(catProducts, catGrid, catGridM, catEmpty, catEmptyM);
+          }
+          var homeGrid = document.getElementById('productGrid');
+          if (homeGrid) {
+            _ffhRenderHomeGrid(catProducts, homeGrid);
+          }
+        }, 50);
+      } else {
+        if (_origFilter) _origFilter(cat);
+      }
+    };
+
     var _origRender = window.renderProductsByCategory;
     window.renderProductsByCategory = function(cat, searchTerm) {
       if (window._ffhApiProducts && window._ffhApiProducts.length > 0) {
@@ -4021,9 +4021,11 @@ async function loadProductsFromAPI() {
       }
     };
 
+    var homeGrid = document.getElementById('productGrid');
+    if (homeGrid) _ffhRenderHomeGrid(apiMapped, homeGrid);
+
   } catch(e) {
     console.warn('[FFH] Product API unavailable:', e.message);
-    // cache ইতিমধ্যে দেখানো হয়েছে — কোনো সমস্যা নেই
   }
 }
 
@@ -4339,9 +4341,6 @@ async function loadNavCategories() {
     }
   } catch(e) { }
 
-  // সব জায়গায় ব্যবহারের জন্য global-এ সংরক্ষণ করো
-  window._ffhNavCategories = cats;
-
   renderDesktopNav(cats);
   renderMobileAccordion(cats);
 }
@@ -4387,7 +4386,7 @@ function renderMobileAccordion(cats) {
     var subs   = (cat.subcategories || []);
     var subLinks = subs.length > 0
       ? subs.map(function(s) {
-          return '<a href="#" onclick="event.preventDefault();closeMobMenuAndFilter(\'' + cat.value + '\',\'' + s.value + '\')">'
+          return '<a href="#" onclick="event.preventDefault();closeMobMenuAndFilter(\'' + cat.value + '\')">'
                + '<span class="sub-dot"></span>' + s.label + '</a>';
         }).join('')
       : '<span style="padding:10px 20px 10px 52px;font-size:12px;color:#9ca3af;display:block;">কোনো সাব-ক্যাটাগরি নেই</span>';
@@ -4408,7 +4407,7 @@ function renderMobileAccordion(cats) {
 
 window.ffhNavFilter = function(catValue, subValue) {
   if (typeof filterByCategory === 'function') {
-    filterByCategory(catValue, subValue || '');
+    filterByCategory(catValue);
   }
 };
 
@@ -4417,49 +4416,22 @@ document.addEventListener('DOMContentLoaded', () => {
   loadProductsFromAPI();
   loadSiteSettings();
   loadNavCategories();
+  // রিফ্রেশের পর navbar ও sidebar UI sync করো
+  if (typeof updateMobileSignInUI === 'function') updateMobileSignInUI();
 });
 
 
- // ═══ Scroll Restore + Product Cache ═══════════════════════════════════════
-  (function() {
-    var FFH_SCROLL_KEY     = 'ffh_scroll_pos';
-    var FFH_CACHE_KEY      = 'ffh_products_cache';
-    var FFH_CACHE_TS_KEY   = 'ffh_products_ts';
-    var FFH_CACHE_TTL      = 10 * 60 * 1000; // 10 মিনিট
-
-    // ── Scroll: পেজ ছাড়ার আগে position সেভ ─────────────────────────────────
-    window.addEventListener('beforeunload', function() {
-      try { sessionStorage.setItem(FFH_SCROLL_KEY, window.scrollY); } catch(e) {}
+ (function() {
+    // ব্রাউজারের ডিফল্ট স্ক্রল রিস্টোরেশন বন্ধ করুন
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    // লোড হলে উপরে স্ক্রল করুন
+    window.addEventListener('load', function() {
+      window.scrollTo(0, 0);
     });
-
-    // ── Scroll: DOMContentLoaded-এ restore ───────────────────────────────────
-    document.addEventListener('DOMContentLoaded', function() {
-      try {
-        var saved = sessionStorage.getItem(FFH_SCROLL_KEY);
-        if (saved !== null) {
-          setTimeout(function() {
-            window.scrollTo({ top: parseInt(saved, 10), behavior: 'instant' });
-          }, 150);
-          sessionStorage.removeItem(FFH_SCROLL_KEY);
-        }
-      } catch(e) {}
-    });
-
-    // ── Product Cache helpers ─────────────────────────────────────────────────
-    window._ffhSaveCache = function(list) {
-      try {
-        localStorage.setItem(FFH_CACHE_KEY,    JSON.stringify(list));
-        localStorage.setItem(FFH_CACHE_TS_KEY, Date.now().toString());
-      } catch(e) {}
-    };
-    window._ffhLoadCache = function() {
-      try {
-        var ts   = parseInt(localStorage.getItem(FFH_CACHE_TS_KEY) || '0', 10);
-        var data = localStorage.getItem(FFH_CACHE_KEY);
-        if (data && (Date.now() - ts) < FFH_CACHE_TTL) return JSON.parse(data);
-      } catch(e) {}
-      return null;
-    };
+    // immediate effect for soft reloads
+    window.scrollTo(0, 0);
   })();
 </script>
 </body>
